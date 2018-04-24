@@ -246,8 +246,6 @@ namespace CSCZJ.API.Controllers
             return Ok("导出成功");
         }
 
-
-
         [HttpGet]
         [Route("SetPropertyConut")]
         public IHttpActionResult SetPropertyConut()
@@ -263,9 +261,6 @@ namespace CSCZJ.API.Controllers
                     var parent = _governmentService.GetGovernmentUnitById(g.ParentGovernmentId);
 
                     g.ParentName = parent.Name;
-
-
-
                 }
 
                 _governmentService.UpdateGovernmentUnit(g);
