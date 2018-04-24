@@ -205,7 +205,7 @@ namespace CSCZJ.API.Controllers
             // }
 
 
-            return Ok("finish");
+            return Ok("导入完成");
         }
 
         [HttpGet]
