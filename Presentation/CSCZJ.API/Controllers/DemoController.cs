@@ -1,0 +1,1669 @@
+﻿using Microsoft.SqlServer.Types;
+using CSCZJ.Core;
+using CSCZJ.Core.Domain.AccountUsers;
+using CSCZJ.Core.Domain.Common;
+using CSCZJ.Core.Domain.Media;
+using CSCZJ.Core.Domain.Properties;
+using CSCZJ.Core.Domain.Security;
+using CSCZJ.Services.AccountUsers;
+using CSCZJ.Services.Authentication;
+using CSCZJ.Services.Common;
+using CSCZJ.Services.Configuration;
+using CSCZJ.Services.Media;
+using CSCZJ.Services.Messages;
+using CSCZJ.Services.Property;
+using CSCZJ.Services.Security;
+using System;
+using System.Collections.Generic;
+using System.Data.Entity.Spatial;
+using System.Data.OleDb;
+using System.IO;
+using System.Linq;
+using System.Net;
+using System.Net.Http;
+using System.Text;
+using System.Web.Http;
+using Newtonsoft.Json;
+
+namespace CSCZJ.API.Controllers
+{
+    [RoutePrefix("Demo")]
+    public class DemoController : ApiController
+    {
+        private readonly IAuthenticationService _authenticationService;
+        private readonly IAccountUserService _accountUserService;
+        private readonly IAccountUserRegistrationService _accountUserRegistrationService;
+        private readonly IGenericAttributeService _genericAttributeService;
+        private readonly IWorkflowMessageService _workflowMessageService;
+        private readonly IGovernmentService _governmentService;
+        private readonly IPropertyService _propertyService;
+        private readonly IPropertyAllotService _propertyAllotService;
+        private readonly IPropertyLendService _propertyLendService;
+        private readonly IPropertyNewCreateService _propertyNewCreateService;
+        private readonly IPropertyEditService _propertyEditService;
+        private readonly IPropertyOffService _propertyOffService;
+        private readonly IPropertyRentService _propertyRentService;
+        private readonly ICopyPropertyService _copyPropertyService;
+        private readonly IEncryptionService _encryptionService;
+        private readonly IPictureService _pictureService;
+
+        private readonly IWebHelper _webHelper;
+        private readonly IWorkContext _workContext;
+        private readonly AccountUserSettings _accountUserSettings;
+        private readonly CommonSettings _commonSettings;
+        private readonly SecuritySettings _securitySettings;
+        private readonly ISettingService _settingService;
+
+        public DemoController()
+        {
+
+        }
+
+        public DemoController(IAuthenticationService authenticationService, IAccountUserService customerService,
+            IAccountUserRegistrationService customerRegistrationService,
+        IGenericAttributeService genericAttributeService,
+       IWorkflowMessageService workflowMessageService, IGovernmentService governmentService, IPropertyService propertyService,
+       IPropertyAllotService propertyAllotService, IPropertyLendService propertyLendService, IPropertyNewCreateService propertyNewCreateService,
+       IPropertyOffService propertyOffService, IPropertyRentService propertyRentService, IEncryptionService encryptionService, IPictureService pictureService,
+        IPropertyEditService propertyEditService, ICopyPropertyService copyPropertyService,
+        IWebHelper webHelper,
+            IWorkContext workContext,
+        AccountUserSettings customerSettings, CommonSettings commonSettings, SecuritySettings securitySettings, ISettingService settingService
+            )
+        {
+            _authenticationService = authenticationService;
+            _accountUserService = customerService;
+            _accountUserRegistrationService = customerRegistrationService;
+            _genericAttributeService = genericAttributeService;
+            _workflowMessageService = workflowMessageService;
+            _governmentService = governmentService;
+            _propertyService = propertyService;
+            _propertyAllotService = propertyAllotService;
+            _propertyLendService = propertyLendService;
+            _propertyNewCreateService = propertyNewCreateService;
+            _propertyEditService = propertyEditService;
+            _propertyOffService = propertyOffService;
+            _propertyRentService = propertyRentService;
+            _copyPropertyService = copyPropertyService;
+            _encryptionService = encryptionService;
+            _pictureService = pictureService;
+
+            _webHelper = webHelper;
+            _workContext = workContext;
+            _accountUserSettings = customerSettings;
+
+            _commonSettings = commonSettings;
+            _securitySettings = securitySettings;
+            _settingService = settingService;
+        }
+
+        [HttpGet]
+        [Route("settings")]
+        public IHttpActionResult GetAll()
+        {
+            _accountUserSettings.DefaultPasswordFormat = PasswordFormat.Encrypted;
+
+            _settingService.SaveSetting<AccountUserSettings>(_accountUserSettings);
+
+            _securitySettings.EncryptionKey = "qzczjwithqzghchy";
+            _settingService.SaveSetting(_securitySettings);
+
+            _commonSettings.TelAndMobliePartten = @"^(0[0-9]{2,3}\-)?([2-9][0-9]{6,7})+(\-[0-9]{1,4})?$|(^(13[0-9]|15[0|3|6|7|8|9]|18[0-9])\d{8}$)";
+            _commonSettings.Time24Partten = @"^((1|0?)[0-9]|2[0-4]):([0-5][0-9])";
+
+            _settingService.SaveSetting<CommonSettings>(_commonSettings);
+
+            _settingService.SaveSetting(new MediaSettings
+            {
+                AvatarPictureSize = 120,
+                ProductThumbPictureSize = 415,
+                ProductDetailsPictureSize = 550,
+                ProductThumbPictureSizeOnProductDetailsPage = 100,
+                AssociatedProductPictureSize = 220,
+                CategoryThumbPictureSize = 450,
+                ManufacturerThumbPictureSize = 420,
+                CartThumbPictureSize = 80,
+                MiniCartThumbPictureSize = 70,
+                AutoCompleteSearchThumbPictureSize = 20,
+                MaximumImageSize = 1980,
+                DefaultPictureZoomEnabled = false,
+                DefaultImageQuality = 80,
+                MultipleThumbDirectories = false
+            });
+
+            _settingService.SaveSetting(_accountUserSettings);
+
+            return Ok("配置保存成功");
+        }
+        [HttpGet]
+        [Route("resetpwd")]
+        public IHttpActionResult ResetPWD()
+        {
+            var users = _accountUserService.GetAllAccountUsers();
+            foreach (var user in users)
+            {
+                user.PasswordFormat = PasswordFormat.Encrypted;
+                user.Password = _encryptionService.EncryptText(user.Password);
+
+                _accountUserService.UpdateAccountUser(user);
+            }
+
+            return Ok();
+        }
+
+        [HttpGet]
+        [Route("SetLocation")]
+        public IHttpActionResult Test()
+        {
+            //var properties = _propertyService.GetAllProperties();
+            //foreach (var property in properties)
+            //{
+            //    if (property.X == 0 || property.Y == 0) continue;
+            //    //if (property.Extent != null)
+            //    //    property.WKT = property.Extent.ToString();
+            //    //else property.WKT = property.Location.ToString();
+
+            //    property.Location = DbGeography.FromText("POINT(" + property.Y + " " + property.X + ")");
+
+            //    _propertyService.UpdateProperty(property);
+            //}
+
+            // var governments = _governmentService.GetAllGovernmentUnits();
+            //List<string> names = new List<string>() ;
+            // foreach (var gov in governments)
+            // {
+            //     names.Add(gov.Name);
+            // }
+
+            // var filePath = @"D:\企业.xls";
+            // string strConn = "Provider=Microsoft.Jet.OLEDB.4.0;" + "Data Source=" + filePath + ";" + "Extended Properties=Excel 8.0;";
+            // System.Data.OleDb.OleDbConnection conn = new System.Data.OleDb.OleDbConnection(strConn);
+            // conn.Open();
+            // string strExcel = "";
+            // System.Data.OleDb.OleDbDataAdapter myCommand = null;
+            // System.Data.DataSet ds = null;
+            // strExcel = "select * from [五级$]";
+            // myCommand = new System.Data.OleDb.OleDbDataAdapter(strExcel, strConn);
+            // ds = new System.Data.DataSet();
+            // myCommand.Fill(ds, "table1");
+
+            // var table = ds.Tables[0];
+
+            // for (var i = 0; i < table.Rows.Count; i++) {
+
+            //     var row = table.Rows[i];
+            //     if (!names.Contains(row[0].ToString()))
+            //     {
+            //         GovernmentUnit goverment = new GovernmentUnit();
+            //         var g = governments.Where(m => m.Name == row[1].ToString()).FirstOrDefault();
+            //         goverment.Name = row[0].ToString();
+            //         goverment.ParentGovernmentId = g.Id;
+
+            //         _governmentService.InsertGovernmentUnit(goverment);
+            //     }
+
+            // }
+
+
+            return Ok("finish");
+        }
+
+        [HttpGet]
+        [Route("export")]
+        public IHttpActionResult Export()
+        {
+            FileStream fs = new FileStream(@"G:\导出文件.txt", FileMode.OpenOrCreate, FileAccess.ReadWrite);
+            StreamWriter sw = new StreamWriter(fs, Encoding.Default);
+            var log = "";
+            var properties = _propertyService.GetPropertiesByGId(155);
+            foreach (var property in properties)
+            {
+                //var logCount = 0; var picCount=0;
+                //var pictrues = property.Pictures;
+
+                //foreach (var pictrue in pictrues) {
+                //    if (pictrue.IsLogo == true) logCount++;
+                //    else { picCount++; }
+                //}
+                var copy = _copyPropertyService.GetCopyPropertyByPropertyId(property.Id);
+
+                if (copy == null)
+                {
+                    log = property.Id + "," + property.Name + "," + property.Address + "," + property.ConstructId + "," + property.EstateId + "," + property.LandId + "," + "0" + "," + "0" + "\r\n";
+                }
+                else
+                {
+                    if (copy.PrictureIds == null) copy.PrictureIds = "0";
+
+                    log = property.Id + "," + property.Name + "," + property.Address + "," + property.ConstructId + "," + property.EstateId + "," + property.LandId + "," + copy.PrictureIds + "," + copy.LogoPicture_Id + "\r\n";
+                }
+                sw.Write(log);
+
+            }
+            sw.Flush();
+            sw.Close();
+
+            return Ok("导出成功");
+        }
+
+
+
+        [HttpGet]
+        [Route("SetPropertyConut")]
+        public IHttpActionResult SetPropertyConut()
+        {
+
+            var goverments = _governmentService.GetAllGovernmentUnits();
+            var role = _accountUserService.GetAccountUserRoleBySystemName(SystemAccountUserRoleNames.ParentGovernmentorAuditor);
+            foreach (var g in goverments)
+            {
+                g.PropertyConut = g.Properties.Count;
+                if (g.ParentGovernmentId != 0)
+                {
+                    var parent = _governmentService.GetGovernmentUnitById(g.ParentGovernmentId);
+
+                    g.ParentName = parent.Name;
+
+
+
+                }
+
+                _governmentService.UpdateGovernmentUnit(g);
+
+                var users = g.Users;
+                foreach (var user in users)
+                {
+                    if (g.ParentGovernmentId == 0)
+                    {
+                        if (user.AccountUserRoles.Where(ur => ur.Name == SystemAccountUserRoleNames.ParentGovernmentorAuditor).Count() == 0)
+                        {
+
+                            user.AccountUserRoles.Add(role);
+                            _accountUserService.UpdateAccountUser(user);
+                        }
+                    }
+                }
+
+            }
+
+
+            return Ok("赋值完成");
+        }
+
+        [HttpGet]
+        [Route("SetRoles")]
+        public IHttpActionResult SetRoles()
+        {
+            #region 用户角色创建
+
+            var roleNames = new List<string> {
+                SystemAccountUserRoleNames.Administrators,
+                SystemAccountUserRoleNames.DataReviewer,
+                SystemAccountUserRoleNames.GovAuditor,
+                SystemAccountUserRoleNames.StateOwnerAuditor,
+                SystemAccountUserRoleNames.ParentGovernmentorAuditor,
+                SystemAccountUserRoleNames.Registered
+            };
+
+            foreach (var roleName in roleNames)
+            {
+                var role = _accountUserService.GetAccountUserRoleBySystemName(roleName);
+                if (role == null)
+                {
+                    role = new AccountUserRole
+                    {
+                        Name = roleName,
+                        Active = true,
+                        IsSystemRole = true,
+                        SystemName = roleName
+                    };
+
+                    _accountUserService.InsertAccountUserRole(role);
+                }
+            }
+            #endregion
+
+            return Ok("角色配置完成");
+        }
+
+        [HttpGet]
+        [Route("Import")]
+        public IHttpActionResult ImportCustomers()
+        {
+            //return BadRequest("导入关闭");
+
+            var filePath = System.Web.HttpContext.Current.Server.MapPath("~/App_Data/import.mdb");
+
+            var result = ReadXlsFile(filePath);
+
+            #region old code
+            #region 用户角色创建
+            //var crAdministrators = new AccountUserRole
+            //{
+            //    Name = SystemAccountUserRoleNames.Administrators,
+            //    Active = true,
+            //    IsSystemRole = true,
+            //    SystemName = "管理员"
+            //};
+
+            //var crRegistered = new AccountUserRole
+            //{
+            //    Name = SystemAccountUserRoleNames.Registered,
+            //    Active = true,
+            //    IsSystemRole = true,
+            //    SystemName = "注册单位",
+            //};
+            //var crGuests = new AccountUserRole
+            //{
+            //    Name = SystemAccountUserRoleNames.Guests,
+            //    Active = true,
+            //    IsSystemRole = true,
+            //    SystemName = "访客",
+            //};
+
+            //_accountUserService.InsertAccountUserRole(crAdministrators);
+            //_accountUserService.InsertAccountUserRole(crRegistered);
+            //_accountUserService.InsertAccountUserRole(crGuests);
+            #endregion
+
+            #region 测试组织机构
+            //var csj = _governmentService.GetGovernmentUnitById(37);
+
+            ////var cz = new GovernmentUnit
+            ////{
+            ////    Name = "市财政局",
+            ////    GovernmentType = GovernmentType.Government,
+            ////    Person = "联系人",
+            ////    Tel="0570-5062456"
+            ////};
+
+            ////var ghj = new GovernmentUnit
+            ////{
+            ////    Name = "市规划局",
+            ////    GovernmentType = GovernmentType.Government,
+            ////    Person = "规划局",
+            ////    Tel="0570-3021456"
+            ////};
+
+            ////var kcgh = new GovernmentUnit
+            ////{
+            ////    Name = "市规划局柯城分局",
+            ////    GovernmentType = GovernmentType.Government,
+            ////    Person = "市规划局柯城分局",
+            ////    Tel = "0570-3021456"
+            ////};
+
+            ////var qjfj = new GovernmentUnit
+            ////{
+            ////    Name = "市规划局衢江分局",
+            ////    GovernmentType = GovernmentType.Government,
+            ////    Person = "市规划局衢江分局",
+            ////    Tel = "0570-3021456"
+            ////};
+
+            ////var jjq = new GovernmentUnit
+            ////{
+            ////    Name = "市规划局绿色产业集聚区分局",
+            ////    GovernmentType = GovernmentType.Government,
+            ////    Person = "市规划局绿色产业集聚区分局",
+            ////    Tel = "0570-3021456"
+            ////};
+
+            ////var xq = new GovernmentUnit
+            ////{
+            ////    Name = "市规划局西区分局",
+            ////    GovernmentType = GovernmentType.Government,
+            ////    Person = "市规划局西区分局",
+            ////    Tel = "0570-3021456"
+            ////};
+
+            ////context.Set<GovernmentUnit>().AddOrUpdate(cz, ghj, kcgh, qjfj, jjq, xq);
+            #endregion
+
+            #region 用户创建
+            //var user = new AccountUser()
+            //{               
+            //    UserName = "财政局",
+            //    AccountUserGuid = Guid.NewGuid(),
+            //    Active = true,
+            //    CreatedOn = DateTime.Now,
+            //    IsSystemAccount = false,
+            //    Password = "123456",
+            //    PasswordFormat = PasswordFormat.Clear,
+            //    LastActivityDate = DateTime.Now,
+            //    Deleted = false,
+            //    UpdatedOn = DateTime.Now,
+            //    Government=csj
+            //};
+            //user.AccountUserRoles.Add(crAdministrators);
+            //user.AccountUserRoles.Add(crRegistered);
+            //_accountUserService.InsertAccountUser(user);
+
+            #endregion
+            #endregion
+
+            return Ok("导入结束\n");
+        }
+
+        [HttpGet]
+        [Route("Nextstep")]
+        public IHttpActionResult Nextstep()
+        {
+            //return BadRequest("导入关闭");
+
+            var filePath = System.Web.HttpContext.Current.Server.MapPath("~/App_Data/0601import.mdb");
+
+            var strConn = "Provider = Microsoft.Jet.OLEDB.4.0;Data Source = " + filePath;
+            System.Data.OleDb.OleDbConnection conn = new System.Data.OleDb.OleDbConnection(strConn);
+            conn.Open();
+            //string strExcel = "";
+            //System.Data.OleDb.OleDbDataAdapter myCommand = null;
+            //System.Data.DataSet ds = null;
+            //strExcel = "select * from t1";
+            //myCommand = new System.Data.OleDb.OleDbDataAdapter(strExcel, strConn);
+            //ds = new System.Data.DataSet(); myCommand.Fill(ds, "table1");
+
+            //建立SQL查询   
+            OleDbCommand odCommand = conn.CreateCommand();
+
+            //3、输入查询语句 C#操作Access之读取mdb  
+
+            odCommand.CommandText = "select * from sheet2";
+
+            //建立读取   
+            OleDbDataReader odrReader = odCommand.ExecuteReader();
+
+            //查询并显示数据   
+            int size = odrReader.FieldCount;
+
+
+            while (odrReader.Read())
+            {
+                try
+                {
+                    #region 遍历要素
+
+                    var id = odrReader[1].ToString();
+                    int result = 0;
+
+                    if (!int.TryParse(id, out result)) continue;
+
+                    var property = _propertyService.GetAllProperties().Where(p => p.DisplayOrder == result).FirstOrDefault();
+                    if (property == null) continue;
+
+                    #region 获取相关参数
+                    var name = odrReader[2].ToString();
+                    var address = odrReader[3].ToString();
+                    bool isDevelopment = odrReader[4].ToString() == "1";
+                    bool isStoreup = odrReader[5].ToString() == "1";
+                    bool isAuction = odrReader[6].ToString() == "1";
+                    bool isAdjust = odrReader[7].ToString() == "1";
+                    bool isInjectionCT = odrReader[8].ToString() == "1";
+                    bool isInjectionJT = odrReader[9].ToString() == "1";
+                    bool isGreenland = odrReader[10].ToString() == "1";
+                    bool isSelf = odrReader[11].ToString() == "1";
+                    bool isHouse = odrReader[12].ToString() == "1";
+
+                    #endregion
+
+                    //if (property.Name != name || property.Address != address)
+                    //    throw new Exception("不匹配");
+
+                    //if (isStoreup || isDevelopment)
+                    //    property.NextStepUsage = NextStepType.Storeup;
+                    //if (isAdjust)
+                    //    property.NextStepUsage = NextStepType.Adjust;
+                    //if (isAuction)
+                    //    property.NextStepUsage = NextStepType.Auction;
+                    //if (isInjectionCT)
+                    //    property.NextStepUsage = NextStepType.InjectionCT;
+                    //if (isGreenland)
+                    //    property.NextStepUsage = NextStepType.Greenland;
+                    //if (isInjectionJT)
+                    //    property.NextStepUsage = NextStepType.InjectionJT;
+                    //if (isHouse)
+                    //    property.NextStepUsage = NextStepType.House;
+                    //if (isSelf)
+                    //    property.NextStepUsage = NextStepType.Self;
+
+                    #endregion
+
+                    _propertyService.UpdateProperty(property);
+                }
+                catch (Exception e)
+                {
+
+                    //throw new Exception(string.Format("序号为 {0} 的要素异常，错误为：", id, e.Message));
+                }
+
+
+            }
+
+            //关闭连接 C#操作Access之读取mdb  
+            odrReader.Close();
+            conn.Close();
+
+
+
+            return Ok("导入结束\n");
+        }
+
+        /// <summary>
+        /// 读取xls文件
+        /// </summary>
+        /// <param name="filePath"></param>
+        public string ReadXlsFile(string filePath)
+        {
+            //var filePath = @"F:\国有资产展示系统\CSCZJ.QZStatePropertyManagementSystem\Presentation\CSCZJ.API\App_Data\import.xls";
+
+            //string strConn = "Provider=Microsoft.Jet.OLEDB.4.0;" + "Data Source=" + filePath + ";" + "Extended Properties=Excel 8.0;";
+            var strConn = "Provider = Microsoft.Jet.OLEDB.4.0;Data Source = " + filePath;
+            System.Data.OleDb.OleDbConnection conn = new System.Data.OleDb.OleDbConnection(strConn);
+            conn.Open();
+            //string strExcel = "";
+            //System.Data.OleDb.OleDbDataAdapter myCommand = null;
+            //System.Data.DataSet ds = null;
+            //strExcel = "select * from t1";
+            //myCommand = new System.Data.OleDb.OleDbDataAdapter(strExcel, strConn);
+            //ds = new System.Data.DataSet(); myCommand.Fill(ds, "table1");
+
+            //建立SQL查询   
+            OleDbCommand odCommand = conn.CreateCommand();
+
+            //3、输入查询语句 C#操作Access之读取mdb  
+
+            odCommand.CommandText = "select * from t0";
+
+            //建立读取   
+            OleDbDataReader odrReader = odCommand.ExecuteReader();
+
+            //查询并显示数据   
+            int size = odrReader.FieldCount;
+
+            StringBuilder resultSb = new StringBuilder();
+
+            while (odrReader.Read())
+            {
+
+                #region 遍历要素
+                StringBuilder sb = new StringBuilder();
+                GovernmentUnit government = null;
+                GovernmentUnit parentGovernment = null;
+
+                var id = odrReader[1].ToString();
+                int result = 0;
+
+                if (!int.TryParse(id, out result)) continue;
+
+
+                #region 获取相关参数
+                string field = "";
+
+                string governmentName = odrReader[2].ToString();
+                string parentGovernmentName = odrReader[3].ToString();
+                bool isXZ = odrReader[4].ToString() == "1";
+                bool isSY = odrReader[5].ToString() == "1";
+                bool isQY = odrReader[6].ToString() == "1";
+                string type = odrReader[7].ToString();
+                string name = odrReader[8].ToString();
+                string address = odrReader[9].ToString();
+                string construstArea = odrReader[10].ToString();
+                string landArea = odrReader[11].ToString();
+                string constructAndLand = odrReader[12].ToString();
+                string constructType = odrReader[13].ToString();
+                string landType = odrReader[14].ToString();
+                string price = odrReader[15].ToString();
+                string getedDate = odrReader[16].ToString();
+                string lifeTime = odrReader[17].ToString();
+                string usePeople = odrReader[18].ToString();
+
+                string self = odrReader[19].ToString();
+                string rent = odrReader[20].ToString();
+                string lend = odrReader[21].ToString();
+                string idle = odrReader[22].ToString();
+
+                bool isDevelopment = odrReader[23].ToString() == "1";
+                bool isStoreup = odrReader[24].ToString() == "1";
+                bool isAuction = odrReader[25].ToString() == "1";
+                bool isAdjust = odrReader[26].ToString() == "1";
+                bool isInjection = odrReader[27].ToString() == "1";
+                bool isGreenland = odrReader[28].ToString() == "1";
+                bool isSelf = odrReader[29].ToString() == "1";
+                string remark = odrReader[30].ToString();
+                string geo = odrReader[31].ToString();
+                string region = odrReader[32].ToString();
+                string hasCID = odrReader[33].ToString();
+                string hasLID = odrReader[34].ToString();
+                #endregion
+
+                #region 单位更新
+                if (parentGovernmentName != governmentName && !string.IsNullOrEmpty(parentGovernmentName))
+                {
+                    parentGovernment = _governmentService.GetGovernmentUnitByName(parentGovernmentName);
+                    if (parentGovernment == null)
+                    {
+                        parentGovernment = new GovernmentUnit
+                        {
+                            Name = parentGovernmentName,
+                            DisplayOrder = 0
+                        };
+
+                        _governmentService.InsertGovernmentUnit(parentGovernment);
+                    }
+                }
+
+                government = _governmentService.GetGovernmentUnitByName(governmentName);
+                if (government == null)
+                {
+                    government = new GovernmentUnit
+                    {
+                        Name = governmentName,
+                        DisplayOrder = 0
+                    };
+
+                    if (parentGovernment != null) government.ParentGovernmentId = parentGovernment.Id;
+                    if (isXZ) government.GovernmentType = GovernmentType.Government;
+                    if (isSY) government.GovernmentType = GovernmentType.Institution;
+                    if (isQY) government.GovernmentType = GovernmentType.Company;
+
+                    _governmentService.InsertGovernmentUnit(government);
+                }
+                else
+                {
+                    if (parentGovernment != null) government.ParentGovernmentId = parentGovernment.Id;
+                    if (isXZ) government.GovernmentType = GovernmentType.Government;
+                    if (isSY) government.GovernmentType = GovernmentType.Institution;
+                    if (isQY) government.GovernmentType = GovernmentType.Company;
+
+                    _governmentService.UpdateGovernmentUnit(government);
+                }
+                #endregion
+
+                try
+                {
+                    #region 增加资产
+
+                    #region 属性
+                    var property = new Property();
+                    property.DisplayOrder = int.Parse(id);
+
+                    if (government == null) sb.AppendLine("产权单位为空；");
+                    else property.Government = government;
+
+                    switch (type)
+                    {
+                        case "房屋": property.PropertyType = PropertyType.House; break;
+                        case "土地": property.PropertyType = PropertyType.Land; break;
+                        case "对应房屋土地": property.PropertyType = PropertyType.LandUnderHouse; break;
+                        default: property.PropertyType = PropertyType.Others; break;
+                    }
+
+                    if (string.IsNullOrEmpty(name)) { sb.AppendLine("名称为空；"); property.Name = "无名称"; }
+                    else property.Name = name;
+
+                    if (string.IsNullOrEmpty(address)) { sb.AppendLine("地址为空；"); }
+                    else property.Address = address;
+
+                    if (!string.IsNullOrWhiteSpace(construstArea)) property.ConstructArea = Convert.ToSingle(construstArea);
+                    if (!string.IsNullOrWhiteSpace(landArea)) property.LandArea = Convert.ToSingle(landArea);
+
+                    property.PropertyID = constructAndLand;
+                    //property.HasConstructID = hasCID == "有";
+                    //property.HasLandID = hasLID == "有";
+                    //property.PropertyNature = constructType;
+                    //property.LandNature = landType;
+
+                  //  if (!string.IsNullOrWhiteSpace(price)) property.Price = Convert.ToSingle(price);
+
+                    if (!string.IsNullOrEmpty(getedDate))
+                    {
+                        try
+                        {
+                            property.GetedDate = Convert.ToDateTime(getedDate); ;
+                        }
+                        catch
+                        {
+                            sb.AppendLine("取得日期格式不正确；");
+                        }
+
+                    }
+
+                 //   property.LifeTime = string.IsNullOrEmpty(lifeTime) ? 0 : int.Parse(lifeTime);
+                    property.UsedPeople = usePeople;
+
+                    //if (!string.IsNullOrWhiteSpace(self)) property.CurrentUse_Self = Convert.ToSingle(self);
+                    //if (!string.IsNullOrWhiteSpace(rent)) property.CurrentUse_Rent = Convert.ToSingle(rent);
+                    //if (!string.IsNullOrWhiteSpace(lend)) property.CurrentUse_Lend = Convert.ToSingle(lend);
+                    //if (!string.IsNullOrWhiteSpace(idle)) property.CurrentUse_Idle = Convert.ToSingle(idle);
+
+                    if (Convert.ToInt32(isDevelopment) + Convert.ToInt32(isAuction) + Convert.ToInt32(isAdjust)
+                          + Convert.ToInt32(isInjection) + Convert.ToInt32(isGreenland) + Convert.ToInt32(isSelf) > 1)
+                    {
+                        sb.AppendLine("下一步操作有重复；");
+                    }
+                    else
+                    {
+                        //if (isDevelopment) property.NextStepUsage = NextStepType.Development;
+                        //if (isStoreup) property.NextStepUsage = NextStepType.Storeup;
+                        //if (isAuction) property.NextStepUsage = NextStepType.Auction;
+                        //if (isAdjust) property.NextStepUsage = NextStepType.Adjust;
+                        //if (isInjection) property.NextStepUsage = NextStepType.InjectionJT;
+                        //if (isGreenland) property.NextStepUsage = NextStepType.Greenland;
+                        //if (isSelf) property.NextStepUsage = NextStepType.Self;
+                    }
+                    #endregion
+
+
+                    string wkt = "";
+
+                    DbGeography graphy = null;
+
+                    List<Point> points = new List<Point>();
+
+                    try
+                    {
+                        if (!geo.StartsWith("[")) geo = "[" + geo + "]";
+
+                        points = Newtonsoft.Json.JsonConvert.DeserializeObject<List<Point>>(geo);
+
+                        StringBuilder wktsb = new StringBuilder();
+
+                        //末尾加上起点闭合多边形
+                        if (points.Count > 1) points.Add(points[0]);
+
+                        foreach (var point in points)
+                        {
+                            if (point.lng < point.lat)
+                            {
+                                var t = point.lng;
+                                point.lng = point.lat;
+                                point.lat = t;
+                            }
+                            wktsb.AppendLine(string.Format("{0} {1},", point.lng, point.lat));
+                        }
+
+                        if (points.Count == 1 || points.Count == 2)
+                        {
+                            wkt = string.Format("POINT({0})", wktsb.ToString().TrimEnd(','));
+                        }
+                        else
+                        {
+                            wkt = string.Format("POLYGON(({0}))", wktsb.ToString().TrimEnd(','));
+                        }
+                        property.WKT = wkt;
+                        SqlGeography sqlGeography = SqlGeography.Parse(wkt).MakeValid();
+                        graphy = DbGeography.FromText(sqlGeography.ToString());
+                    }
+                    catch (Exception e)
+                    {
+                        if (points.Count > 0)
+                            property.Location = DbGeography.FromText(string.Format("POINT({0} {1})", points[0].lng, points[1].lat));
+                    }
+                    finally
+                    {
+                        if (graphy == null)
+                        {
+                            sb.AppendLine("坐标格式有误，无法生成几何图形；");
+
+                            property.Location = DbGeography.FromText("POINT(118.52 28.88)");
+                        }
+                        else
+                        {
+                            try
+                            {
+                                if (graphy.PointCount > 1)
+                                {
+                                    if (graphy.PointCount == 2) property.Location = graphy.PointAt(1);
+                                    else
+                                    {
+                                        property.Extent = graphy;
+
+                                        DbGeometry geometry = DbGeometry.FromText(graphy.ToString().Replace("SRID=4326;", ""));
+                                        if (geometry.Centroid != null)
+                                            property.Location = DbGeography.FromText(string.Format("POINT({0} {1})", geometry.Centroid.XCoordinate, geometry.Centroid.YCoordinate));
+                                        else
+                                            property.Location = graphy.PointAt(1);
+                                    }
+                                }
+                                else property.Location = graphy;
+                            }
+                            catch
+                            {
+                                property.Location = DbGeography.FromText("POINT(118.52 28.88)");
+                            }
+                        }
+
+                        property.X = property.Location.Longitude.Value;
+                        property.Y = property.Location.Latitude.Value;
+                    }
+
+                    switch (region)
+                    {
+                        case "老城区": property.Region = Region.OldCity; break;
+                        case "西区": property.Region = Region.West; break;
+                        case "集聚区": property.Region = Region.Clusters; break;
+                        case "柯城区": property.Region = Region.KC; break;
+                        case "衢江区": property.Region = Region.QJ; break;
+                        default: property.Region = Region.Others; break;
+                    }
+
+                    property.Description = remark;
+                    property.Error = sb.ToString();
+
+                    _propertyService.InsertProperty(property);
+
+                    #endregion
+                }
+                catch (Exception e)
+                {
+                    resultSb.AppendLine(string.Format("序号为 {0} 的要素异常，错误为：{1}\n", id,
+                        string.IsNullOrEmpty(e.Message) ? e.InnerException.Message : e.Message));
+                    //throw new Exception(string.Format("序号为 {0} 的要素异常，错误为：", id, e.Message));
+                }
+
+                #endregion
+
+            }
+
+            //关闭连接 C#操作Access之读取mdb  
+            odrReader.Close();
+            conn.Close();
+
+
+            return resultSb.ToString();
+        }
+
+        [HttpGet]
+        [Route("InsertHSGS")]
+        public IHttpActionResult InsertHSGS()
+        {
+            return Ok("closed");
+
+//            #region MyRegion
+//            var properties = new List<Property>() {
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇维拉小镇1幢1单元101室",Address="维拉小镇维拉小镇1幢1单元101室",ConstructArea=70.73,LandArea=15.33,EstateId="衢市不动产权0020344号",PropertyNature="公共租赁",LandNature="出让",Price=12.73,GetedDate=Convert.ToDateTime("2017/4/21"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self=    70.73   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇维拉小镇1幢1单元102室",Address="维拉小镇维拉小镇1幢1单元102室",ConstructArea=54.15,LandArea=11.74,EstateId="衢市不动产权0019622号",PropertyNature="公共租赁",LandNature="出让",Price=9.75,GetedDate=Convert.ToDateTime("2017/4/18"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self= 54.15   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇维拉小镇1幢2单元101室",Address="维拉小镇维拉小镇1幢2单元101室",ConstructArea=54.15,LandArea=11.74,EstateId="衢市不动产权0019542号",PropertyNature="公共租赁",LandNature="出让",Price=9.75,GetedDate=Convert.ToDateTime("2017/4/18"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self= 54.15   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇维拉小镇1幢2单元102室",Address="维拉小镇维拉小镇1幢2单元102室",ConstructArea=69.96,LandArea=15.17,EstateId="衢市不动产权0020806号",PropertyNature="公共租赁",LandNature="出让",Price=12.59,GetedDate=Convert.ToDateTime("2017/4/24"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self=    69.96   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇维拉小镇1幢3单元101室",Address="维拉小镇维拉小镇1幢3单元101室",ConstructArea=69.96,LandArea=15.17,EstateId="衢市不动产权0019938号",PropertyNature="公共租赁",LandNature="出让",Price=12.59,GetedDate=Convert.ToDateTime("2017/4/19"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self=    69.96   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇维拉小镇1幢3单元102室",Address="维拉小镇维拉小镇1幢3单元102室",ConstructArea=54.15,LandArea=11.74,EstateId="衢市不动产权0020686号",PropertyNature="公共租赁",LandNature="出让",Price=9.75,GetedDate=Convert.ToDateTime("2017/4/24"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self= 54.15   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇维拉小镇1幢4单元101室",Address="维拉小镇维拉小镇1幢4单元101室",ConstructArea=54.15,LandArea=11.74,EstateId="衢市不动产权0020692号",PropertyNature="公共租赁",LandNature="出让",Price=9.75,GetedDate=Convert.ToDateTime("2017/4/24"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self= 54.15   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇维拉小镇1幢4单元102室",Address="维拉小镇维拉小镇1幢4单元102室",ConstructArea=70.73,LandArea=15.33,EstateId="衢市不动产权0020811号",PropertyNature="公共租赁",LandNature="出让",Price=12.73,GetedDate=Convert.ToDateTime("2017/4/24"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self=    70.73   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇维拉小镇1幢1单元201室",Address="维拉小镇维拉小镇1幢1单元201室",ConstructArea=70.73,LandArea=15.33,EstateId="衢市不动产权0020688号",PropertyNature="公共租赁",LandNature="出让",Price=12.73,GetedDate=Convert.ToDateTime("2017/4/24"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self=    70.73   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇维拉小镇1幢1单元202室",Address="维拉小镇维拉小镇1幢1单元202室",ConstructArea=54.15,LandArea=11.74,EstateId="衢市不动产权0019618号",PropertyNature="公共租赁",LandNature="出让",Price=9.75,GetedDate=Convert.ToDateTime("2017/4/18"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self= 54.15   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇维拉小镇1幢2单元201室",Address="维拉小镇维拉小镇1幢2单元201室",ConstructArea=54.15,LandArea=11.74,EstateId="衢市不动产权0020940号",PropertyNature="公共租赁",LandNature="出让",Price=9.75,GetedDate=Convert.ToDateTime("2017/4/24"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self= 54.15   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇维拉小镇1幢2单元202室",Address="维拉小镇维拉小镇1幢2单元202室",ConstructArea=69.96,LandArea=15.17,EstateId="衢市不动产权0020677号",PropertyNature="公共租赁",LandNature="出让",Price=12.59,GetedDate=Convert.ToDateTime("2017/4/24"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self=    69.96   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇维拉小镇1幢3单元201室",Address="维拉小镇维拉小镇1幢3单元201室",ConstructArea=69.96,LandArea=15.17,EstateId="衢市不动产权0019829号",PropertyNature="公共租赁",LandNature="出让",Price=12.59,GetedDate=Convert.ToDateTime("2017/4/19"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self=    69.96   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇维拉小镇1幢3单元202室",Address="维拉小镇维拉小镇1幢3单元202室",ConstructArea=54.15,LandArea=11.74,EstateId="衢市不动产权0019736号",PropertyNature="公共租赁",LandNature="出让",Price=9.75,GetedDate=Convert.ToDateTime("2017/4/19"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self= 54.15   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇维拉小镇1幢4单元201室",Address="维拉小镇维拉小镇1幢4单元201室",ConstructArea=54.15,LandArea=11.74,EstateId="衢市不动产权0020718号",PropertyNature="公共租赁",LandNature="出让",Price=9.75,GetedDate=Convert.ToDateTime("2017/4/24"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self= 54.15   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇维拉小镇1幢4单元202室",Address="维拉小镇维拉小镇1幢4单元202室",ConstructArea=70.73,LandArea=15.33,EstateId="衢市不动产权0020625号",PropertyNature="公共租赁",LandNature="出让",Price=12.73,GetedDate=Convert.ToDateTime("2017/4/24"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self=    70.73   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇维拉小镇1幢1单元301室",Address="维拉小镇维拉小镇1幢1单元301室",ConstructArea=70.73,LandArea=15.33,EstateId="衢市不动产权0020696号",PropertyNature="公共租赁",LandNature="出让",Price=12.73,GetedDate=Convert.ToDateTime("2017/4/24"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self=    70.73   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇维拉小镇1幢1单元302室",Address="维拉小镇维拉小镇1幢1单元302室",ConstructArea=54.15,LandArea=11.74,EstateId="衢市不动产权0019666号",PropertyNature="公共租赁",LandNature="出让",Price=9.75,GetedDate=Convert.ToDateTime("2017/4/18"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self= 54.15   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇维拉小镇1幢2单元301室",Address="维拉小镇维拉小镇1幢2单元301室",ConstructArea=54.15,LandArea=11.74,EstateId="衢市不动产权0020594号",PropertyNature="公共租赁",LandNature="出让",Price=9.75,GetedDate=Convert.ToDateTime("2017/4/24"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self= 54.15   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇维拉小镇1幢2单元302室",Address="维拉小镇维拉小镇1幢2单元302室",ConstructArea=69.96,LandArea=15.17,EstateId="衢市不动产权0020673号",PropertyNature="公共租赁",LandNature="出让",Price=12.59,GetedDate=Convert.ToDateTime("2017/4/24"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self=    69.96   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇维拉小镇1幢3单元301室",Address="维拉小镇维拉小镇1幢3单元301室",ConstructArea=69.96,LandArea=15.17,EstateId="衢市不动产权0019784号",PropertyNature="公共租赁",LandNature="出让",Price=12.59,GetedDate=Convert.ToDateTime("2017/4/19"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self=    69.96   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇维拉小镇1幢3单元302室",Address="维拉小镇维拉小镇1幢3单元302室",ConstructArea=54.15,LandArea=11.74,EstateId="衢市不动产权0019676号",PropertyNature="公共租赁",LandNature="出让",Price=9.75,GetedDate=Convert.ToDateTime("2017/4/18"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self= 54.15   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇维拉小镇1幢4单元301室",Address="维拉小镇维拉小镇1幢4单元301室",ConstructArea=54.15,LandArea=11.74,EstateId="衢市不动产权0020721号",PropertyNature="公共租赁",LandNature="出让",Price=9.75,GetedDate=Convert.ToDateTime("2017/4/24"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self= 54.15   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇维拉小镇1幢4单元302室",Address="维拉小镇维拉小镇1幢4单元302室",ConstructArea=70.73,LandArea=15.33,EstateId="衢市不动产权0020681号",PropertyNature="公共租赁",LandNature="出让",Price=12.73,GetedDate=Convert.ToDateTime("2017/4/24"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self=    70.73   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇维拉小镇1幢1单元401室",Address="维拉小镇维拉小镇1幢1单元401室",ConstructArea=70.73,LandArea=15.33,EstateId="衢市不动产权0019572号",PropertyNature="公共租赁",LandNature="出让",Price=12.73,GetedDate=Convert.ToDateTime("2017/4/18"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self=    70.73   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇维拉小镇1幢1单元402室",Address="维拉小镇维拉小镇1幢1单元402室",ConstructArea=54.15,LandArea=11.74,EstateId="衢市不动产权0019667号",PropertyNature="公共租赁",LandNature="出让",Price=9.75,GetedDate=Convert.ToDateTime("2017/4/18"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self= 54.15   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇维拉小镇1幢2单元401室",Address="维拉小镇维拉小镇1幢2单元401室",ConstructArea=54.15,LandArea=11.74,EstateId="衢市不动产权0020612号",PropertyNature="公共租赁",LandNature="出让",Price=9.75,GetedDate=Convert.ToDateTime("2017/4/24"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self= 54.15   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇维拉小镇1幢2单元402室",Address="维拉小镇维拉小镇1幢2单元402室",ConstructArea=69.96,LandArea=15.17,EstateId="衢市不动产权0020693号",PropertyNature="公共租赁",LandNature="出让",Price=12.59,GetedDate=Convert.ToDateTime("2017/4/24"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self=    69.96   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇1幢3单元401室",Address="维拉小镇1幢3单元401室",ConstructArea=69.96,LandArea=15.17,EstateId="衢市不动产权0019747号",PropertyNature="公共租赁",LandNature="出让",Price=12.59,GetedDate=Convert.ToDateTime("2017/4/19"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self=    69.96   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇1幢3单元402室",Address="维拉小镇1幢3单元402室",ConstructArea=54.15,LandArea=11.74,EstateId="衢市不动产权0020331号",PropertyNature="公共租赁",LandNature="出让",Price=9.75,GetedDate=Convert.ToDateTime("2017/4/21"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self= 54.15   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇1幢4单元401室",Address="维拉小镇1幢4单元401室",ConstructArea=54.15,LandArea=11.74,EstateId="衢市不动产权0020808号",PropertyNature="公共租赁",LandNature="出让",Price=9.75,GetedDate=Convert.ToDateTime("2017/4/24"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self= 54.15   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇1幢4单元402室",Address="维拉小镇1幢4单元402室",ConstructArea=70.73,LandArea=15.33,EstateId="衢市不动产权0020603号",PropertyNature="公共租赁",LandNature="出让",Price=12.73,GetedDate=Convert.ToDateTime("2017/4/24"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self=    70.73   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇1幢1单元501室",Address="维拉小镇1幢1单元501室",ConstructArea=70.73,LandArea=15.33,EstateId="衢市不动产权0019559号",PropertyNature="公共租赁",LandNature="出让",Price=12.73,GetedDate=Convert.ToDateTime("2017/4/18"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self=    70.73   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇1幢1单元502室",Address="维拉小镇1幢1单元502室",ConstructArea=54.15,LandArea=11.74,EstateId="衢市不动产权0019557号",PropertyNature="公共租赁",LandNature="出让",Price=9.75,GetedDate=Convert.ToDateTime("2017/4/18"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self= 54.15   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇1幢2单元501室",Address="维拉小镇1幢2单元501室",ConstructArea=54.15,LandArea=11.74,EstateId="衢市不动产权0020938号",PropertyNature="公共租赁",LandNature="出让",Price=9.75,GetedDate=Convert.ToDateTime("2017/4/24"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self= 54.15   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇1幢2单元502室",Address="维拉小镇1幢2单元502室",ConstructArea=69.96,LandArea=15.17,EstateId="衢市不动产权0020690号",PropertyNature="公共租赁",LandNature="出让",Price=12.59,GetedDate=Convert.ToDateTime("2017/4/24"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self=    69.96   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇1幢3单元501室",Address="维拉小镇1幢3单元501室",ConstructArea=69.96,LandArea=15.17,EstateId="衢市不动产权0019763号",PropertyNature="公共租赁",LandNature="出让",Price=12.59,GetedDate=Convert.ToDateTime("2017/4/19"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self=    69.96   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇1幢3单元502室",Address="维拉小镇1幢3单元502室",ConstructArea=54.15,LandArea=11.74,EstateId="衢市不动产权0019928号",PropertyNature="公共租赁",LandNature="出让",Price=9.75,GetedDate=Convert.ToDateTime("2017/4/19"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self= 54.15   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇1幢4单元501室",Address="维拉小镇1幢4单元501室",ConstructArea=54.15,LandArea=11.74,EstateId="衢市不动产权0020810号",PropertyNature="公共租赁",LandNature="出让",Price=9.75,GetedDate=Convert.ToDateTime("2017/4/24"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self= 54.15   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇1幢4单元502室",Address="维拉小镇1幢4单元502室",ConstructArea=70.73,LandArea=15.33,EstateId="衢市不动产权0020602号",PropertyNature="公共租赁",LandNature="出让",Price=12.73,GetedDate=Convert.ToDateTime("2017/4/24"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self=    70.73   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇2幢1单元101室",Address="维拉小镇2幢1单元101室",ConstructArea=70.73,LandArea=15.33,EstateId="衢市不动产权0017616号",PropertyNature="公共租赁",LandNature="出让",Price=12.73,GetedDate=Convert.ToDateTime("2017/4/10"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self=    70.73   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇2幢1单元102室",Address="维拉小镇2幢1单元102室",ConstructArea=54.15,LandArea=11.73,EstateId="衢市不动产权0018312号",PropertyNature="公共租赁",LandNature="出让",Price=9.75,GetedDate=Convert.ToDateTime("2017/4/12"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self= 54.15   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇2幢2单元101室",Address="维拉小镇2幢2单元101室",ConstructArea=54.15,LandArea=11.73,EstateId="衢市不动产权0017691号",PropertyNature="公共租赁",LandNature="出让",Price=9.75,GetedDate=Convert.ToDateTime("2017/4/18"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self= 54.15   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇2幢2单元102室",Address="维拉小镇2幢2单元102室",ConstructArea=69.96,LandArea=15.16,EstateId="衢市不动产权0017672号",PropertyNature="公共租赁",LandNature="出让",Price=12.59,GetedDate=Convert.ToDateTime("2017/4/10"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self=    69.96   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇2幢3单元101室",Address="维拉小镇2幢3单元101室",ConstructArea=69.96,LandArea=15.16,EstateId="衢市不动产权0018251号",PropertyNature="公共租赁",LandNature="出让",Price=12.59,GetedDate=Convert.ToDateTime("2017/4/11"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self=    69.96   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇2幢3单元102室",Address="维拉小镇2幢3单元102室",ConstructArea=54.15,LandArea=11.73,EstateId="衢市不动产权0017665号",PropertyNature="公共租赁",LandNature="出让",Price=9.75,GetedDate=Convert.ToDateTime("2017/4/10"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self= 54.15   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇2幢4单元101室",Address="维拉小镇2幢4单元101室",ConstructArea=54.15,LandArea=11.73,EstateId="衢市不动产权0018306号",PropertyNature="公共租赁",LandNature="出让",Price=9.75,GetedDate=Convert.ToDateTime("2017/4/12"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self= 54.15   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇2幢4单元102室",Address="维拉小镇2幢4单元102室",ConstructArea=70.73,LandArea=15.33,EstateId="衢市不动产权0018179号",PropertyNature="公共租赁",LandNature="出让",Price=12.73,GetedDate=Convert.ToDateTime("2017/4/11"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self=    70.73   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇2幢1单元201室",Address="维拉小镇2幢1单元201室",ConstructArea=70.73,LandArea=15.33,EstateId="衢市不动产权0018174号",PropertyNature="公共租赁",LandNature="出让",Price=12.73,GetedDate=Convert.ToDateTime("2017/4/11"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self=    70.73   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇2幢1单元202室",Address="维拉小镇2幢1单元202室",ConstructArea=54.15,LandArea=11.73,EstateId="衢市不动产权0018311号",PropertyNature="公共租赁",LandNature="出让",Price=9.75,GetedDate=Convert.ToDateTime("2017/4/12"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self= 54.15   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇2幢2单元201室",Address="维拉小镇2幢2单元201室",ConstructArea=54.15,LandArea=11.73,EstateId="衢市不动产权0017694号",PropertyNature="公共租赁",LandNature="出让",Price=9.75,GetedDate=Convert.ToDateTime("2017/4/10"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self= 54.15   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇2幢2单元202室",Address="维拉小镇2幢2单元202室",ConstructArea=69.96,LandArea=15.16,EstateId="衢市不动产权0018314号",PropertyNature="公共租赁",LandNature="出让",Price=12.59,GetedDate=Convert.ToDateTime("2017/4/12"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self=    69.96   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇2幢3单元201室",Address="维拉小镇2幢3单元201室",ConstructArea=69.96,LandArea=15.16,EstateId="衢市不动产权0018268号",PropertyNature="公共租赁",LandNature="出让",Price=12.59,GetedDate=Convert.ToDateTime("2017/4/11"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self=    69.96   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇2幢3单元202室",Address="维拉小镇2幢3单元202室",ConstructArea=54.15,LandArea=11.73,EstateId="衢市不动产权0018271号",PropertyNature="公共租赁",LandNature="出让",Price=9.75,GetedDate=Convert.ToDateTime("2017/4/11"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self= 54.15   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇2幢4单元201室",Address="维拉小镇2幢4单元201室",ConstructArea=54.15,LandArea=11.73,EstateId="衢市不动产权0018223号",PropertyNature="公共租赁",LandNature="出让",Price=9.75,GetedDate=Convert.ToDateTime("2017/4/11"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self= 54.15   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇2幢4单元202室",Address="维拉小镇2幢4单元202室",ConstructArea=70.73,LandArea=15.33,EstateId="衢市不动产权0018196号",PropertyNature="公共租赁",LandNature="出让",Price=12.73,GetedDate=Convert.ToDateTime("2017/4/11"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self=    70.73   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇2幢1单元301室",Address="维拉小镇2幢1单元301室",ConstructArea=70.73,LandArea=15.33,EstateId="衢市不动产权0017618号",PropertyNature="公共租赁",LandNature="出让",Price=12.73,GetedDate=Convert.ToDateTime("2017/4/10"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self=    70.73   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇2幢1单元302室",Address="维拉小镇2幢1单元302室",ConstructArea=54.15,LandArea=11.73,EstateId="衢市不动产权0017626号",PropertyNature="公共租赁",LandNature="出让",Price=9.75,GetedDate=Convert.ToDateTime("2017/4/10"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self= 54.15   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇2幢2单元301室",Address="维拉小镇2幢2单元301室",ConstructArea=54.15,LandArea=11.73,EstateId="衢市不动产权0017714号",PropertyNature="公共租赁",LandNature="出让",Price=9.75,GetedDate=Convert.ToDateTime("2017/4/10"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self= 54.15   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇2幢2单元302室",Address="维拉小镇2幢2单元302室",ConstructArea=69.96,LandArea=15.17,EstateId="衢市不动产权0017675号",PropertyNature="公共租赁",LandNature="出让",Price=12.59,GetedDate=Convert.ToDateTime("2017/4/10"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self=    69.96   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇2幢3单元301室",Address="维拉小镇2幢3单元301室",ConstructArea=69.96,LandArea=15.16,EstateId="衢市不动产权0017701号",PropertyNature="公共租赁",LandNature="出让",Price=12.59,GetedDate=Convert.ToDateTime("2017/4/10"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self=    69.96   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇2幢3单元302室",Address="维拉小镇2幢3单元302室",ConstructArea=54.15,LandArea=11.73,EstateId="衢市不动产权0018272号",PropertyNature="公共租赁",LandNature="出让",Price=9.75,GetedDate=Convert.ToDateTime("2017/4/11"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self= 54.15   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇2幢4单元301室",Address="维拉小镇2幢4单元301室",ConstructArea=54.15,LandArea=11.73,EstateId="衢市不动产权0018308号",PropertyNature="公共租赁",LandNature="出让",Price=9.75,GetedDate=Convert.ToDateTime("2017/4/12"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self= 54.15   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇2幢4单元302室",Address="维拉小镇2幢4单元302室",ConstructArea=70.73,LandArea=15.33,EstateId="衢市不动产权0018253号",PropertyNature="公共租赁",LandNature="出让",Price=12.73,GetedDate=Convert.ToDateTime("2017/4/11"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self=    70.73   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇2幢1单元401室",Address="维拉小镇2幢1单元401室",ConstructArea=70.73,LandArea=15.33,EstateId="衢市不动产权0017619号",PropertyNature="公共租赁",LandNature="出让",Price=12.73,GetedDate=Convert.ToDateTime("2017/4/10"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self=    70.73   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇2幢1单元402室",Address="维拉小镇2幢1单元402室",ConstructArea=54.15,LandArea=11.73,EstateId="衢市不动产权0017630号",PropertyNature="公共租赁",LandNature="出让",Price=9.75,GetedDate=Convert.ToDateTime("2017/4/10"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self= 54.15   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇2幢2单元401室",Address="维拉小镇2幢2单元401室",ConstructArea=54.15,LandArea=11.73,EstateId="衢市不动产权0018172号",PropertyNature="公共租赁",LandNature="出让",Price=9.75,GetedDate=Convert.ToDateTime("2017/4/11"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self= 54.15   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇2幢2单元402室",Address="维拉小镇2幢2单元402室",ConstructArea=69.96,LandArea=15.16,EstateId="衢市不动产权0017669号",PropertyNature="公共租赁",LandNature="出让",Price=12.59,GetedDate=Convert.ToDateTime("2017/4/10"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self=    69.96   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇2幢3单元401室",Address="维拉小镇2幢3单元401室",ConstructArea=69.96,LandArea=15.16,EstateId="衢市不动产权0018269号",PropertyNature="公共租赁",LandNature="出让",Price=12.59,GetedDate=Convert.ToDateTime("2017/4/11"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self=    69.96   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇2幢3单元402室",Address="维拉小镇2幢3单元402室",ConstructArea=54.15,LandArea=11.73,EstateId="衢市不动产权0018316号",PropertyNature="公共租赁",LandNature="出让",Price=9.75,GetedDate=Convert.ToDateTime("2017/4/12"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self= 54.15   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇2幢4单元401室",Address="维拉小镇2幢4单元401室",ConstructArea=54.15,LandArea=11.73,EstateId="衢市不动产权0018307号",PropertyNature="公共租赁",LandNature="出让",Price=9.75,GetedDate=Convert.ToDateTime("2017/4/12"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self= 54.15   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇2幢4单元402室",Address="维拉小镇2幢4单元402室",ConstructArea=70.73,LandArea=15.33,EstateId="衢市不动产权0018303号",PropertyNature="公共租赁",LandNature="出让",Price=12.73,GetedDate=Convert.ToDateTime("2017/4/12"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self=    70.73   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇2幢1单元501室",Address="维拉小镇2幢1单元501室",ConstructArea=70.73,LandArea=15.33,EstateId="衢市不动产权0017624号",PropertyNature="公共租赁",LandNature="出让",Price=12.73,GetedDate=Convert.ToDateTime("2017/4/10"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self=    70.73   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇2幢1单元502室",Address="维拉小镇2幢1单元502室",ConstructArea=54.15,LandArea=11.73,EstateId="衢市不动产权0017697号",PropertyNature="公共租赁",LandNature="出让",Price=9.75,GetedDate=Convert.ToDateTime("2017/4/10"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self= 54.15   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇2幢2单元501室",Address="维拉小镇2幢2单元501室",ConstructArea=54.15,LandArea=11.73,EstateId="衢市不动产权0018309号",PropertyNature="公共租赁",LandNature="出让",Price=9.75,GetedDate=Convert.ToDateTime("2017/4/12"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self= 54.15   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇2幢2单元502室",Address="维拉小镇2幢2单元502室",ConstructArea=69.96,LandArea=15.16,EstateId="衢市不动产权0017678号",PropertyNature="公共租赁",LandNature="出让",Price=12.59,GetedDate=Convert.ToDateTime("2017/4/10"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self=    69.96   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇2幢3单元501室",Address="维拉小镇2幢3单元501室",ConstructArea=69.96,LandArea=15.16,EstateId="衢市不动产权0017703号",PropertyNature="公共租赁",LandNature="出让",Price=12.59,GetedDate=Convert.ToDateTime("2017/4/10"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self=    69.96   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇2幢3单元502室",Address="维拉小镇2幢3单元502室",ConstructArea=54.15,LandArea=11.73,EstateId="衢市不动产权0018273号",PropertyNature="公共租赁",LandNature="出让",Price=9.75,GetedDate=Convert.ToDateTime("2017/4/11"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self= 54.15   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇2幢4单元501室",Address="维拉小镇2幢4单元501室",ConstructArea=54.15,LandArea=11.73,EstateId="衢市不动产权0018246号",PropertyNature="公共租赁",LandNature="出让",Price=9.75,GetedDate=Convert.ToDateTime("2017/4/11"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self= 54.15   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇2幢4单元502室",Address="维拉小镇2幢4单元502室",ConstructArea=70.73,LandArea=15.33,EstateId="衢市不动产权0018305号",PropertyNature="公共租赁",LandNature="出让",Price=12.73,GetedDate=Convert.ToDateTime("2017/4/12"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self=    70.73   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇3幢1单元101室",Address="维拉小镇3幢1单元101室",ConstructArea=70.73,LandArea=15.32,EstateId="衢市不动产权0018810号",PropertyNature="公共租赁",LandNature="出让",Price=12.73,GetedDate=Convert.ToDateTime("2017/4/13"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self=    70.73   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇3幢1单元102室",Address="维拉小镇3幢1单元102室",ConstructArea=54.15,LandArea=11.73,EstateId="衢市不动产权0018822号",PropertyNature="公共租赁",LandNature="出让",Price=9.75,GetedDate=Convert.ToDateTime("2017/4/13"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self= 54.15   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇3幢2单元101室",Address="维拉小镇3幢2单元101室",ConstructArea=54.15,LandArea=11.73,EstateId="衢市不动产权0018758号",PropertyNature="公共租赁",LandNature="出让",Price=9.75,GetedDate=Convert.ToDateTime("2017/4/13"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self= 54.15   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇3幢2单元102室",Address="维拉小镇3幢2单元102室",ConstructArea=69.96,LandArea=15.15,EstateId="衢市不动产权0018649号",PropertyNature="公共租赁",LandNature="出让",Price=12.59,GetedDate=Convert.ToDateTime("2017/4/13"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self=    69.96   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇3幢3单元101室",Address="维拉小镇3幢3单元101室",ConstructArea=69.96,LandArea=15.15,EstateId="衢市不动产权0020626号",PropertyNature="公共租赁",LandNature="出让",Price=12.59,GetedDate=Convert.ToDateTime("2017/4/24"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self=    69.96   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇3幢3单元102室",Address="维拉小镇3幢3单元102室",ConstructArea=54.15,LandArea=11.73,EstateId="衢市不动产权0019769号",PropertyNature="公共租赁",LandNature="出让",Price=9.75,GetedDate=Convert.ToDateTime("2017/4/19"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self= 54.15   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇3幢4单元101室",Address="维拉小镇3幢4单元101室",ConstructArea=54.15,LandArea=11.73,EstateId="衢市不动产权0020609号",PropertyNature="公共租赁",LandNature="出让",Price=9.75,GetedDate=Convert.ToDateTime("2017/4/24"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self= 54.15   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇3幢4单元102室",Address="维拉小镇3幢4单元102室",ConstructArea=70.73,LandArea=15.32,EstateId="衢市不动产权0021008号",PropertyNature="公共租赁",LandNature="出让",Price=12.73,GetedDate=Convert.ToDateTime("2017/4/25"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self=    70.73   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇3幢1单元201室",Address="维拉小镇3幢1单元201室",ConstructArea=70.73,LandArea=15.32,EstateId="衢市不动产权0018816号",PropertyNature="公共租赁",LandNature="出让",Price=12.73,GetedDate=Convert.ToDateTime("2017/4/13"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self=    70.73   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇3幢1单元202室",Address="维拉小镇3幢1单元202室",ConstructArea=54.15,LandArea=11.73,EstateId="衢市不动产权0018831号",PropertyNature="公共租赁",LandNature="出让",Price=9.75,GetedDate=Convert.ToDateTime("2017/4/13"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self= 54.15   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇3幢2单元201室",Address="维拉小镇3幢2单元201室",ConstructArea=54.15,LandArea=11.73,EstateId="衢市不动产权0018760号",PropertyNature="公共租赁",LandNature="出让",Price=9.75,GetedDate=Convert.ToDateTime("2017/4/13"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self= 54.15   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇3幢2单元202室",Address="维拉小镇3幢2单元202室",ConstructArea=69.96,LandArea=15.15,EstateId="衢市不动产权0018650号",PropertyNature="公共租赁",LandNature="出让",Price=12.59,GetedDate=Convert.ToDateTime("2017/4/13"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self=    69.96   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇3幢3单元201室",Address="维拉小镇3幢3单元201室",ConstructArea=69.96,LandArea=15.15,EstateId="衢市不动产权0020674号",PropertyNature="公共租赁",LandNature="出让",Price=12.59,GetedDate=Convert.ToDateTime("2017/4/24"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self=    69.96   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇3幢3单元202室",Address="维拉小镇3幢3单元202室",ConstructArea=54.15,LandArea=11.73,EstateId="衢市不动产权0020621号",PropertyNature="公共租赁",LandNature="出让",Price=9.75,GetedDate=Convert.ToDateTime("2017/4/24"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self= 54.15   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇3幢4单元201室",Address="维拉小镇3幢4单元201室",ConstructArea=54.15,LandArea=11.73,EstateId="衢市不动产权0020604号",PropertyNature="公共租赁",LandNature="出让",Price=9.75,GetedDate=Convert.ToDateTime("2017/4/24"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self= 54.15   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇3幢4单元202室",Address="维拉小镇3幢4单元202室",ConstructArea=70.73,LandArea=15.32,EstateId="衢市不动产权0021003号",PropertyNature="公共租赁",LandNature="出让",Price=12.73,GetedDate=Convert.ToDateTime("2017/4/25"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self=    70.73   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇3幢1单元301室",Address="维拉小镇3幢1单元301室",ConstructArea=70.73,LandArea=15.32,EstateId="衢市不动产权0018808号",PropertyNature="公共租赁",LandNature="出让",Price=12.73,GetedDate=Convert.ToDateTime("2017/4/13"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self=    70.73   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇3幢1单元302室",Address="维拉小镇3幢1单元302室",ConstructArea=54.15,LandArea=11.73,EstateId="衢市不动产权0018820号",PropertyNature="公共租赁",LandNature="出让",Price=9.75,GetedDate=Convert.ToDateTime("2017/4/13"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self= 54.15   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇3幢2单元301室",Address="维拉小镇3幢2单元301室",ConstructArea=54.15,LandArea=11.73,EstateId="衢市不动产权0018778号",PropertyNature="公共租赁",LandNature="出让",Price=9.75,GetedDate=Convert.ToDateTime("2017/4/13"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self= 54.15   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇3幢2单元302室",Address="维拉小镇3幢2单元302室",ConstructArea=69.96,LandArea=15.15,EstateId="衢市不动产权0018672号",PropertyNature="公共租赁",LandNature="出让",Price=12.59,GetedDate=Convert.ToDateTime("2017/4/13"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self=    69.96   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇3幢3单元301室",Address="维拉小镇3幢3单元301室",ConstructArea=69.96,LandArea=15.15,EstateId="衢市不动产权0020671号",PropertyNature="公共租赁",LandNature="出让",Price=12.59,GetedDate=Convert.ToDateTime("2017/4/24"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self=    69.96   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇3幢3单元302室",Address="维拉小镇3幢3单元302室",ConstructArea=54.15,LandArea=11.73,EstateId="衢市不动产权0019122号",PropertyNature="公共租赁",LandNature="出让",Price=9.75,GetedDate=Convert.ToDateTime("2017/4/17"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self= 54.15   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇3幢4单元301室",Address="维拉小镇3幢4单元301室",ConstructArea=54.15,LandArea=11.73,EstateId="衢市不动产权0020165号",PropertyNature="公共租赁",LandNature="出让",Price=9.75,GetedDate=Convert.ToDateTime("2017/4/20"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self= 54.15   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇3幢4单元302室",Address="维拉小镇3幢4单元302室",ConstructArea=70.73,LandArea=15.32,EstateId="衢市不动产权0020597号",PropertyNature="公共租赁",LandNature="出让",Price=12.73,GetedDate=Convert.ToDateTime("2017/4/24"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self=    70.73   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇3幢1单元401室",Address="维拉小镇3幢1单元401室",ConstructArea=70.73,LandArea=15.32,EstateId="衢市不动产权0018755号",PropertyNature="公共租赁",LandNature="出让",Price=12.73,GetedDate=Convert.ToDateTime("2017/4/13"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self=    70.73   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇3幢1单元402室",Address="维拉小镇3幢1单元402室",ConstructArea=54.15,LandArea=11.73,EstateId="衢市不动产权0018830号",PropertyNature="公共租赁",LandNature="出让",Price=9.75,GetedDate=Convert.ToDateTime("2017/4/13"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self= 54.15   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇3幢2单元401室",Address="维拉小镇3幢2单元401室",ConstructArea=54.15,LandArea=11.73,EstateId="衢市不动产权0018763号",PropertyNature="公共租赁",LandNature="出让",Price=9.75,GetedDate=Convert.ToDateTime("2017/4/13"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self= 54.15   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇3幢2单元402室",Address="维拉小镇3幢2单元402室",ConstructArea=69.96,LandArea=15.15,EstateId="衢市不动产权0020815号",PropertyNature="公共租赁",LandNature="出让",Price=12.59,GetedDate=Convert.ToDateTime("2017/4/24"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self=    69.96   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇3幢3单元401室",Address="维拉小镇3幢3单元401室",ConstructArea=69.96,LandArea=15.15,EstateId="衢市不动产权0020670号",PropertyNature="公共租赁",LandNature="出让",Price=12.59,GetedDate=Convert.ToDateTime("2017/4/24"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self=    69.96   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇3幢3单元402室",Address="维拉小镇3幢3单元402室",ConstructArea=54.15,LandArea=11.73,EstateId="衢市不动产权0021023号",PropertyNature="公共租赁",LandNature="出让",Price=9.75,GetedDate=Convert.ToDateTime("2017/4/25"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self= 54.15   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇3幢4单元401室",Address="维拉小镇3幢4单元401室",ConstructArea=54.15,LandArea=11.73,EstateId="衢市不动产权0021014号",PropertyNature="公共租赁",LandNature="出让",Price=9.75,GetedDate=Convert.ToDateTime("2017/4/25"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self= 54.15   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇3幢4单元402室",Address="维拉小镇3幢4单元402室",ConstructArea=70.73,LandArea=15.32,EstateId="衢市不动产权0020598号",PropertyNature="公共租赁",LandNature="出让",Price=12.73,GetedDate=Convert.ToDateTime("2017/4/24"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self=    70.73   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇3幢1单元501室",Address="维拉小镇3幢1单元501室",ConstructArea=70.73,LandArea=15.32,EstateId="衢市不动产权0018757号",PropertyNature="公共租赁",LandNature="出让",Price=12.73,GetedDate=Convert.ToDateTime("2017/4/13"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self=    70.73   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇3幢1单元502室",Address="维拉小镇3幢1单元502室",ConstructArea=54.15,LandArea=11.73,EstateId="衢市不动产权0018818号",PropertyNature="公共租赁",LandNature="出让",Price=9.75,GetedDate=Convert.ToDateTime("2017/4/13"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self= 54.15   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇3幢2单元501室",Address="维拉小镇3幢2单元501室",ConstructArea=54.15,LandArea=11.73,EstateId="衢市不动产权0018777号",PropertyNature="公共租赁",LandNature="出让",Price=9.75,GetedDate=Convert.ToDateTime("2017/4/13"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self= 54.15   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇3幢2单元502室",Address="维拉小镇3幢2单元502室",ConstructArea=69.96,LandArea=15.15,EstateId="衢市不动产权0021038号",PropertyNature="公共租赁",LandNature="出让",Price=12.59,GetedDate=Convert.ToDateTime("2017/4/25"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self=    69.96   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇3幢3单元501室",Address="维拉小镇3幢3单元501室",ConstructArea=69.96,LandArea=15.15,EstateId="衢市不动产权0021033号",PropertyNature="公共租赁",LandNature="出让",Price=12.59,GetedDate=Convert.ToDateTime("2017/4/25"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self=    69.96   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇3幢3单元502室",Address="维拉小镇3幢3单元502室",ConstructArea=54.15,LandArea=11.73,EstateId="衢市不动产权0021031号",PropertyNature="公共租赁",LandNature="出让",Price=9.75,GetedDate=Convert.ToDateTime("2017/4/25"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self= 54.15   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇3幢4单元501室",Address="维拉小镇3幢4单元501室",ConstructArea=54.15,LandArea=11.73,EstateId="衢市不动产权0021016号",PropertyNature="公共租赁",LandNature="出让",Price=9.75,GetedDate=Convert.ToDateTime("2017/4/25"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self= 54.15   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇3幢4单元502室",Address="维拉小镇3幢4单元502室",ConstructArea=70.73,LandArea=15.32,EstateId="衢市不动产权0020668号",PropertyNature="公共租赁",LandNature="出让",Price=12.73,GetedDate=Convert.ToDateTime("2017/4/24"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self=    70.73   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇4幢1单元101室",Address="维拉小镇4幢1单元101室",ConstructArea=70.73,LandArea=15.36,EstateId="衢市不动产权0018905号",PropertyNature="公共租赁",LandNature="出让",Price=12.73,GetedDate=Convert.ToDateTime("2017/4/14"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self=    70.73   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇4幢1单元102室",Address="维拉小镇4幢1单元102室",ConstructArea=54.15,LandArea=11.76,EstateId="衢市不动产权0020611号",PropertyNature="公共租赁",LandNature="出让",Price=9.75,GetedDate=Convert.ToDateTime("2017/4/24"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self= 54.15   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇4幢2单元101室",Address="维拉小镇4幢2单元101室",ConstructArea=54.15,LandArea=11.76,EstateId="衢市不动产权0020702号",PropertyNature="公共租赁",LandNature="出让",Price=9.75,GetedDate=Convert.ToDateTime("2017/4/24"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self= 54.15   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇4幢2单元102室",Address="维拉小镇4幢2单元102室",ConstructArea=69.96,LandArea=15.19,EstateId="衢市不动产权0020942号",PropertyNature="公共租赁",LandNature="出让",Price=12.59,GetedDate=Convert.ToDateTime("2017/4/24"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self=    69.96   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇4幢3单元101室",Address="维拉小镇4幢3单元101室",ConstructArea=69.96,LandArea=15.19,EstateId="衢市不动产权002029号 ",PropertyNature="公共租赁",LandNature="出让",Price=12.59,GetedDate=Convert.ToDateTime("2017/4/19"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self=    69.96   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇4幢3单元102室",Address="维拉小镇4幢3单元102室",ConstructArea=54.15,LandArea=11.76,EstateId="衢市不动产权0019715号",PropertyNature="公共租赁",LandNature="出让",Price=9.75,GetedDate=Convert.ToDateTime("2017/4/18"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self= 54.15   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇4幢4单元101室",Address="维拉小镇4幢4单元101室",ConstructArea=54.15,LandArea=11.76,EstateId="衢市不动产权0020680号",PropertyNature="公共租赁",LandNature="出让",Price=9.75,GetedDate=Convert.ToDateTime("2017/4/24"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self= 54.15   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇4幢4单元102室",Address="维拉小镇4幢4单元102室",ConstructArea=70.73,LandArea=15.36,EstateId="衢市不动产权0018919号",PropertyNature="公共租赁",LandNature="出让",Price=12.73,GetedDate=Convert.ToDateTime("2017/4/14"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self=    70.73   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇4幢1单元201室",Address="维拉小镇4幢1单元201室",ConstructArea=70.73,LandArea=15.36,EstateId="衢市不动产权0019121号",PropertyNature="公共租赁",LandNature="出让",Price=12.73,GetedDate=Convert.ToDateTime("2017/4/17"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self=    70.73   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇4幢1单元202室",Address="维拉小镇4幢1单元202室",ConstructArea=54.15,LandArea=11.76,EstateId="衢市不动产权0020610号",PropertyNature="公共租赁",LandNature="出让",Price=9.75,GetedDate=Convert.ToDateTime("2017/4/24"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self= 54.15   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇4幢2单元201室",Address="维拉小镇4幢2单元201室",ConstructArea=54.15,LandArea=11.76,EstateId="衢市不动产权0020698号",PropertyNature="公共租赁",LandNature="出让",Price=9.75,GetedDate=Convert.ToDateTime("2017/4/24"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self= 54.15   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇4幢2单元202室",Address="维拉小镇4幢2单元202室",ConstructArea=69.96,LandArea=15.19,EstateId="衢市不动产权0020346号",PropertyNature="公共租赁",LandNature="出让",Price=12.59,GetedDate=Convert.ToDateTime("2017/4/21"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self=    69.96   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇4幢3单元201室",Address="维拉小镇4幢3单元201室",ConstructArea=69.96,LandArea=15.19,EstateId="衢市不动产权0019949号",PropertyNature="公共租赁",LandNature="出让",Price=12.59,GetedDate=Convert.ToDateTime("2017/4/19"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self=    69.96   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇4幢3单元202室",Address="维拉小镇4幢3单元202室",ConstructArea=54.15,LandArea=11.76,EstateId="衢市不动产权0019809号",PropertyNature="公共租赁",LandNature="出让",Price=9.75,GetedDate=Convert.ToDateTime("2017/4/19"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self= 54.15   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇4幢4单元201室",Address="维拉小镇4幢4单元201室",ConstructArea=54.15,LandArea=11.76,EstateId="衢市不动产权0020675号",PropertyNature="公共租赁",LandNature="出让",Price=9.75,LifeTime=70, UsedPeople="汇盛",CurrentUse_Self= 54.15   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇4幢4单元202室",Address="维拉小镇4幢4单元202室",ConstructArea=70.73,LandArea=15.36,EstateId="衢市不动产权0018920号",PropertyNature="公共租赁",LandNature="出让",Price=12.73,GetedDate=Convert.ToDateTime("2017/4/14"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self=    70.73   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇4幢1单元301室",Address="维拉小镇4幢1单元301室",ConstructArea=70.73,LandArea=15.36,EstateId="衢市不动产权0018971号",PropertyNature="公共租赁",LandNature="出让",Price=12.73,GetedDate=Convert.ToDateTime("2017/4/17"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self=    70.73   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇4幢1单元302室",Address="维拉小镇4幢1单元302室",ConstructArea=54.15,LandArea=11.76,EstateId="衢市不动产权0020608号",PropertyNature="公共租赁",LandNature="出让",Price=9.75,GetedDate=Convert.ToDateTime("2017/4/24"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self= 54.15   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇4幢2单元301室",Address="维拉小镇4幢2单元301室",ConstructArea=54.15,LandArea=11.76,EstateId="衢市不动产权0019673号",PropertyNature="公共租赁",LandNature="出让",Price=9.75,GetedDate=Convert.ToDateTime("2017/4/18"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self= 54.15   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇4幢2单元302室",Address="维拉小镇4幢2单元302室",ConstructArea=69.96,LandArea=15.19,EstateId="衢市不动产权0020347号",PropertyNature="公共租赁",LandNature="出让",Price=12.59,GetedDate=Convert.ToDateTime("2017/4/21"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self=    69.96   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇4幢3单元301室",Address="维拉小镇4幢3单元301室",ConstructArea=69.96,LandArea=15.19,EstateId="衢市不动产权0020340号",PropertyNature="公共租赁",LandNature="出让",Price=12.59,GetedDate=Convert.ToDateTime("2017/4/21"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self=    69.96   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇4幢3单元302室",Address="维拉小镇4幢3单元302室",ConstructArea=54.15,LandArea=11.76,EstateId="衢市不动产权0019961号",PropertyNature="公共租赁",LandNature="出让",Price=9.75,GetedDate=Convert.ToDateTime("2017/4/19"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self= 54.15   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇4幢4单元301室",Address="维拉小镇4幢4单元301室",ConstructArea=54.15,LandArea=11.76,EstateId="衢市不动产权0020672号",PropertyNature="公共租赁",LandNature="出让",Price=9.75,GetedDate=Convert.ToDateTime("2017/4/24"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self= 54.15   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇4幢4单元302室",Address="维拉小镇4幢4单元302室",ConstructArea=70.73,LandArea=15.36,EstateId="衢市不动产权0018915号",PropertyNature="公共租赁",LandNature="出让",Price=12.73,GetedDate=Convert.ToDateTime("2017/4/14"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self=    70.73   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇4幢1单元401室",Address="维拉小镇4幢1单元401室",ConstructArea=70.73,LandArea=15.36,EstateId="衢市不动产权0020717号",PropertyNature="公共租赁",LandNature="出让",Price=12.73,GetedDate=Convert.ToDateTime("2017/4/24"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self=    70.73   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇4幢1单元402室",Address="维拉小镇4幢1单元402室",ConstructArea=54.15,LandArea=11.76,EstateId="衢市不动产权0020683号",PropertyNature="公共租赁",LandNature="出让",Price=9.75,GetedDate=Convert.ToDateTime("2017/4/24"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self= 54.15   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇4幢2单元401室",Address="维拉小镇4幢2单元401室",ConstructArea=54.15,LandArea=11.76,EstateId="衢市不动产权0019722号",PropertyNature="公共租赁",LandNature="出让",Price=9.75,GetedDate=Convert.ToDateTime("2017/4/18"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self= 54.15   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇4幢2单元402室",Address="维拉小镇4幢2单元402室",ConstructArea=69.96,LandArea=15.19,EstateId="衢市不动产权0020694号",PropertyNature="公共租赁",LandNature="出让",Price=12.59,GetedDate=Convert.ToDateTime("2017/4/24"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self=    69.96   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇4幢3单元401室",Address="维拉小镇4幢3单元401室",ConstructArea=69.96,LandArea=15.19,EstateId="衢市不动产权0020606号",PropertyNature="公共租赁",LandNature="出让",Price=12.59,GetedDate=Convert.ToDateTime("2017/4/24"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self=    69.96   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇4幢3单元402室",Address="维拉小镇4幢3单元402室",ConstructArea=54.15,LandArea=11.76,EstateId="衢市不动产权0019959号",PropertyNature="公共租赁",LandNature="出让",Price=9.75,GetedDate=Convert.ToDateTime("2017/4/19"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self= 54.15   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇4幢4单元401室",Address="维拉小镇4幢4单元401室",ConstructArea=54.15,LandArea=11.76,EstateId="衢市不动产权0020338号",PropertyNature="公共租赁",LandNature="出让",Price=9.75,GetedDate=Convert.ToDateTime("2017/4/21"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self= 54.15   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇4幢4单元402室",Address="维拉小镇4幢4单元402室",ConstructArea=70.73,LandArea=15.36,EstateId="衢市不动产权0018916号",PropertyNature="公共租赁",LandNature="出让",Price=12.73,GetedDate=Convert.ToDateTime("2017/4/14"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self=    70.73   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇4幢1单元501室",Address="维拉小镇4幢1单元501室",ConstructArea=70.73,LandArea=15.36,EstateId="衢市不动产权0020716号",PropertyNature="公共租赁",LandNature="出让",Price=12.73,GetedDate=Convert.ToDateTime("2017/4/24"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self=    70.73   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇4幢1单元502室",Address="维拉小镇4幢1单元502室",ConstructArea=54.15,LandArea=11.76,EstateId="衢市不动产权0020685号",PropertyNature="公共租赁",LandNature="出让",Price=9.75,GetedDate=Convert.ToDateTime("2017/4/24"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self= 54.15   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇4幢2单元501室",Address="维拉小镇4幢2单元501室",ConstructArea=54.15,LandArea=11.76,EstateId="衢市不动产权0019702号",PropertyNature="公共租赁",LandNature="出让",Price=9.75,GetedDate=Convert.ToDateTime("2017/4/18"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self= 54.15   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇4幢2单元502室",Address="维拉小镇4幢2单元502室",ConstructArea=69.96,LandArea=15.19,EstateId="衢市不动产权0020713号",PropertyNature="公共租赁",LandNature="出让",Price=12.59,GetedDate=Convert.ToDateTime("2017/4/24"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self=    69.96   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇4幢3单元501室",Address="维拉小镇4幢3单元501室",ConstructArea=69.96,LandArea=15.19,EstateId="衢市不动产权0018928号",PropertyNature="公共租赁",LandNature="出让",Price=12.59,GetedDate=Convert.ToDateTime("2017/4/14"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self=    69.96   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇4幢3单元502室",Address="维拉小镇4幢3单元502室",ConstructArea=54.15,LandArea=11.76,EstateId="衢市不动产权0019950号",PropertyNature="公共租赁",LandNature="出让",Price=9.75,GetedDate=Convert.ToDateTime("2017/4/19"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self= 54.15   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇4幢4单元501室",Address="维拉小镇4幢4单元501室",ConstructArea=54.15,LandArea=11.76,EstateId="衢市不动产权0020820号",PropertyNature="公共租赁",LandNature="出让",Price=9.75,GetedDate=Convert.ToDateTime("2017/4/24"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self= 54.15   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇4幢4单元502室",Address="维拉小镇4幢4单元502室",ConstructArea=70.73,LandArea=15.36,EstateId="衢市不动产权0018917号",PropertyNature="公共租赁",LandNature="出让",Price=12.73,GetedDate=Convert.ToDateTime("2017/4/14"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self=    70.73   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇5幢1单元101室",Address="维拉小镇5幢1单元101室",ConstructArea=70.73,LandArea=15.35,EstateId="衢市不动产权0018302号",PropertyNature="公共租赁",LandNature="出让",Price=12.73,GetedDate=Convert.ToDateTime("2017/4/12"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self=    70.73   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇5幢1单元102室",Address="维拉小镇5幢1单元102室",ConstructArea=54.15,LandArea=11.75,EstateId="衢市不动产权0018425号",PropertyNature="公共租赁",LandNature="出让",Price=9.75,GetedDate=Convert.ToDateTime("2017/4/12"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self= 54.15   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇5幢2单元101室",Address="维拉小镇5幢2单元101室",ConstructArea=54.15,LandArea=11.75,EstateId="衢市不动产权0018414号",PropertyNature="公共租赁",LandNature="出让",Price=9.75,GetedDate=Convert.ToDateTime("2017/4/12"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self= 54.15   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇5幢2单元102室",Address="维拉小镇5幢2单元102室",ConstructArea=69.96,LandArea=15.18,EstateId="衢市不动产权0018287号",PropertyNature="公共租赁",LandNature="出让",Price=12.59,GetedDate=Convert.ToDateTime("2017/4/11"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self=    69.96   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇5幢3单元101室",Address="维拉小镇5幢3单元101室",ConstructArea=69.96,LandArea=15.18,EstateId="衢市不动产权0018376号",PropertyNature="公共租赁",LandNature="出让",Price=12.59,GetedDate=Convert.ToDateTime("2017/4/12"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self=    69.96   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇5幢3单元102室",Address="维拉小镇5幢3单元102室",ConstructArea=54.15,LandArea=11.75,EstateId="衢市不动产权0018795号",PropertyNature="公共租赁",LandNature="出让",Price=9.75,GetedDate=Convert.ToDateTime("2017/4/13"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self= 54.15   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇5幢4单元101室",Address="维拉小镇5幢4单元101室",ConstructArea=54.15,LandArea=11.75,EstateId="衢市不动产权0018698号",PropertyNature="公共租赁",LandNature="出让",Price=9.75,GetedDate=Convert.ToDateTime("2017/4/13"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self= 54.15   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇5幢4单元102室",Address="维拉小镇5幢4单元102室",ConstructArea=70.73,LandArea=15.35,EstateId="衢市不动产权0018662号",PropertyNature="公共租赁",LandNature="出让",Price=12.73,GetedDate=Convert.ToDateTime("2017/4/13"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self=    70.73   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇5幢1单元201室",Address="维拉小镇5幢1单元201室",ConstructArea=70.73,LandArea=15.35,EstateId="衢市不动产权0018300号",PropertyNature="公共租赁",LandNature="出让",Price=12.73,GetedDate=Convert.ToDateTime("2017/4/12"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self=    70.73   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇5幢1单元202室",Address="维拉小镇5幢1单元202室",ConstructArea=54.15,LandArea=11.75,EstateId="衢市不动产权0018494号",PropertyNature="公共租赁",LandNature="出让",Price=9.75,GetedDate=Convert.ToDateTime("2017/4/12"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self= 54.15   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇5幢2单元201室",Address="维拉小镇5幢2单元201室",ConstructArea=54.15,LandArea=11.75,EstateId="衢市不动产权0018398号",PropertyNature="公共租赁",LandNature="出让",Price=9.75,GetedDate=Convert.ToDateTime("2017/4/12"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self= 54.15   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇5幢2单元202室",Address="维拉小镇5幢2单元202室",ConstructArea=69.96,LandArea=15.18,EstateId="衢市不动产权0018449号",PropertyNature="公共租赁",LandNature="出让",Price=12.59,GetedDate=Convert.ToDateTime("2017/4/12"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self=    69.96   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇5幢3单元201室",Address="维拉小镇5幢3单元201室",ConstructArea=69.96,LandArea=15.18,EstateId="衢市不动产权0018381号",PropertyNature="公共租赁",LandNature="出让",Price=12.59,GetedDate=Convert.ToDateTime("2017/4/12"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self=    69.96   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇5幢3单元202室",Address="维拉小镇5幢3单元202室",ConstructArea=54.15,LandArea=11.75,EstateId="衢市不动产权0018386号",PropertyNature="公共租赁",LandNature="出让",Price=9.75,GetedDate=Convert.ToDateTime("2017/4/12"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self= 54.15   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇5幢4单元201室",Address="维拉小镇5幢4单元201室",ConstructArea=54.15,LandArea=11.75,EstateId="衢市不动产权0018799号",PropertyNature="公共租赁",LandNature="出让",Price=9.75,GetedDate=Convert.ToDateTime("2017/4/13"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self= 54.15   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇5幢4单元202室",Address="维拉小镇5幢4单元202室",ConstructArea=70.73,LandArea=15.35,EstateId="衢市不动产权0018652号",PropertyNature="公共租赁",LandNature="出让",Price=12.73,GetedDate=Convert.ToDateTime("2017/4/13"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self=    70.73   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇5幢1单元301室",Address="维拉小镇5幢1单元301室",ConstructArea=70.73,LandArea=15.35,EstateId="衢市不动产权0016970号",PropertyNature="公共租赁",LandNature="出让",Price=12.73,GetedDate=Convert.ToDateTime("2017/4/10"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self=    70.73   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇5幢1单元302室",Address="维拉小镇5幢1单元302室",ConstructArea=54.15,LandArea=11.75,EstateId="衢市不动产权0018508号",PropertyNature="公共租赁",LandNature="出让",Price=9.75,GetedDate=Convert.ToDateTime("2017/4/12"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self= 54.15   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇5幢2单元301室",Address="维拉小镇5幢2单元301室",ConstructArea=54.15,LandArea=11.75,EstateId="衢市不动产权0018384号",PropertyNature="公共租赁",LandNature="出让",Price=9.75,GetedDate=Convert.ToDateTime("2017/4/12"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self= 54.15   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇5幢2单元302室",Address="维拉小镇5幢2单元302室",ConstructArea=69.96,LandArea=15.18,EstateId="衢市不动产权0018461号",PropertyNature="公共租赁",LandNature="出让",Price=12.59,GetedDate=Convert.ToDateTime("2017/4/12"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self=    69.96   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇5幢3单元301室",Address="维拉小镇5幢3单元301室",ConstructArea=69.96,LandArea=15.18,EstateId="衢市不动产权0018382号",PropertyNature="公共租赁",LandNature="出让",Price=12.59,GetedDate=Convert.ToDateTime("2017/4/12"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self=    69.96   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇5幢3单元302室",Address="维拉小镇5幢3单元302室",ConstructArea=54.15,LandArea=11.75,EstateId="衢市不动产权0018656号",PropertyNature="公共租赁",LandNature="出让",Price=9.75,GetedDate=Convert.ToDateTime("2017/4/13"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self= 54.15   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇5幢4单元301室",Address="维拉小镇5幢4单元301室",ConstructArea=54.15,LandArea=11.75,EstateId="衢市不动产权0018684号",PropertyNature="公共租赁",LandNature="出让",Price=9.75,GetedDate=Convert.ToDateTime("2017/4/13"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self= 54.15   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇5幢4单元302室",Address="维拉小镇5幢4单元302室",ConstructArea=70.73,LandArea=15.35,EstateId="衢市不动产权0018651号",PropertyNature="公共租赁",LandNature="出让",Price=12.73,GetedDate=Convert.ToDateTime("2017/4/13"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self=    70.73   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇5幢1单元401室",Address="维拉小镇5幢1单元401室",ConstructArea=70.73,LandArea=15.35,EstateId="衢市不动产权0018798号",PropertyNature="公共租赁",LandNature="出让",Price=12.73,GetedDate=Convert.ToDateTime("2017/4/13"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self=    70.73   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇5幢1单元402室",Address="维拉小镇5幢1单元402室",ConstructArea=54.15,LandArea=11.75,EstateId="衢市不动产权0018493号",PropertyNature="公共租赁",LandNature="出让",Price=9.75,GetedDate=Convert.ToDateTime("2017/4/12"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self= 54.15   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇5幢2单元401室",Address="维拉小镇5幢2单元401室",ConstructArea=54.15,LandArea=11.75,EstateId="衢市不动产权0018399号",PropertyNature="公共租赁",LandNature="出让",Price=9.75,GetedDate=Convert.ToDateTime("2017/4/12"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self= 54.15   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇5幢2单元402室",Address="维拉小镇5幢2单元402室",ConstructArea=69.96,LandArea=15.18,EstateId="衢市不动产权0018283号",PropertyNature="公共租赁",LandNature="出让",Price=12.59,GetedDate=Convert.ToDateTime("2017/4/11"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self=    69.96   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇5幢3单元401室",Address="维拉小镇5幢3单元401室",ConstructArea=69.96,LandArea=15.18,EstateId="衢市不动产权0018388号",PropertyNature="公共租赁",LandNature="出让",Price=12.59,GetedDate=Convert.ToDateTime("2017/4/12"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self=    69.96   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇5幢3单元402室",Address="维拉小镇5幢3单元402室",ConstructArea=54.15,LandArea=11.75,EstateId="衢市不动产权0018697号",PropertyNature="公共租赁",LandNature="出让",Price=9.75,GetedDate=Convert.ToDateTime("2017/4/13"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self= 54.15   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇5幢4单元401室",Address="维拉小镇5幢4单元401室",ConstructArea=54.15,LandArea=11.75,EstateId="衢市不动产权0018696号",PropertyNature="公共租赁",LandNature="出让",Price=9.75,GetedDate=Convert.ToDateTime("2017/4/13"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self= 54.15   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇5幢4单元402室",Address="维拉小镇5幢4单元402室",ConstructArea=70.73,LandArea=15.35,EstateId="衢市不动产权0018797号",PropertyNature="公共租赁",LandNature="出让",Price=12.73,GetedDate=Convert.ToDateTime("2017/4/13"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self=    70.73   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇5幢1单元501室",Address="维拉小镇5幢1单元501室",ConstructArea=70.73,LandArea=15.35,EstateId="衢市不动产权0018301号",PropertyNature="公共租赁",LandNature="出让",Price=12.73,GetedDate=Convert.ToDateTime("2017/4/12"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self=    70.73   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇5幢1单元502室",Address="维拉小镇5幢1单元502室",ConstructArea=54.15,LandArea=11.75,EstateId="衢市不动产权0018492号",PropertyNature="公共租赁",LandNature="出让",Price=9.75,GetedDate=Convert.ToDateTime("2017/4/12"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self= 54.15   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇5幢2单元501室",Address="维拉小镇5幢2单元501室",ConstructArea=54.15,LandArea=11.75,EstateId="衢市不动产权0018413号",PropertyNature="公共租赁",LandNature="出让",Price=9.75,GetedDate=Convert.ToDateTime("2017/4/12"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self= 54.15   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇5幢2单元502室",Address="维拉小镇5幢2单元502室",ConstructArea=69.96,LandArea=15.18,EstateId="衢市不动产权0018429号",PropertyNature="公共租赁",LandNature="出让",Price=12.59,GetedDate=Convert.ToDateTime("2017/4/12"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self=    69.96   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇5幢3单元501室",Address="维拉小镇5幢3单元501室",ConstructArea=69.96,LandArea=15.18,EstateId="衢市不动产权0018495号",PropertyNature="公共租赁",LandNature="出让",Price=12.59,GetedDate=Convert.ToDateTime("2017/4/12"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self=    69.96   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇5幢3单元502室",Address="维拉小镇5幢3单元502室",ConstructArea=54.15,LandArea=11.75,EstateId="衢市不动产权0018655号",PropertyNature="公共租赁",LandNature="出让",Price=9.75,GetedDate=Convert.ToDateTime("2017/4/13"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self= 54.15   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇5幢4单元501室",Address="维拉小镇5幢4单元501室",ConstructArea=54.15,LandArea=11.75,EstateId="衢市不动产权0018686号",PropertyNature="公共租赁",LandNature="出让",Price=9.75,GetedDate=Convert.ToDateTime("2017/4/13"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self= 54.15   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇5幢4单元502室",Address="维拉小镇5幢4单元502室",ConstructArea=70.73,LandArea=15.35,EstateId="衢市不动产权0018692号",PropertyNature="公共租赁",LandNature="出让",Price=12.73,GetedDate=Convert.ToDateTime("2017/4/13"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self=    70.73   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇6幢1单元101室",Address="维拉小镇6幢1单元101室",ConstructArea=70.73,LandArea=15.35,EstateId="衢市不动产权0019194号",PropertyNature="公共租赁",LandNature="出让",Price=12.73,GetedDate=Convert.ToDateTime("2017/4/17"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self=    70.73   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇6幢1单元102室",Address="维拉小镇6幢1单元102室",ConstructArea=54.15,LandArea=11.75,EstateId="衢市不动产权0019124号",PropertyNature="公共租赁",LandNature="出让",Price=9.75,GetedDate=Convert.ToDateTime("2017/4/17"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self= 54.15   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇6幢2单元101室",Address="维拉小镇6幢2单元101室",ConstructArea=54.15,LandArea=11.75,EstateId="衢市不动产权0019261号",PropertyNature="公共租赁",LandNature="出让",Price=9.75,GetedDate=Convert.ToDateTime("2017/4/17"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self= 54.15   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇6幢2单元102室",Address="维拉小镇6幢2单元102室",ConstructArea=69.96,LandArea=15.18,EstateId="衢市不动产权0020617号",PropertyNature="公共租赁",LandNature="出让",Price=12.59,GetedDate=Convert.ToDateTime("2017/4/24"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self=    69.96   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇6幢3单元101室",Address="维拉小镇6幢3单元101室",ConstructArea=69.96,LandArea=15.18,EstateId="衢市不动产权0019151号",PropertyNature="公共租赁",LandNature="出让",Price=12.59,GetedDate=Convert.ToDateTime("2017/4/17"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self=    69.96   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇6幢3单元102室",Address="维拉小镇6幢3单元102室",ConstructArea=54.15,LandArea=11.75,EstateId="衢市不动产权0019178号",PropertyNature="公共租赁",LandNature="出让",Price=9.75,GetedDate=Convert.ToDateTime("2017/4/17"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self= 54.15   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇6幢4单元101室",Address="维拉小镇6幢4单元101室",ConstructArea=54.15,LandArea=11.75,EstateId="衢市不动产权0019188号",PropertyNature="公共租赁",LandNature="出让",Price=9.75,GetedDate=Convert.ToDateTime("2017/4/17"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self= 54.15   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇6幢4单元102室",Address="维拉小镇6幢4单元102室",ConstructArea=70.73,LandArea=15.35,EstateId="衢市不动产权0020333号",PropertyNature="公共租赁",LandNature="出让",Price=12.73,GetedDate=Convert.ToDateTime("2017/4/21"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self=    70.73   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇6幢1单元201室",Address="维拉小镇6幢1单元201室",ConstructArea=70.73,LandArea=15.35,EstateId="衢市不动产权0019190号",PropertyNature="公共租赁",LandNature="出让",Price=12.73,GetedDate=Convert.ToDateTime("2017/4/17"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self=    70.73   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇6幢1单元202室",Address="维拉小镇6幢1单元202室",ConstructArea=54.15,LandArea=11.75,EstateId="衢市不动产权0019126号",PropertyNature="公共租赁",LandNature="出让",Price=9.75,GetedDate=Convert.ToDateTime("2017/4/17"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self= 54.15   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇6幢2单元201室",Address="维拉小镇6幢2单元201室",ConstructArea=54.15,LandArea=11.75,EstateId="衢市不动产权0018317号",PropertyNature="公共租赁",LandNature="出让",Price=9.75,GetedDate=Convert.ToDateTime("2017/4/12"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self= 54.15   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇6幢2单元202室",Address="维拉小镇6幢2单元202室",ConstructArea=69.96,LandArea=15.18,EstateId="衢市不动产权0021046号",PropertyNature="公共租赁",LandNature="出让",Price=12.59,GetedDate=Convert.ToDateTime("2017/4/25"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self=    69.96   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇6幢3单元201室",Address="维拉小镇6幢3单元201室",ConstructArea=69.96,LandArea=15.18,EstateId="衢市不动产权0019154号",PropertyNature="公共租赁",LandNature="出让",Price=12.59,GetedDate=Convert.ToDateTime("2017/4/17"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self=    69.96   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇6幢3单元202室",Address="维拉小镇6幢3单元202室",ConstructArea=54.15,LandArea=11.75,EstateId="衢市不动产权0019180号",PropertyNature="公共租赁",LandNature="出让",Price=9.75,GetedDate=Convert.ToDateTime("2017/4/17"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self= 54.15   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇6幢4单元201室",Address="维拉小镇6幢4单元201室",ConstructArea=54.15,LandArea=11.75,EstateId="衢市不动产权0019128号",PropertyNature="公共租赁",LandNature="出让",Price=9.75,GetedDate=Convert.ToDateTime("2017/4/17"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self= 54.15   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇6幢4单元202室",Address="维拉小镇6幢4单元202室",ConstructArea=70.73,LandArea=15.35,EstateId="衢市不动产权0020620号",PropertyNature="公共租赁",LandNature="出让",Price=12.73,GetedDate=Convert.ToDateTime("2017/4/24"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self=    70.73   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇6幢1单元301室",Address="维拉小镇6幢1单元301室",ConstructArea=70.73,LandArea=15.35,EstateId="衢市不动产权0019192号",PropertyNature="公共租赁",LandNature="出让",Price=12.73,GetedDate=Convert.ToDateTime("2017/4/17"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self=    70.73   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇6幢1单元302室",Address="维拉小镇6幢1单元302室",ConstructArea=54.15,LandArea=11.75,EstateId="衢市不动产权0020607号",PropertyNature="公共租赁",LandNature="出让",Price=9.75,GetedDate=Convert.ToDateTime("2017/4/24"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self= 54.15   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇6幢2单元301室",Address="维拉小镇6幢2单元301室",ConstructArea=54.15,LandArea=11.75,EstateId="衢市不动产权0020351号",PropertyNature="公共租赁",LandNature="出让",Price=9.75,GetedDate=Convert.ToDateTime("2017/4/21"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self= 54.15   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇6幢2单元302室",Address="维拉小镇6幢2单元302室",ConstructArea=69.96,LandArea=15.18,EstateId="衢市不动产权0021045号",PropertyNature="公共租赁",LandNature="出让",Price=12.59,GetedDate=Convert.ToDateTime("2017/4/25"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self=    69.96   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇6幢3单元301室",Address="维拉小镇6幢3单元301室",ConstructArea=69.96,LandArea=15.18,EstateId="衢市不动产权0019155号",PropertyNature="公共租赁",LandNature="出让",Price=12.59,GetedDate=Convert.ToDateTime("2017/4/17"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self=    69.96   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇6幢3单元302室",Address="维拉小镇6幢3单元302室",ConstructArea=54.15,LandArea=11.75,EstateId="衢市不动产权0019182号",PropertyNature="公共租赁",LandNature="出让",Price=9.75,GetedDate=Convert.ToDateTime("2017/4/17"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self= 54.15   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇6幢4单元301室",Address="维拉小镇6幢4单元301室",ConstructArea=54.15,LandArea=11.75,EstateId="衢市不动产权0019132号",PropertyNature="公共租赁",LandNature="出让",Price=9.75,GetedDate=Convert.ToDateTime("2017/4/17"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self= 54.15   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇6幢4单元302室",Address="维拉小镇6幢4单元302室",ConstructArea=70.73,LandArea=15.35,EstateId="衢市不动产权0020618号",PropertyNature="公共租赁",LandNature="出让",Price=12.73,GetedDate=Convert.ToDateTime("2017/4/24"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self=    70.73   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇6幢1单元401室",Address="维拉小镇6幢1单元401室",ConstructArea=70.73,LandArea=15.35,EstateId="衢市不动产权0020352号",PropertyNature="公共租赁",LandNature="出让",Price=12.73,GetedDate=Convert.ToDateTime("2017/4/21"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self=    70.73   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇6幢1单元402室",Address="维拉小镇6幢1单元402室",ConstructArea=54.15,LandArea=11.75,EstateId="衢市不动产权0020615号",PropertyNature="公共租赁",LandNature="出让",Price=9.75,GetedDate=Convert.ToDateTime("2017/4/24"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self= 54.15   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇6幢2单元401室",Address="维拉小镇6幢2单元401室",ConstructArea=54.15,LandArea=11.75,EstateId="衢市不动产权0021155号",PropertyNature="公共租赁",LandNature="出让",Price=9.75,GetedDate=Convert.ToDateTime("2017/4/25"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self= 54.15   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇6幢2单元402室",Address="维拉小镇6幢2单元402室",ConstructArea=69.96,LandArea=15.18,EstateId="衢市不动产权0020936号",PropertyNature="公共租赁",LandNature="出让",Price=12.59,GetedDate=Convert.ToDateTime("2017/4/24"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self=    69.96   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇6幢3单元401室",Address="维拉小镇6幢3单元401室",ConstructArea=69.96,LandArea=15.18,EstateId="衢市不动产权0020708号",PropertyNature="公共租赁",LandNature="出让",Price=12.59,GetedDate=Convert.ToDateTime("2017/4/24"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self=    69.96   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇6幢3单元402室",Address="维拉小镇6幢3单元402室",ConstructArea=54.15,LandArea=11.75,EstateId="衢市不动产权0020337号",PropertyNature="公共租赁",LandNature="出让",Price=9.75,GetedDate=Convert.ToDateTime("2017/4/21"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self= 54.15   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇6幢4单元401室",Address="维拉小镇6幢4单元401室",ConstructArea=54.15,LandArea=11.75,EstateId="衢市不动产权0019125号",PropertyNature="公共租赁",LandNature="出让",Price=9.75,GetedDate=Convert.ToDateTime("2017/4/17"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self= 54.15   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇6幢4单元402室",Address="维拉小镇6幢4单元402室",ConstructArea=70.73,LandArea=15.35,EstateId="衢市不动产权0019161号",PropertyNature="公共租赁",LandNature="出让",Price=12.73,GetedDate=Convert.ToDateTime("2017/4/17"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self=    70.73   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇6幢1单元501室",Address="维拉小镇6幢1单元501室",ConstructArea=70.73,LandArea=15.35,EstateId="衢市不动产权0019133号",PropertyNature="公共租赁",LandNature="出让",Price=12.73,GetedDate=Convert.ToDateTime("2017/4/17"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self=    70.73   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇6幢1单元502室",Address="维拉小镇6幢1单元502室",ConstructArea=54.15,LandArea=11.75,EstateId="衢市不动产权0020613号",PropertyNature="公共租赁",LandNature="出让",Price=9.75,GetedDate=Convert.ToDateTime("2017/4/24"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self= 54.15   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇6幢2单元501室",Address="维拉小镇6幢2单元501室",ConstructArea=54.15,LandArea=11.75,EstateId="衢市不动产权0019185号",PropertyNature="公共租赁",LandNature="出让",Price=9.75,GetedDate=Convert.ToDateTime("2017/4/17"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self= 54.15   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇6幢2单元502室",Address="维拉小镇6幢2单元502室",ConstructArea=69.96,LandArea=15.18,EstateId="衢市不动产权0021043号",PropertyNature="公共租赁",LandNature="出让",Price=12.59,GetedDate=Convert.ToDateTime("2017/4/25"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self=    69.96   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇6幢3单元501室",Address="维拉小镇6幢3单元501室",ConstructArea=69.96,LandArea=15.18,EstateId="衢市不动产权0019198号",PropertyNature="公共租赁",LandNature="出让",Price=12.59,GetedDate=Convert.ToDateTime("2017/4/17"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self=    69.96   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇6幢3单元502室",Address="维拉小镇6幢3单元502室",ConstructArea=54.15,LandArea=11.75,EstateId="衢市不动产权0020349号",PropertyNature="公共租赁",LandNature="出让",Price=9.75,GetedDate=Convert.ToDateTime("2017/4/21"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self= 54.15   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇6幢4单元501室",Address="维拉小镇6幢4单元501室",ConstructArea=54.15,LandArea=11.75,EstateId="衢市不动产权0019130号",PropertyNature="公共租赁",LandNature="出让",Price=9.75,GetedDate=Convert.ToDateTime("2017/4/17"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self= 54.15   },
+//new Property {NextStepType= PropertyType.House , Name="维拉小镇6幢4单元502室",Address="维拉小镇6幢4单元502室",ConstructArea=70.73,LandArea=15.35,EstateId="衢市不动产权0019162号",PropertyNature="公共租赁",LandNature="出让",Price=12.73,GetedDate=Convert.ToDateTime("2017/4/17"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self=    70.73   },
+//new Property {NextStepType= PropertyType.House , Name="衢州市华枫路16号",Address="衢州市华枫路16号",ConstructArea=0.00,LandArea=87725.99,EstateId="浙（2017）衢州市不动产权第0037861号 ",PropertyNature="国有",LandNature="国有",GetedDate=Convert.ToDateTime("2017/8/10"),LifeTime=70, UsedPeople="汇盛",CurrentUse_Self=  87725.99    }
+//            };
+//            #endregion
+
+            //var g = _governmentService.GetGovernmentUnitByName("汇盛公司");
+
+            //var geo1 = "[{ \"lat\":28.940045200288296,\"lng\":118.96144151687622},{ \"lat\":28.94018467515707,\"lng\":118.96187603473663},{ \"lat\":28.940077386796474,\"lng\":118.96191895008087},{ \"lat\":28.93993254750967,\"lng\":118.96150052547455}]";
+            //var geo2 = "[{ \"lat\":28.939831210300326,\"lng\":118.96154344081879},{ \"lat\":28.93994922749698,\"lng\":118.96196186542511},{ \"lat\":28.939836574718356,\"lng\":118.96201550960541},{ \"lat\":28.93969709984958,\"lng\":118.96159172058105}]";
+            //var geo3 = "[{\"lat\":28.939562989398837,\"lng\":118.9616346359253},{\"lat\":28.93969709984958,\"lng\":118.96206378936768},{\"lat\":28.939595175907016,\"lng\":118.96211206912994},{\"lat\":28.93946106545627,\"lng\":118.9616721868515}]";
+            //var geo4 = "[{\"lat\":28.94019599072635,\"lng\":118.96196186542511},{\"lat\":28.940324736759067,\"lng\":118.96239638328552},{\"lat\":28.94022817723453,\"lng\":118.96244466304779},{\"lat\":28.940094066783786,\"lng\":118.96201014518738}]";
+            //var geo5 = "[{\"lat\":28.939943863078952,\"lng\":118.96204769611359},{\"lat\":28.940094066783786,\"lng\":118.96249830722809},{\"lat\":28.93998141400516,\"lng\":118.96254122257233},{\"lat\":28.939852667972445,\"lng\":118.96209597587585}]";
+            //var geo6 = "[{\"lat\":28.9397185575217,\"lng\":118.96214425563812},{\"lat\":28.939852667972445,\"lng\":118.96258413791656},{\"lat\":28.93975074402988,\"lng\":118.9626270532608},{\"lat\":28.939627362415195,\"lng\":118.96219789981842}]";
+            //var geo7 = "[{\"lat\":28.908155243843794,\"lng\":118.84716063737869},{\"lat\":28.905809484422207,\"lng\":118.85152995586395},{\"lat\":28.904404006898403,\"lng\":118.85053217411041},{\"lat\":28.906796537339687,\"lng\":118.84623527526855}]";
+
+            //try
+            //{
+            //    foreach (var property in properties)
+            //    {
+            //        property.Region = Region.Clusters;
+            //        property.Government = g;
+            //        property.HasConstructID = true;
+            //        property.HasLandID = true;
+
+            //        string geo = geo7;
+            //        if (property.Name.Contains("维拉小镇1幢")) geo = geo1;
+            //        else if (property.Name.Contains("维拉小镇2幢")) geo = geo2;
+            //        else if (property.Name.Contains("维拉小镇3幢")) geo = geo3;
+            //        else if (property.Name.Contains("维拉小镇4幢")) geo = geo4;
+            //        else if (property.Name.Contains("维拉小镇5幢")) geo = geo5;
+            //        else if (property.Name.Contains("维拉小镇6幢")) geo = geo6;
+
+            //        var points = Newtonsoft.Json.JsonConvert.DeserializeObject<List<Point>>(geo);
+            //        var wkt = "";
+
+            //        StringBuilder wktsb = new StringBuilder();
+
+            //        //末尾加上起点闭合多边形
+            //        if (points.Count > 1) points.Add(points[0]);
+
+            //        foreach (var point in points)
+            //        {
+            //            if (point.lng < point.lat)
+            //            {
+            //                var t = point.lng;
+            //                point.lng = point.lat;
+            //                point.lat = t;
+            //            }
+            //            wktsb.AppendLine(string.Format("{0} {1},", point.lng, point.lat));
+            //        }
+
+            //        wkt = string.Format("POLYGON(({0}))", wktsb.ToString().TrimEnd(','));
+            //        property.WKT = wkt;
+            //        SqlGeography sqlGeography = SqlGeography.Parse(wkt).MakeValid();
+            //        var graphy = DbGeography.FromText(sqlGeography.ToString());
+            //        property.Extent = graphy;
+            //        property.Locked = true;
+
+            //        DbGeometry geometry = DbGeometry.FromText(graphy.ToString().Replace("SRID=4326;", ""));
+            //        if (geometry.Centroid != null)
+            //            property.Location = DbGeography.FromText(string.Format("POINT({0} {1})", geometry.Centroid.XCoordinate, geometry.Centroid.YCoordinate));
+            //        else
+            //            property.Location = graphy.PointAt(1);
+
+            //        _propertyService.InsertProperty(property);
+
+            //        var propertyNewCreate = new PropertyNewCreate
+            //        {
+            //            Property_Id = property.Id,
+            //            State = PropertyApproveState.Start,
+            //            ProcessDate = DateTime.Now,
+            //            SuggestGovernmentId = g.Id,
+            //            Title = property.Name,
+            //        };
+
+            //        _propertyNewCreateService.InsertPropertyNewCreate(propertyNewCreate);
+            //    }
+            //}
+            //catch (Exception e)
+            //{
+            //    return BadRequest(e.Message);
+            //}
+
+
+            return Ok("success");
+        }
+
+
+        [HttpGet]
+        [Route("insertgov")]
+        public IHttpActionResult insertgov()
+        {
+            return BadRequest("导入关闭");
+
+            var filePath = System.Web.HttpContext.Current.Server.MapPath("~/App_Data/import.mdb");
+
+            var strConn = "Provider = Microsoft.Jet.OLEDB.4.0;Data Source = " + filePath;
+            System.Data.OleDb.OleDbConnection conn = new System.Data.OleDb.OleDbConnection(strConn);
+            conn.Open();
+            //string strExcel = "";
+            //System.Data.OleDb.OleDbDataAdapter myCommand = null;
+            //System.Data.DataSet ds = null;
+            //strExcel = "select * from t1";
+            //myCommand = new System.Data.OleDb.OleDbDataAdapter(strExcel, strConn);
+            //ds = new System.Data.DataSet(); myCommand.Fill(ds, "table1");
+
+            //建立SQL查询   
+            OleDbCommand odCommand = conn.CreateCommand();
+
+            //3、输入查询语句 C#操作Access之读取mdb  
+
+            odCommand.CommandText = "select * from sheet1";
+
+            //建立读取   
+            OleDbDataReader odrReader = odCommand.ExecuteReader();
+
+            //查询并显示数据   
+            int size = odrReader.FieldCount;
+
+
+            while (odrReader.Read())
+            {
+                #region 获取相关参数
+                var displayOrder = odrReader[1].ToString();
+                var parent = odrReader[2].ToString();
+                var name = odrReader[3].ToString();
+                var address = odrReader[4].ToString();
+                bool isGov = odrReader[5].ToString() == "1";
+                bool isIns = odrReader[6].ToString() == "1";
+                bool isGroup = odrReader[7].ToString() == "1";
+                bool ishb = odrReader[8].ToString() == "1";
+                bool iszr = odrReader[9].ToString() == "1";
+                bool iszy = odrReader[10].ToString() == "1";
+                var landArea = odrReader[11].ToString();
+                var oArea = odrReader[12].ToString();
+                var cArea = odrReader[13].ToString();
+                var floor = odrReader[14].ToString();
+                bool ccard = odrReader[15].ToString() == "1";
+                bool lcard = odrReader[16].ToString() == "1";
+                bool rentin = odrReader[17].ToString() == "1";
+                bool rent = odrReader[18].ToString() == "1";
+                bool lend = odrReader[19].ToString() == "1";
+                var remark = odrReader[20].ToString();
+                var x = odrReader[21].ToString();
+                var y = odrReader[22].ToString();
+                #endregion
+
+                try
+                {
+                    #region 遍历要素
+
+                    var id = odrReader[0].ToString();
+                    int result = 0;
+
+                    if (!int.TryParse(id, out result)) continue;
+
+                    var government = _governmentService.GetGovernmentUnitByName(name);
+
+                    if (government == null)
+                        government = new GovernmentUnit();
+
+                    if (!string.IsNullOrEmpty(displayOrder))
+                    {
+                        government.DisplayOrder = Convert.ToInt32(displayOrder);
+                    }
+                    else
+                    {
+                        var orders = parent.Split('.');
+                        //获取最后一个作为显示次序
+                        government.DisplayOrder = Convert.ToInt32(orders[orders.Length - 1]);
+
+                        if (government.ParentGovernmentId == 0)
+                        {
+                            //寻找父节点
+                            var all = _governmentService.GetAllGovernmentUnits();
+
+                            var f = all.Where(g => g.DisplayOrder.ToString() == orders[0] && g.ParentGovernmentId == 0).FirstOrDefault();
+
+                            if (f == null)
+                                throw new Exception(string.Format("名称为{0}的找不到父节点", name));
+
+                            if (orders.Length == 2)
+                                government.ParentGovernmentId = f.Id;
+                            else if (orders.Length == 3)
+                            {
+                                var s = all.Where(g => g.DisplayOrder.ToString() == orders[1] && g.ParentGovernmentId == f.Id).FirstOrDefault();
+                                if (s == null) throw new Exception(string.Format("名称为{0}的找不到父节点", name));
+                                government.ParentGovernmentId = s.Id;
+                            }
+                        }
+                    }
+                    government.Name = name;
+                    government.Address = address;
+                    if (isGov) government.GovernmentType = GovernmentType.Government;
+                    if (isIns) government.GovernmentType = GovernmentType.Institution;
+                    if (isGroup) government.GovernmentType = GovernmentType.Group;
+                    if (ishb) government.LandOrigin = "划拨";
+                    if (iszr) government.LandOrigin = "转让";
+                    if (iszy) government.LandOrigin = "租用";
+
+                    government.LandArea = string.IsNullOrEmpty(landArea) ? 0 : Convert.ToDouble(landArea);
+                    government.ConstructArea = string.IsNullOrEmpty(cArea) ? 0 : Convert.ToDouble(cArea);
+                    government.Floor = string.IsNullOrEmpty(floor) ? 0 : Convert.ToInt32(floor);
+
+                    government.HasConstructCard = ccard;
+                    government.HasLandCard = lcard;
+                    government.HasLendInCard = rentin;
+                    government.HasRentCard = rent;
+                    government.HasLendInCard = lend;
+
+                    government.Remark = remark;
+
+                    if (!string.IsNullOrEmpty(x) && !string.IsNullOrEmpty(y))
+                    {
+                        government.X = Convert.ToDouble(x);
+                        government.Y = Convert.ToDouble(y);
+                        government.Location = DbGeography.FromText("POINT(" + government.X + " " + government.Y + ")");
+                    }
+                    else
+                        DbGeography.FromText("POINT(0 0)");
+
+
+                    #endregion
+
+                    if (government.Id == 0) _governmentService.InsertGovernmentUnit(government);
+                    else _governmentService.UpdateGovernmentUnit(government);
+
+
+                }
+                catch (Exception e)
+                {
+
+                    throw new Exception(string.Format("序号为 {0} 的要素异常，错误为：{1}", name, e.Message));
+                }
+
+
+            }
+
+            //关闭连接 C#操作Access之读取mdb  
+            odrReader.Close();
+            conn.Close();
+
+
+
+            return Ok("导入结束\n");
+        }
+
+        [HttpGet]
+        [Route("Temp3")]
+        public IHttpActionResult InsertLendAndRent()
+        {
+           // return Ok("closed");
+            StringBuilder sb = new StringBuilder();
+            //拷贝图片
+            var targetPath = System.Web.HttpContext.Current.Server.MapPath("~/Content/images/");
+            var directionName = @"C:\import\";
+
+            // var json = "[{\"PropertyId\":\"36392\",\"People\":\"衢州港诚机电产品制造有限公司\",\"Area\":\"90\",\"StartDate\":\"2017年5月15日\",\"EndDate\":\"2018年5月14日\",\"Money\":\"36000\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"王菲13867024990\",\"FileId\":\"0\"},{\"PropertyId\":\"36392\",\"People\":\"衢州港诚机电产品制造有限公司\",\"Area\":\"300\",\"StartDate\":\"2017年3月16日\",\"EndDate\":\"2018年3月15日\",\"Money\":\"10800\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"王菲13867024990\",\"FileId\":\"0\"},{\"PropertyId\":\"36392\",\"People\":\"浙江好彩印刷包装有限公司\",\"Area\":\"30\",\"StartDate\":\"2017年3月2日\",\"EndDate\":\"2018年3月1日\",\"Money\":\"3600\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"王850687713575668598\",\"FileId\":\"88\"},{\"PropertyId\":\"36392\",\"People\":\"衢州峰仔食品有限公司\",\"Area\":\"180\",\"StartDate\":\"2017年9月4日\",\"EndDate\":\"2018年3月3日\",\"Money\":\"10800\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"杨薛13967012213\",\"FileId\":\"0\"},{\"PropertyId\":\"38903\",\"People\":\"金瑞泓科技（衢州）有限公司\",\"Area\":\"70.73\",\"StartDate\":\"2017年9月12\",\"EndDate\":\"2018年9月11日\",\"Money\":\"7200\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"联系人：汪红燕13957000034\",\"FileId\":\"128\"},{\"PropertyId\":\"38911\",\"People\":\"金瑞泓科技（衢州）有限公司\",\"Area\":\"70.73\",\"StartDate\":\"2017年9月12\",\"EndDate\":\"2018年9月11日\",\"Money\":\"8400\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"联系人：汪红燕13957000034\",\"FileId\":\"128\"},{\"PropertyId\":\"38919\",\"People\":\"金瑞泓科技（衢州）有限公司\",\"Area\":\"70.73\",\"StartDate\":\"2017年9月12\",\"EndDate\":\"2018年9月11日\",\"Money\":\"8400\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"联系人：汪红燕13957000034\",\"FileId\":\"128\"},{\"PropertyId\":\"38927\",\"People\":\"金瑞泓科技（衢州）有限公司\",\"Area\":\"70.73\",\"StartDate\":\"2017年9月12\",\"EndDate\":\"2018年9月11日\",\"Money\":\"8400\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"联系人：汪红燕13957000034\",\"FileId\":\"128\"},{\"PropertyId\":\"38935\",\"People\":\"金瑞泓科技（衢州）有限公司\",\"Area\":\"70.73\",\"StartDate\":\"2017年9月12\",\"EndDate\":\"2018年9月11日\",\"Money\":\"7200\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"联系人：汪红燕13957000034\",\"FileId\":\"128\"},{\"PropertyId\":\"38906\",\"People\":\"金瑞泓科技（衢州）有限公司\",\"Area\":\"69.86\",\"StartDate\":\"2017年9月12\",\"EndDate\":\"2018年9月11日\",\"Money\":\"7200\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"联系人：汪红燕13957000034\",\"FileId\":\"128\"},{\"PropertyId\":\"38914\",\"People\":\"金瑞泓科技（衢州）有限公司\",\"Area\":\"69.86\",\"StartDate\":\"2017年9月12\",\"EndDate\":\"2018年9月11日\",\"Money\":\"8400\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"联系人：汪红燕13957000034\",\"FileId\":\"128\"},{\"PropertyId\":\"38922\",\"People\":\"金瑞泓科技（衢州）有限公司\",\"Area\":\"69.86\",\"StartDate\":\"2017年9月12\",\"EndDate\":\"2018年9月11日\",\"Money\":\"8400\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"联系人：汪红燕13957000034\",\"FileId\":\"128\"},{\"PropertyId\":\"38930\",\"People\":\"金瑞泓科技（衢州）有限公司\",\"Area\":\"69.86\",\"StartDate\":\"2017年9月12\",\"EndDate\":\"2018年9月11日\",\"Money\":\"8400\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"联系人：汪红燕13957000034\",\"FileId\":\"128\"},{\"PropertyId\":\"38938\",\"People\":\"金瑞泓科技（衢州）有限公司\",\"Area\":\"69.86\",\"StartDate\":\"2017年9月12\",\"EndDate\":\"2018年9月11日\",\"Money\":\"7200\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"联系人：汪红燕13957000034\",\"FileId\":\"128\"},{\"PropertyId\":\"38907\",\"People\":\"金瑞泓科技（衢州）有限公司\",\"Area\":\"69.86\",\"StartDate\":\"2017年9月12\",\"EndDate\":\"2018年9月11日\",\"Money\":\"7200\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"联系人：汪红燕13957000034\",\"FileId\":\"128\"},{\"PropertyId\":\"38915\",\"People\":\"金瑞泓科技（衢州）有限公司\",\"Area\":\"69.86\",\"StartDate\":\"2017年9月12\",\"EndDate\":\"2018年9月11日\",\"Money\":\"8400\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"联系人：汪红燕13957000034\",\"FileId\":\"128\"},{\"PropertyId\":\"38923\",\"People\":\"金瑞泓科技（衢州）有限公司\",\"Area\":\"69.86\",\"StartDate\":\"2017年9月12\",\"EndDate\":\"2018年9月11日\",\"Money\":\"8400\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"联系人：汪红燕13957000034\",\"FileId\":\"128\"},{\"PropertyId\":\"38931\",\"People\":\"金瑞泓科技（衢州）有限公司\",\"Area\":\"69.86\",\"StartDate\":\"2017年9月12\",\"EndDate\":\"2018年9月11日\",\"Money\":\"8400\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"联系人：汪红燕13957000034\",\"FileId\":\"128\"},{\"PropertyId\":\"38939\",\"People\":\"金瑞泓科技（衢州）有限公司\",\"Area\":\"69.86\",\"StartDate\":\"2017年9月12\",\"EndDate\":\"2018年9月11日\",\"Money\":\"7200\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"联系人：汪红燕13957000034\",\"FileId\":\"128\"},{\"PropertyId\":\"38910\",\"People\":\"金瑞泓科技（衢州）有限公司\",\"Area\":\"70.73\",\"StartDate\":\"2017年9月12\",\"EndDate\":\"2018年9月11日\",\"Money\":\"7200\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"联系人：汪红燕13957000034\",\"FileId\":\"128\"},{\"PropertyId\":\"38918\",\"People\":\"金瑞泓科技（衢州）有限公司\",\"Area\":\"70.73\",\"StartDate\":\"2017年9月12\",\"EndDate\":\"2018年9月11日\",\"Money\":\"8400\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"联系人：汪红燕13957000034\",\"FileId\":\"128\"},{\"PropertyId\":\"36629\",\"People\":\"金瑞泓科技（衢州）有限公司\",\"Area\":\"81.28\",\"StartDate\":\"2017年9月12\",\"EndDate\":\"2018年9月11日\",\"Money\":\"10200\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"联系人：汪红燕13957000034\",\"FileId\":\"128\"},{\"PropertyId\":\"36631\",\"People\":\"金瑞泓科技（衢州）有限公司\",\"Area\":\"83\",\"StartDate\":\"2017年9月12\",\"EndDate\":\"2018年9月11日\",\"Money\":\"10200\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"联系人：汪红燕13957000034\",\"FileId\":\"128\"},{\"PropertyId\":\"36630\",\"People\":\"金瑞泓科技（衢州）有限公司\",\"Area\":\"81.59\",\"StartDate\":\"2017年9月12\",\"EndDate\":\"2018年9月11日\",\"Money\":\"10200\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"联系人：汪红燕13957000034\",\"FileId\":\"128\"},{\"PropertyId\":\"38904\",\"People\":\"浙江金维克家庭用品科技有限公司\",\"Area\":\"54.15\",\"StartDate\":\"2017年9月18日\",\"EndDate\":\"2018年9月17日\",\"Money\":\"6000\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"127\"},{\"PropertyId\":\"38912\",\"People\":\"浙江金维克家庭用品科技有限公司\",\"Area\":\"54.15\",\"StartDate\":\"2017年9月18日\",\"EndDate\":\"2018年9月17日\",\"Money\":\"7200\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"127\"},{\"PropertyId\":\"38920\",\"People\":\"浙江金维克家庭用品科技有限公司\",\"Area\":\"54.15\",\"StartDate\":\"2017年9月18日\",\"EndDate\":\"2018年9月17日\",\"Money\":\"7200\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"127\"},{\"PropertyId\":\"38928\",\"People\":\"浙江金维克家庭用品科技有限公司\",\"Area\":\"54.15\",\"StartDate\":\"2017年9月18日\",\"EndDate\":\"2018年9月17日\",\"Money\":\"7200\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"127\"},{\"PropertyId\":\"38936\",\"People\":\"浙江金维克家庭用品科技有限公司\",\"Area\":\"54.15\",\"StartDate\":\"2017年9月18日\",\"EndDate\":\"2018年9月17日\",\"Money\":\"6000\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"127\"},{\"PropertyId\":\"38905\",\"People\":\"浙江金维克家庭用品科技有限公司\",\"Area\":\"54.15\",\"StartDate\":\"2017年9月18日\",\"EndDate\":\"2018年9月17日\",\"Money\":\"6000\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"127\"},{\"PropertyId\":\"38913\",\"People\":\"浙江金维克家庭用品科技有限公司\",\"Area\":\"54.15\",\"StartDate\":\"2017年9月18日\",\"EndDate\":\"2018年9月17日\",\"Money\":\"7200\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"127\"},{\"PropertyId\":\"38921\",\"People\":\"浙江金维克家庭用品科技有限公司\",\"Area\":\"54.15\",\"StartDate\":\"2017年9月18日\",\"EndDate\":\"2018年9月17日\",\"Money\":\"7200\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"127\"},{\"PropertyId\":\"38929\",\"People\":\"浙江金维克家庭用品科技有限公司\",\"Area\":\"54.15\",\"StartDate\":\"2017年9月18日\",\"EndDate\":\"2018年9月17日\",\"Money\":\"7200\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"127\"},{\"PropertyId\":\"38937\",\"People\":\"浙江金维克家庭用品科技有限公司\",\"Area\":\"54.15\",\"StartDate\":\"2017年9月18日\",\"EndDate\":\"2018年9月17日\",\"Money\":\"6000\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"127\"},{\"PropertyId\":\"38910\",\"People\":\"浙江金维克家庭用品科技有限公司\",\"Area\":\"70.73\",\"StartDate\":\"2017年9月18日\",\"EndDate\":\"2018年9月17日\",\"Money\":\"7200\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"127\"},{\"PropertyId\":\"38918\",\"People\":\"浙江金维克家庭用品科技有限公司\",\"Area\":\"70.73\",\"StartDate\":\"2017年9月18日\",\"EndDate\":\"2018年9月17日\",\"Money\":\"8400\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"127\"},{\"PropertyId\":\"38926\",\"People\":\"浙江金维克家庭用品科技有限公司\",\"Area\":\"70.73\",\"StartDate\":\"2017年9月18日\",\"EndDate\":\"2018年9月17日\",\"Money\":\"8400\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"127\"},{\"PropertyId\":\"38934\",\"People\":\"浙江金维克家庭用品科技有限公司\",\"Area\":\"70.73\",\"StartDate\":\"2017年9月18日\",\"EndDate\":\"2018年9月17日\",\"Money\":\"8400\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"127\"},{\"PropertyId\":\"38942\",\"People\":\"浙江金维克家庭用品科技有限公司\",\"Area\":\"70.73\",\"StartDate\":\"2017年9月18日\",\"EndDate\":\"2018年9月17日\",\"Money\":\"7200\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"127\"},{\"PropertyId\":\"38909\",\"People\":\"浙江金维克家庭用品科技有限公司\",\"Area\":\"54.15\",\"StartDate\":\"2017年9月18日\",\"EndDate\":\"2018年9月17日\",\"Money\":\"6000\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"127\"},{\"PropertyId\":\"38917\",\"People\":\"浙江金维克家庭用品科技有限公司\",\"Area\":\"54.15\",\"StartDate\":\"2017年9月18日\",\"EndDate\":\"2018年9月17日\",\"Money\":\"7200\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"127\"},{\"PropertyId\":\"38925\",\"People\":\"浙江金维克家庭用品科技有限公司\",\"Area\":\"54.15\",\"StartDate\":\"2017年9月18日\",\"EndDate\":\"2018年9月17日\",\"Money\":\"7200\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"127\"},{\"PropertyId\":\"38933\",\"People\":\"浙江金维克家庭用品科技有限公司\",\"Area\":\"54.15\",\"StartDate\":\"2017年9月18日\",\"EndDate\":\"2018年9月17日\",\"Money\":\"7200\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"127\"},{\"PropertyId\":\"38941\",\"People\":\"浙江金维克家庭用品科技有限公司\",\"Area\":\"54.15\",\"StartDate\":\"2017年9月18日\",\"EndDate\":\"2018年9月17日\",\"Money\":\"6000\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"127\"},{\"PropertyId\":\"36628\",\"People\":\"浙江金维克家庭用品科技有限公司\",\"Area\":\"81.83\",\"StartDate\":\"2017年9月18日\",\"EndDate\":\"2018年9月17日\",\"Money\":\"10200\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"127\"},{\"PropertyId\":\"38983\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"70.73\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"4200\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"38984\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"54.15\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"4200\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"38985\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"54.15\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"4200\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"38986\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"69.96\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"4200\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"38987\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"69.96\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"4200\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"38988\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"54.15\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"4200\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"38989\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"54.15\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"4200\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"38990\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"70.73\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"4200\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"38991\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"70.73\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"4200\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"38992\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"54.15\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"4200\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"38993\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"54.15\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"4200\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"38994\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"69.96\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"4200\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"38995\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"69.96\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"4200\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"38996\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"54.15\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"4200\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"38997\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"54.15\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"4200\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"38998\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"70.73\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"4200\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"38999\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"70.73\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"4200\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"39000\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"54.15\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"4200\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"39001\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"54.15\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"4200\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"39002\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"69.96\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"4200\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"39003\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"69.96\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"4200\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"39004\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"54.15\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"4200\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"39005\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"54.15\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"4200\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"39006\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"70.73\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"4200\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"39007\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"70.73\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"4200\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"39008\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"54.15\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"4200\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"39009\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"54.15\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"4200\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"39010\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"69.96\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"4200\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"39011\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"69.96\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"4200\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"39012\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"54.15\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"4200\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"39013\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"54.15\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"4200\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"39014\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"70.73\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"4200\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"39015\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"70.73\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"4200\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"39016\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"54.15\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"4200\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"39017\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"54.15\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"4200\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"39018\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"69.96\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"4200\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"39019\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"69.96\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"4200\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"39020\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"54.15\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"4200\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"39021\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"54.15\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"4200\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"39022\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"70.73\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"4200\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"39103\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"70.73\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"3600\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"39104\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"54.15\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"3600\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"39105\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"54.15\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"3600\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"39106\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"69.96\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"3600\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"39107\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"69.96\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"3600\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"39108\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"54.15\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"3600\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"39109\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"54.15\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"3600\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"39110\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"70.73\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"3600\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"39111\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"70.73\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"3600\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"39112\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"54.15\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"3600\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"39113\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"54.15\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"3600\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"39114\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"69.96\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"3600\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"39115\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"69.96\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"3600\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"39116\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"54.15\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"3600\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"39117\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"54.15\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"3600\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"39118\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"70.73\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"3600\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"39119\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"70.73\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"3600\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"39120\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"54.15\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"3600\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"39121\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"54.15\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"3600\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"39122\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"69.96\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"3600\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"39123\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"69.96\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"3600\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"39124\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"54.15\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"3600\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"39125\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"54.15\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"3600\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"39126\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"70.73\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"3600\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"39127\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"70.73\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"3600\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"39128\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"54.15\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"3600\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"39129\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"54.15\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"3600\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"39130\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"69.96\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"3600\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"39131\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"69.96\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"3600\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"39132\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"54.15\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"3600\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"39133\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"54.15\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"3600\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"39134\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"70.73\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"3600\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"39135\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"70.73\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"3600\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"39136\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"54.15\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"3600\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"39137\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"54.15\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"3600\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"39138\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"69.96\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"3600\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"39139\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"69.96\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"3600\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"39140\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"54.15\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"3600\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"39141\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"54.15\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"3600\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"39142\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"70.73\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"3600\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},]";
+            var json = "[{\"PropertyId\":\"40197\",\"People\":\"赖连根\",\"Area\":\"72\",\"StartDate\":\"2015/12/1\",\"EndDate\":\"2018/12/1\",\"Money\":\"10400;10920;11466\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"租赁地点：东港何蓬新村联系人： 15857082011\",\"FileId\":\"1\"},{\"PropertyId\":\"40197\",\"People\":\"周剑波\",\"Area\":\"72\",\"StartDate\":\"2015/12/1\",\"EndDate\":\"2018/12/1\",\"Money\":\"10400;10920;11466\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"租赁地点：东港何蓬新村联系人： 15924073306\",\"FileId\":\"2\"},{\"PropertyId\":\"40197\",\"People\":\"罗金生\",\"Area\":\"72\",\"StartDate\":\"2015/12/1\",\"EndDate\":\"2018/12/1\",\"Money\":\"10400;10920;11466\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"租赁地点：东港何蓬新村联系人： 15157001501\",\"FileId\":\"3\"},{\"PropertyId\":\"40197\",\"People\":\"张宏飞\",\"Area\":\"72\",\"StartDate\":\"2015/12/1\",\"EndDate\":\"2018/12/1\",\"Money\":\"10400;10920;11466\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"租赁地点：东港何蓬新村联系人： 13105709076\",\"FileId\":\"4\"},{\"PropertyId\":\"40197\",\"People\":\"衢州贝林房地产开发有限公司\",\"Area\":\"144\",\"StartDate\":\"2016/11/11\",\"EndDate\":\"2019/11/11\",\"Money\":\"20800;21840;22932\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"租赁地点：东港何蓬新村联系人： 13506701933\",\"FileId\":\"5\"},{\"PropertyId\":\"40197\",\"People\":\"何建国\",\"Area\":\"72\",\"StartDate\":\"2017/4/1\",\"EndDate\":\"2020/4/1\",\"Money\":\"10400;10920;11466\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"租赁地点：东港何蓬新村联系人： 13567049354\",\"FileId\":\"6\"},{\"PropertyId\":\"40197\",\"People\":\"罗雪云\",\"Area\":\"72\",\"StartDate\":\"2017/4/1\",\"EndDate\":\"2020/4/1\",\"Money\":\"10400;10920;11466\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"租赁地点：东港何蓬新村联系人： 15857036658\",\"FileId\":\"7\"},{\"PropertyId\":\"40197\",\"People\":\"罗雪云\",\"Area\":\"72\",\"StartDate\":\"2017/6/20\",\"EndDate\":\"2020/6/20\",\"Money\":\"11500;12075;12679\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"租赁地点：东港何蓬新村联系人： 15857036658\",\"FileId\":\"8\"},{\"PropertyId\":\"40197\",\"People\":\"王信勇\",\"Area\":\"72\",\"StartDate\":\"2017/4/1\",\"EndDate\":\"2020/4/1\",\"Money\":\"10400;10920;11466\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"租赁地点：东港何蓬新村联系人： 15857036658\",\"FileId\":\"9\"},{\"PropertyId\":\"40196\",\"People\":\"刘会广\",\"Area\":\"72\",\"StartDate\":\"2016/11/11\",\"EndDate\":\"2019/11/11\",\"Money\":\"22300;24465;25688\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"租赁地点：东港横路后营业网点村联系人： 18057083111\",\"FileId\":\"10\"},{\"PropertyId\":\"40196\",\"People\":\"中国联通网络通信有限公司衢州分公司\",\"Area\":\"72\",\"StartDate\":\"2016/11/11\",\"EndDate\":\"2019/11/11\",\"Money\":\"24000;25200;26460\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"租赁地点：东港横路后营业网点村联系人： 15657002788\",\"FileId\":\"11\"},{\"PropertyId\":\"40196\",\"People\":\"郑康巍\",\"Area\":\"144\",\"StartDate\":\"2017/6/20\",\"EndDate\":\"2020/6/20\",\"Money\":\"46600;48930;51377\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"租赁地点：东港横路后营业网点村联系人： 13105709383\",\"FileId\":\"12\"},{\"PropertyId\":\"40196\",\"People\":\"蒋衰英\",\"Area\":\"72\",\"StartDate\":\"2017/6/20\",\"EndDate\":\"2020/6/20\",\"Money\":\"23300;24465;25688\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"租赁地点：东港横路后营业网点村联系人： 18368609097\",\"FileId\":\"13\"},{\"PropertyId\":\"40196\",\"People\":\"周永文\",\"Area\":\"72\",\"StartDate\":\"2017/6/20\",\"EndDate\":\"2020/6/20\",\"Money\":\"23300;24465;25688\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"租赁地点：东港横路后营业网点村联系人： 13587009111\",\"FileId\":\"14\"},{\"PropertyId\":\"40196\",\"People\":\"何凯\",\"Area\":\"72\",\"StartDate\":\"2017/10/25\",\"EndDate\":\"2020/10/25\",\"Money\":\"23300;24465;25688\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"租赁地点：东港横路后营业网点村联系人： 13575651945\",\"FileId\":\"15\"},{\"PropertyId\":\"40196\",\"People\":\"汪利霞\",\"Area\":\"72\",\"StartDate\":\"2017/10/25\",\"EndDate\":\"2020/10/25\",\"Money\":\"23300;24465;25688\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"租赁地点：东港横路后营业网点村联系人： 15372737376\",\"FileId\":\"16\"}]";
+
+           // var json = "[{\"PropertyId\":\"36521\",\"People\":\"浙江馨和园智能家居有限公司\",\"Area\":\"1391\",\"StartDate\":\"2017/6/15\",\"EndDate\":\"2018/6/14\",\"Money\":\"133536\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"租赁地点：8号厂房联系人：冯洪钢13355717072/13396717777\",\"FileId\":\"1\"},{\"PropertyId\":\"36521\",\"People\":\"浙江红五环机械股份有限公司\",\"Area\":\"1196\",\"StartDate\":\"2016/12/28\",\"EndDate\":\"2017/12/27\",\"Money\":\"114816\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"租赁地点：12号厂房联系人：13357007182郑15257049119\",\"FileId\":\"48\"},{\"PropertyId\":\"36521\",\"People\":\"（华越无人机）浙江高科新农科技有限公司\",\"Area\":\"2587\",\"StartDate\":\"2016/9/20\",\"EndDate\":\"2019/9/19\",\"Money\":\"0;0;248352\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"租赁地点：10、13号厂房联系人：王玉玲13538111535\",\"FileId\":\"3\"},{\"PropertyId\":\"36521\",\"People\":\"衢州迅洁环保科技有限公司\",\"Area\":\"426\",\"StartDate\":\"2017/3/8\",\"EndDate\":\"2017/3/7\",\"Money\":\"40896\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"租赁地点：11号厂房联系人：张善华13857589315\",\"FileId\":\"4\"},{\"PropertyId\":\"36521\",\"People\":\"浙江益元素食品有限公司\",\"Area\":\"1391\",\"StartDate\":\"2017/8/17\",\"EndDate\":\"2018/8/16\",\"Money\":\"133536\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"租赁地点：9号厂房联系人：廖寅强18896792259\",\"FileId\":\"31\"},{\"PropertyId\":\"36396\",\"People\":\"浙江迪特西科技有限公司\",\"Area\":\"4326.36\",\"StartDate\":\"2017.4.15\",\"EndDate\":\"2018.5.25\",\"Money\":\"336632;28052\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"租赁地点：1号厂房联系人：傅强13857012356\",\"FileId\":\"21\"},{\"PropertyId\":\"36398\",\"People\":\"林永红\",\"Area\":\"991.4\",\"StartDate\":\"2016年4月1日\",\"EndDate\":\"2017年3月31日\",\"Money\":\"95174.4\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"租赁地点：高新园区3号厂房西面联系人：13819008757\",\"FileId\":\"9\"},{\"PropertyId\":\"36398\",\"People\":\"衢州景琦机械有限公司\",\"Area\":\"1787.39\",\"StartDate\":\"2016年5月20日\",\"EndDate\":\"2017年5月19日\",\"Money\":\"171589.4\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"租赁地点：3号联系人：桑8881983\",\"FileId\":\"6\"},{\"PropertyId\":\"36398\",\"People\":\"衢州佳信化工有限公司\",\"Area\":\"100\",\"StartDate\":\"2017年1月1日\",\"EndDate\":\"2017年12月31日\",\"Money\":\"9600\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"租赁地点：3号联系人：江献文13625805667\",\"FileId\":\"30\"},{\"PropertyId\":\"36399\",\"People\":\"浙江沃谷化工有限公司\",\"Area\":\"2280\",\"StartDate\":\"2016.12.1\",\"EndDate\":\"2017.11.30\",\"Money\":\"218880\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"租赁地点：四号厂房及办公室3间联系人：叶俊18868782580\",\"FileId\":\"14\"},{\"PropertyId\":\"36399\",\"People\":\"浙江沃谷化工有限公司\",\"Area\":\"1215.82\",\"StartDate\":\"2017.2.1\",\"EndDate\":\"2018.1.31\",\"Money\":\"116724\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"租赁地点：四号厂房联系人：叶俊18868782580\",\"FileId\":\"14\"},{\"PropertyId\":\"36399\",\"People\":\"浙江欧普光电科技有限公司\",\"Area\":\"64.06\",\"StartDate\":\"2017.1.1\",\"EndDate\":\"2017.12.31\",\"Money\":\"6144\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"租赁地点：4号厂房联系人：郑燕826775513706707152\",\"FileId\":\"8\"},{\"PropertyId\":\"36399\",\"People\":\"恒基建设集团有限公司\",\"Area\":\"196.8\",\"StartDate\":\"2016.10.8\",\"EndDate\":\"2017.10.7\",\"Money\":\"18893\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"租赁地点：一楼联系人：戴洪良13362012258\",\"FileId\":\"32\"},{\"PropertyId\":\"36399\",\"People\":\"宁波海逸园林工程有限公司\",\"Area\":\"164.92\",\"StartDate\":\"2016.10.26\",\"EndDate\":\"2017.10.25\",\"Money\":\"15832\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"租赁地点：二楼联系人：吴国强13082888989\",\"FileId\":\"5\"},{\"PropertyId\":\"36400\",\"People\":\"浙江迪特西科技有限公司\",\"Area\":\"2458.87\",\"StartDate\":\"2017年8月26日\",\"EndDate\":\"2018年8月25日\",\"Money\":\"236052\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"傅强13857012356\",\"FileId\":\"133\"},{\"PropertyId\":\"36402\",\"People\":\"衢州东方集团股份有限公司\",\"Area\":\"1040\",\"StartDate\":\"2008.1.1\",\"EndDate\":\"2018.12.31\",\"Money\":\"99840;99840;99840;99840;99840;99840;99840;99840;99840;99840;\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"夏琴15005707675\",\"FileId\":\"24\"},{\"PropertyId\":\"36402\",\"People\":\"衢州东方集团股份有限公司\",\"Area\":\"798.87\",\"StartDate\":\"2017.1.1\",\"EndDate\":\"2017.12.31\",\"Money\":\"76692\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"夏琴15005707675\",\"FileId\":\"24\"},{\"PropertyId\":\"36403\",\"People\":\"浙江沃谷化工有限公司\",\"Area\":\"1229.44\",\"StartDate\":\"2017年1月1日\",\"EndDate\":\"2017年12月31日\",\"Money\":\"118026\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"联系人：叶俊18868782580\",\"FileId\":\"25\"},{\"PropertyId\":\"36406\",\"People\":\"衢州顶津饮品有限公司\",\"Area\":\"14333\",\"StartDate\":\"2013年12月5日\",\"EndDate\":\"2023年12月4日\",\"Money\":\"2063952;2063952;2270347.2;2270347.2;2497381.92;2497381.92;2747120.112;2747120.112;3021832.1232;3021832.1232\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"租金每2年上浮10%;联系人：潘主任15268610882\",\"FileId\":\"23\"},{\"PropertyId\":\"36404\",\"People\":\"衢州杭氧气体有限公司\",\"Area\":\"60\",\"StartDate\":\"2017.1.1\",\"EndDate\":\"2017.12.31\",\"Money\":\"9600\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"租赁地点：孵化大楼610、611室60平方米;联系人：董18057010336\",\"FileId\":\"43\"},{\"PropertyId\":\"36404\",\"People\":\"浙江雷鼎新能源有限公司\",\"Area\":\"90\",\"StartDate\":\"2017.4.19\",\"EndDate\":\"2018.4.18\",\"Money\":\"9600\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"租赁地点：孵化大楼605、626室;联系人：雷云清13306701166\",\"FileId\":\"15\"},{\"PropertyId\":\"36404\",\"People\":\"浙江欧普光电科技有限公司\",\"Area\":\"30\",\"StartDate\":\"2017.1.1\",\"EndDate\":\"2017.12.31\",\"Money\":\"4800\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"租赁地点：办公楼518;联系人：郑燕8267755\",\"FileId\":\"134\"},{\"PropertyId\":\"36404\",\"People\":\"衢州公安局交通警察支队集聚区大队\",\"Area\":\"324\",\"StartDate\":\"2013.12.11\",\"Money\":\"0\",\"Type\":\"0\",\"GovernmentId\":\"155\",\"Remark\":\"租赁地点：一楼西面144平方米。2楼201-202、204-208;联系人：郑13957038257\",\"FileId\":\"136\"},{\"PropertyId\":\"38840\",\"People\":\"衢州东方商厦有限公司\",\"Area\":\"941\",\"StartDate\":\"2015年9月1日\",\"EndDate\":\"2020年8月31日\",\"Money\":\"120000;120000;126000;132300;138915\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"联系人：姜静波\",\"FileId\":\"80\"},{\"PropertyId\":\"38840\",\"People\":\"衢州市衢江农村信用合作联社东港信用社\",\"Area\":\"441.5\",\"StartDate\":\"2015年5月8日\",\"EndDate\":\"2020年 12月31日\",\"Money\":\"113085;131699;138284;145198;152458;85754\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"联系人：苏俊15869050396\",\"FileId\":\"94\"},{\"PropertyId\":\"38840\",\"People\":\"中国建设银行股份有限公司衢州分行\",\"Area\":\"30\",\"StartDate\":\"2015年3月1日\",\"EndDate\":\"2019年2月28日\",\"Money\":\"20000;22000;24200;26620;29282\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"92\"},{\"PropertyId\":\"36533\",\"People\":\"中科锂电新能源有限公司（筹）\",\"Area\":\"6651.3\",\"StartDate\":\"2016.12.1\",\"EndDate\":\"2021.11.30\",\"Money\":\"319260;319260;319260;319260;319260\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"1、租金自甲方电力等配套设施安装完毕交付使用之日起算，以后每年租金在当年11月1日前交清。2、金按4元/平方米/月标准收取，每月为26605元，合计每年为319260元。联系人：张正亮18868055777\",\"FileId\":\"20\"},{\"PropertyId\":\"36520\",\"People\":\"衢州市公安局衢州经济开发区分局\",\"Area\":\"1272\",\"StartDate\":\"2014年12月11日\",\"Money\":\"0\",\"Type\":\"0\",\"GovernmentId\":\"155\",\"Remark\":\"自用收回;联系人：陈连宝13957029161\",\"FileId\":\"129\"},{\"PropertyId\":\"36504\",\"People\":\"浙江开山气动工具有限公司\",\"Area\":\"4318\",\"StartDate\":\"2014年8月21日\",\"EndDate\":\"2019年8月20日\",\"Money\":\"414528\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"联系人：钱永春13957015726\",\"FileId\":\"125\"},{\"PropertyId\":\"36504\",\"People\":\"衢州开山橡塑有限公司\",\"Area\":\"6907\",\"StartDate\":\"2014年8月21日\",\"EndDate\":\"2019年8月20日\",\"Money\":\"663072\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"联系人：钱永春13957015726\",\"FileId\":\"124\"},{\"PropertyId\":\"36504\",\"People\":\"衢州银潮工程机械有限公司\",\"Area\":\"9527\",\"StartDate\":\"2014年8月21日\",\"EndDate\":\"2019年8月20日\",\"Money\":\"914592\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"联系人：钱永春13957015726\",\"FileId\":\"123\"},{\"PropertyId\":\"36381\",\"People\":\"衢州天宏气体有限公司\",\"Area\":\"2700\",\"StartDate\":\"2017年7月30日\",\"EndDate\":\"2018年7月29日\",\"Money\":\"260280\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"联系人：13957030848\",\"FileId\":\"0\"},{\"PropertyId\":\"36380\",\"People\":\"衢州市荣胜环保科技有限公司\",\"Area\":\"2975.69\",\"StartDate\":\"2017年5月18日\",\"EndDate\":\"2018年5月17日\",\"Money\":\"285666\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"联系人：13157068780\",\"FileId\":\"29\"},{\"PropertyId\":\"36377\",\"People\":\"衢州港诚机电产品制造有限公司\",\"Area\":\"4788.97\",\"StartDate\":\"2017年7月20日\",\"EndDate\":\"2018年7月 19日\",\"Money\":\"459744\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"联系人：范思钦18668386322和谐家园222、224\",\"FileId\":\"10\"},{\"PropertyId\":\"36376\",\"People\":\"衢州进源纸业有限公司\",\"Area\":\"2500\",\"StartDate\":\"2016年10月10日\",\"EndDate\":\"2017年10月9日\",\"Money\":\"120000\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"联系人：傅13905709991免3个月\",\"FileId\":\"26\"},{\"PropertyId\":\"36379\",\"People\":\"衢州市双洲物流有限公司\",\"Area\":\"5692.74\",\"StartDate\":\"2016年12月1日\",\"EndDate\":\"2019年2月28日\",\"Money\":\"765108;0\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"联系人：钱永春13957015726\",\"FileId\":\"7\"},{\"PropertyId\":\"36378\",\"People\":\"衢州市驰骋仓储有限公司（筹）\",\"Area\":\"5522.91\",\"StartDate\":\"2017.1.1\",\"EndDate\":\"2019.12.31\",\"Money\":\"530199;530199;530199\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"联系人：廖庆福13626702265\",\"FileId\":\"28\"},{\"PropertyId\":\"36375\",\"People\":\"衢州市公安局衢州经济开发区分局\",\"Area\":\"330\",\"StartDate\":\"2010.9.1\",\"Money\":\"0\",\"Type\":\"0\",\"GovernmentId\":\"155\",\"Remark\":\"2010.9.1开始，免租（巡防大队使用） 101-105、111-116（11间）;合计共11间.联系人：吴大900333\",\"FileId\":\"135\"},{\"PropertyId\":\"36375\",\"People\":\"衢州市衢江区东港街道办事处\",\"Area\":\"1170\",\"StartDate\":\"2010.9.1\",\"Money\":\"0\",\"Type\":\"0\",\"GovernmentId\":\"155\",\"Remark\":\"106-110.餐厅1间共6间;二楼整层共19间;三楼301-306、311-315共11间;五楼会议室1间，四楼413、414，合计39间\",\"FileId\":\"139\"},{\"PropertyId\":\"36375\",\"People\":\"市综合行政执法局开发区支队\",\"Area\":\"180\",\"StartDate\":\"2009.5.22\",\"Money\":\"0\",\"Type\":\"0\",\"GovernmentId\":\"155\",\"Remark\":\"3楼316-321共6间;联系人：程斌13905709081\",\"FileId\":\"132\"},{\"PropertyId\":\"36375\",\"People\":\"衢州公安局交通警察支队集聚区大队\",\"Area\":\"180\",\"StartDate\":\"2013.12.11\",\"Money\":\"0\",\"Type\":\"0\",\"GovernmentId\":\"155\",\"Remark\":\"3楼307-310、322-323共6间联系人：郑13957038257\",\"FileId\":\"136\"},{\"PropertyId\":\"36382\",\"People\":\"中国联合网络通信有限公司衢州分公司\",\"Area\":\"30\",\"StartDate\":\"2017年4月8日\",\"EndDate\":\"2018年 4月7日\",\"Money\":\"3600\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"东港宿舍1间（119），徐15657002644\",\"FileId\":\"148\"},{\"PropertyId\":\"36382\",\"People\":\"中国电信股份有限公司衢州分公司\",\"Area\":\"30\",\"StartDate\":\"2016年12月17日\",\"EndDate\":\"2017年 12月16日\",\"Money\":\"3600\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"东港宿舍120，18905701277\",\"FileId\":\"86\"},{\"PropertyId\":\"36382\",\"People\":\"中国铁塔股份有限公司衢州市分公司\",\"Area\":\"30\",\"StartDate\":\"2016年12月17日\",\"EndDate\":\"2017年 12月16日\",\"Money\":\"3600\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"东港宿舍407，聂春磊18805701005\",\"FileId\":\"85\"},{\"PropertyId\":\"36382\",\"People\":\"中国铁塔股份有限公司衢州市分公司\",\"Area\":\"32\",\"StartDate\":\"2017年4月1日\",\"EndDate\":\"2018年 3月31日\",\"Money\":\"10600\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"东港宿舍1间（422），租金含场地7000元。联系人：聂春磊18805701005\",\"FileId\":\"143\"},{\"PropertyId\":\"36382\",\"People\":\"衢州华数广电网络有限公司\",\"Area\":\"30\",\"StartDate\":\"2017年5月20日\",\"EndDate\":\"2018年5月19日\",\"Money\":\"3600\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"东港宿舍1间（118），鲁13967013308\",\"FileId\":\"110\"},{\"PropertyId\":\"36382\",\"People\":\"衢州进源纸业有限公司\",\"Area\":\"150\",\"StartDate\":\"2016年10月27日\",\"EndDate\":\"2017年10月26日\",\"Money\":\"18000\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"301-305，联系人：范1866386322\",\"FileId\":\"137\"},{\"PropertyId\":\"36382\",\"People\":\"衢州市公安局衢州经济开发区分局\",\"Area\":\"390\",\"StartDate\":\"2010.9.1\",\"Money\":\"0\",\"Type\":\"0\",\"GovernmentId\":\"155\",\"Remark\":\"宿舍408-416、418-420、111共13间。时间：2010.9.1开始，免租（巡防大队使用）.116-117、318-322、405-406共22间。吴荣良（900333）\",\"FileId\":\"135\"},{\"PropertyId\":\"36382\",\"People\":\"衢州市衢江区东港街道办事处\",\"Area\":\"780\",\"StartDate\":\"2010.9.1\",\"Money\":\"0\",\"Type\":\"0\",\"GovernmentId\":\"155\",\"Remark\":\"113-115食堂用201-205、207-216、218-222、314-316 共26间 。联系人：李901739\",\"FileId\":\"139\"},{\"PropertyId\":\"36395\",\"People\":\"中国建设银行股份有限公司衢州分行\",\"Area\":\"13\",\"StartDate\":\"2013年12月9日\",\"EndDate\":\"2018年12月8日\",\"Money\":\"0\",\"Type\":\"0\",\"GovernmentId\":\"155\",\"Remark\":\"一楼原门卫室边。联系人：汪政13575652348\",\"FileId\":\"144\"},{\"PropertyId\":\"36559\",\"People\":\"马迭尔食品（浙江）有限公司\",\"Area\":\"81.32\",\"StartDate\":\"2017年2月1日\",\"EndDate\":\"2018年7月31日\",\"Money\":\"0\",\"Type\":\"0\",\"GovernmentId\":\"155\",\"Remark\":\"2017年2月1日—2018年7月31日（18个月）.联系人：8886898  / 13575668598\",\"FileId\":\"93\"},{\"PropertyId\":\"36560\",\"People\":\"马迭尔食品（浙江）有限公司\",\"Area\":\"81.32\",\"StartDate\":\"2017年2月1日\",\"EndDate\":\"2018年7月31日\",\"Money\":\"0\",\"Type\":\"0\",\"GovernmentId\":\"155\",\"Remark\":\"2017年2月1日—2018年7月31日（18个月）.联系人：8886898  / 13575668598\",\"FileId\":\"93\"},{\"PropertyId\":\"36561\",\"People\":\"马迭尔食品（浙江）有限公司\",\"Area\":\"82.81\",\"StartDate\":\"2017年2月1日\",\"EndDate\":\"2018年7月31日\",\"Money\":\"0\",\"Type\":\"0\",\"GovernmentId\":\"155\",\"Remark\":\"2017年2月1日—2018年7月31日（18个月）.联系人：8886898  / 13575668598\",\"FileId\":\"93\"},{\"PropertyId\":\"36562\",\"People\":\"马迭尔食品（浙江）有限公司\",\"Area\":\"81.32\",\"StartDate\":\"2017年2月1日\",\"EndDate\":\"2018年7月31日\",\"Money\":\"0\",\"Type\":\"0\",\"GovernmentId\":\"155\",\"Remark\":\"2017年2月1日—2018年7月31日（18个月）.联系人：8886898  / 13575668598\",\"FileId\":\"93\"},{\"PropertyId\":\"36563\",\"People\":\"马迭尔食品（浙江）有限公司\",\"Area\":\"82.81\",\"StartDate\":\"2017年2月1日\",\"EndDate\":\"2018年7月31日\",\"Money\":\"0\",\"Type\":\"0\",\"GovernmentId\":\"155\",\"Remark\":\"2017年2月1日—2018年7月31日（18个月）.联系人：8886898  / 13575668598\",\"FileId\":\"93\"},{\"PropertyId\":\"36564\",\"People\":\"马迭尔食品（浙江）有限公司\",\"Area\":\"81.32\",\"StartDate\":\"2017年2月1日\",\"EndDate\":\"2018年7月31日\",\"Money\":\"0\",\"Type\":\"0\",\"GovernmentId\":\"155\",\"Remark\":\"2017年2月1日—2018年7月31日（18个月）.联系人：8886898  / 13575668598\",\"FileId\":\"93\"},{\"PropertyId\":\"36567\",\"People\":\"深圳市楠华电子科技有限公司\",\"Area\":\"82.81\",\"StartDate\":\"2017年7月6日\",\"EndDate\":\"2019年1月5日\",\"Money\":\"0\",\"Type\":\"0\",\"GovernmentId\":\"155\",\"Remark\":\"2017年7月6日-2019年1月5日（18个月）联系人：陈总13802248008\",\"FileId\":\"2\"},{\"PropertyId\":\"36568\",\"People\":\"深圳市楠华电子科技有限公司\",\"Area\":\"81.32\",\"StartDate\":\"2017年7月6日\",\"EndDate\":\"2019年1月5日\",\"Money\":\"0\",\"Type\":\"0\",\"GovernmentId\":\"155\",\"Remark\":\"2017年7月6日-2019年1月5日（18个月）联系人：陈总13802248008\",\"FileId\":\"2\"},{\"PropertyId\":\"36553\",\"People\":\"金瑞泓科技（衢州）有限公司\",\"Area\":\"81.32\",\"StartDate\":\"2017年8月4日\",\"EndDate\":\"2019年2月3日\",\"Money\":\"0\",\"Type\":\"0\",\"GovernmentId\":\"155\",\"Remark\":\"2017年8月4日-2019年2月3日（18个月）联系人：汪红燕13957000034\",\"FileId\":\"97\"},{\"PropertyId\":\"36554\",\"People\":\"金瑞泓科技（衢州）有限公司\",\"Area\":\"81.32\",\"StartDate\":\"2017年8月4日\",\"EndDate\":\"2019年2月3日\",\"Money\":\"0\",\"Type\":\"0\",\"GovernmentId\":\"155\",\"Remark\":\"2017年8月4日-2019年2月3日（18个月）联系人：汪红燕13957000034\",\"FileId\":\"97\"},{\"PropertyId\":\"36555\",\"People\":\"金瑞泓科技（衢州）有限公司\",\"Area\":\"81.32\",\"StartDate\":\"2017年8月4日\",\"EndDate\":\"2019年2月3日\",\"Money\":\"0\",\"Type\":\"0\",\"GovernmentId\":\"155\",\"Remark\":\"2017年8月4日-2019年2月3日（18个月）联系人：汪红燕13957000034\",\"FileId\":\"97\"},{\"PropertyId\":\"36556\",\"People\":\"金瑞泓科技（衢州）有限公司\",\"Area\":\"82.81\",\"StartDate\":\"2017年8月4日\",\"EndDate\":\"2019年2月3日\",\"Money\":\"0\",\"Type\":\"0\",\"GovernmentId\":\"155\",\"Remark\":\"2017年8月4日-2019年2月3日（18个月）联系人：汪红燕13957000034\",\"FileId\":\"97\"},{\"PropertyId\":\"36557\",\"People\":\"金瑞泓科技（衢州）有限公司\",\"Area\":\"81.32\",\"StartDate\":\"2017年8月4日\",\"EndDate\":\"2019年2月3日\",\"Money\":\"0\",\"Type\":\"0\",\"GovernmentId\":\"155\",\"Remark\":\"2017年8月4日-2019年2月3日（18个月）联系人：汪红燕13957000034\",\"FileId\":\"97\"},{\"PropertyId\":\"36558\",\"People\":\"金瑞泓科技（衢州）有限公司\",\"Area\":\"81.32\",\"StartDate\":\"2017年8月4日\",\"EndDate\":\"2019年2月3日\",\"Money\":\"0\",\"Type\":\"0\",\"GovernmentId\":\"155\",\"Remark\":\"2017年8月4日-2019年2月3日（18个月）联系人：汪红燕13957000034\",\"FileId\":\"97\"},{\"PropertyId\":\"36565\",\"People\":\"衢州佰强新材料科技有限公司\",\"Area\":\"83.13\",\"StartDate\":\"2017年8月10日\",\"EndDate\":\"2018年8月9日\",\"Money\":\"0\",\"Type\":\"0\",\"GovernmentId\":\"155\",\"Remark\":\"王亥龙18957010428\",\"FileId\":\"96\"},{\"PropertyId\":\"36566\",\"People\":\"衢州佰强新材料科技有限公司\",\"Area\":\"81.32\",\"StartDate\":\"2017年8月10日\",\"EndDate\":\"2018年8月9日\",\"Money\":\"0\",\"Type\":\"0\",\"GovernmentId\":\"155\",\"Remark\":\"王亥龙18957010428\",\"FileId\":\"96\"},{\"PropertyId\":\"36388\",\"People\":\"郑云昌\",\"Area\":\"30\",\"StartDate\":\"2015年3月18\",\"EndDate\":\"2017年12月31日\",\"Money\":\"12000;12600;10475\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"13157039100\",\"FileId\":\"50\"},{\"PropertyId\":\"36388\",\"People\":\"张慧霞\",\"Area\":\"30\",\"StartDate\":\"2015年4月1\",\"EndDate\":\"2017年12月31日\",\"Money\":\"12000;12600;9923\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"13059713088\",\"FileId\":\"71\"},{\"PropertyId\":\"36388\",\"People\":\"王周侬\",\"Area\":\"120\",\"StartDate\":\"2015年4月10日\",\"EndDate\":\"2017年12月31日\",\"Money\":\"48000;50400;38220\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"13616700768\",\"FileId\":\"116\"},{\"PropertyId\":\"36388\",\"People\":\"郑钎誉\",\"Area\":\"30\",\"StartDate\":\"2017年6月12日\",\"EndDate\":\"2020年6月11日\",\"Money\":\"7200;7560;7938\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"13357020456\",\"FileId\":\"107\"},{\"PropertyId\":\"36388\",\"People\":\"吴敬豪\",\"Area\":\"90\",\"StartDate\":\"2017年6月13日\",\"EndDate\":\"2020年6月12日\",\"Money\":\"36000;37800;39690\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"18957020801\",\"FileId\":\"106\"},{\"PropertyId\":\"36391\",\"People\":\"衢州普望生物技术有限公司\",\"Area\":\"30\",\"StartDate\":\"2015年10月10日\",\"EndDate\":\"2020年10月9日\",\"Money\":\"104400;104400;104400;104400;104400\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"林标扬13858186125\",\"FileId\":\"111\"},{\"PropertyId\":\"36389\",\"People\":\"市总工会\",\"Area\":\"2200\",\"StartDate\":\"2017.7.1\",\"EndDate\":\"2022.7.1\",\"Money\":\"0\",\"Type\":\"0\",\"GovernmentId\":\"155\",\"FileId\":\"149\"},{\"PropertyId\":\"36386\",\"People\":\"衢州铭泰仪器设计有限公司\",\"Area\":\"554.4\",\"StartDate\":\"2016年10月3日\",\"EndDate\":\"2021年10月2日\",\"Money\":\"99792;99792;99792;99792;99792\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"王成文18605702345\",\"FileId\":\"73\"},{\"PropertyId\":\"36386\",\"People\":\"衢州永力达数控技术服务有限公司\",\"Area\":\"95\",\"StartDate\":\"2016年10月1日\",\"EndDate\":\"2017年9月30日\",\"Money\":\"17100\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"郑勇13511406017\",\"FileId\":\"74\"},{\"PropertyId\":\"36386\",\"People\":\"衢州中科数字化工程技术有限公司\",\"Area\":\"1030\",\"StartDate\":\"2012年8月21日\",\"EndDate\":\"2017年10月20日\",\"Money\":\"0\",\"Type\":\"0\",\"GovernmentId\":\"155\",\"Remark\":\"张伟家13622037390\",\"FileId\":\"61\"},{\"PropertyId\":\"36386\",\"People\":\"衢州五彩工业设计有限公司\",\"Area\":\"320\",\"StartDate\":\"2016年7月1日\",\"EndDate\":\"2018年6月30日\",\"Money\":\"57600;57600\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"黄海蒂18967003333\",\"FileId\":\"19\"},{\"PropertyId\":\"36386\",\"People\":\"衢州市易凡设计有限公司\",\"Area\":\"85\",\"StartDate\":\"2012年10月29日\",\"EndDate\":\"2017年10月28日\",\"Money\":\"0;3060;3060;7656;7656\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"吴超15605700498\",\"FileId\":\"114\"},{\"PropertyId\":\"36386\",\"People\":\"衢州市依科达节能技术有限公司\",\"Area\":\"80\",\"StartDate\":\"2012年11月20日\",\"EndDate\":\"2017年11月19日\",\"Money\":\"0;2880;2880;7200;7200\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"饶建明13757043013\",\"FileId\":\"78\"},{\"PropertyId\":\"36386\",\"People\":\"衢州昀睿工业设计有限公司\",\"Area\":\"40\",\"StartDate\":\"2012年11月20日\",\"EndDate\":\"2017年11月19日\",\"Money\":\"0;1440;1440;3600;3600\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"周昀睿13586476234\",\"FileId\":\"16\"},{\"PropertyId\":\"36386\",\"People\":\"衢州华宏化工工程设计有限公司\",\"Area\":\"210\",\"StartDate\":\"2012年11月20日\",\"EndDate\":\"2017年11月19日\",\"Money\":\"0;7560;7560;18900;18900\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"钟海帆 13575668834\",\"FileId\":\"105\"},{\"PropertyId\":\"36386\",\"People\":\"衢州市雅研工艺品有限公司\",\"Area\":\"109\",\"StartDate\":\"2016年9月1日\",\"EndDate\":\"2017年12月30日\",\"Money\":\"32340\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"杜梦生13575657287\",\"FileId\":\"76\"},{\"PropertyId\":\"36386\",\"People\":\"衢州威曼工业产品设计有限责任公司\",\"Area\":\"109\",\"StartDate\":\"2013年3月27日\",\"EndDate\":\"2018年3月26日\",\"Money\":\"0;3924;3924;9810;9810\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"张胜华13002644599\",\"FileId\":\"109\"},{\"PropertyId\":\"36386\",\"People\":\"衢州协创自动化科技有限公司\",\"Area\":\"48\",\"StartDate\":\"2016年9月30日\",\"EndDate\":\"2017年9月29日\",\"Money\":\"8640\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"柳志红13750702106\",\"FileId\":\"113\"},{\"PropertyId\":\"36386\",\"People\":\"衢州乐创节能科技有限公司\",\"Area\":\"62\",\"StartDate\":\"2016年12月6日\",\"EndDate\":\"2017年12月5日\",\"Money\":\"11160\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"吴炳土15657012197\",\"FileId\":\"108\"},{\"PropertyId\":\"36386\",\"People\":\"衢州海西电子科技有限公司\",\"Area\":\"120\",\"StartDate\":\"2016年12月9日\",\"EndDate\":\"2018年12月8日\",\"Money\":\"21600;21600\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"叶雪雁18967003696\",\"FileId\":\"11\"},{\"PropertyId\":\"36386\",\"People\":\"衢州联盛方略咨询有限公司\",\"Area\":\"78\",\"StartDate\":\"2017年3月17日\",\"EndDate\":\"2018年3月16日\",\"Money\":\"14040\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"18057021339\",\"FileId\":\"58\"},{\"PropertyId\":\"36386\",\"People\":\"衢州市万凯科技咨询服务中心\",\"Area\":\"78\",\"StartDate\":\"2014年12月1日\",\"EndDate\":\"2017年11月30日\",\"Money\":\"14040;14040;14040\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"姚13082889766\",\"FileId\":\"18\"},{\"PropertyId\":\"36386\",\"People\":\"衢州维信网络科技有限公司  \",\"Area\":\"139\",\"StartDate\":\"2014年12月23日\",\"EndDate\":\"2017年12月22日\",\"Money\":\"25020;25020;25020\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"13957008077\",\"FileId\":\"59\"},{\"PropertyId\":\"36386\",\"People\":\"衢州芝麻开门计算机技术有限公司\",\"Area\":\"139\",\"StartDate\":\"2014年12月23日\",\"EndDate\":\"2017年12月22日\",\"Money\":\"14040;14040;14040\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"13819001776\",\"FileId\":\"17\"},{\"PropertyId\":\"36386\",\"People\":\"衢州信步化工科技有限公司（筹）\",\"Area\":\"55\",\"StartDate\":\"2015年3月24日\",\"EndDate\":\"2018年3月23日\",\"Money\":\"9900;9900;9900\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"13906705025\",\"FileId\":\"54\"},{\"PropertyId\":\"36386\",\"People\":\"普朗克工业设计有限公司\",\"Area\":\"40\",\"StartDate\":\"2015.1.30\",\"EndDate\":\"2018.1.19\",\"Money\":\"7200;7200;7200\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"63\"},{\"PropertyId\":\"36386\",\"People\":\"衢州市科诚技术开发有限公司（筹）\",\"Area\":\"40\",\"StartDate\":\"2015年10月16日\",\"EndDate\":\"2018年10月15日\",\"Money\":\"7200;7200;7200\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"范15058431939\",\"FileId\":\"72\"},{\"PropertyId\":\"36385\",\"People\":\"衢州市成合门业科技有限公司（筹）\",\"Area\":\"211.8\",\"StartDate\":\"2015年9月23日\",\"EndDate\":\"2018年9月22日\",\"Money\":\"38124;38124;38124\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"刘17757001222\",\"FileId\":\"12\"},{\"PropertyId\":\"36385\",\"People\":\"浙江迪盛新能源科技有限公司\",\"Area\":\"162\",\"StartDate\":\"2015年10月10日\",\"EndDate\":\"2018年10月9日\",\"Money\":\"29160;29160;29160\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"李江峰13905701100\",\"FileId\":\"75\"},{\"PropertyId\":\"36385\",\"People\":\"衢州福创工业设计有限公司\",\"Area\":\"146\",\"StartDate\":\"2015年9月29日\",\"EndDate\":\"2018年9月28日\",\"Money\":\"26280;26280;26280\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"姚凯18005701956\",\"FileId\":\"56\"},{\"PropertyId\":\"36385\",\"People\":\"浙江鑫诺电子科技有限公司\",\"Area\":\"211.8\",\"StartDate\":\"2015年10月28日\",\"EndDate\":\"2020年10月27日\",\"Money\":\"38124;38124;38124\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"112\"},{\"PropertyId\":\"36387\",\"People\":\"浙江慧谷文化发展有限公司\",\"Area\":\"146\",\"StartDate\":\"2015年10月22日\",\"EndDate\":\"2018年10月21日\",\"Money\":\"26280;26280;26280\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"吴13616705801\",\"FileId\":\"77\"},{\"PropertyId\":\"39143\",\"People\":\"衢州普望生物技术有限公司\",\"Area\":\"540\",\"StartDate\":\"2015年10月10日\",\"EndDate\":\"2020年10月9日\",\"Money\":\"104400;104400;104400;104400;104400\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"林标扬13858186125\",\"FileId\":\"111\"},{\"PropertyId\":\"36383\",\"People\":\"衢州海蓝科技有限公司（乾达）\",\"Area\":\"2805.37\",\"StartDate\":\"2017年2月20日\",\"EndDate\":\"2020年2月19日\",\"Money\":\"269316;269316;269316\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"应亚斐13957037166\",\"FileId\":\"25\"},{\"PropertyId\":\"36383\",\"People\":\"张正华\",\"Area\":\"98.7\",\"StartDate\":\"2016年11月1日\",\"EndDate\":\"2017年10月31日\",\"Money\":\"6636\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"306708\",\"FileId\":\"62\"},{\"PropertyId\":\"36383\",\"People\":\"衢州绿色产业集聚区惠多利小额贷款有限公司\",\"Area\":\"575.19\",\"StartDate\":\"2016年12月18日\",\"EndDate\":\"2019年12月17日\",\"Money\":\"141500;148575;156003\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"杨海果13905708086童财务13587029228\",\"FileId\":\"49\"},{\"PropertyId\":\"36383\",\"People\":\"汪耘\",\"Area\":\"98.01\",\"StartDate\":\"2017年3月1日\",\"EndDate\":\"2018年2月28日\",\"Money\":\"6588\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"13587123363\",\"FileId\":\"67\"},{\"PropertyId\":\"36383\",\"People\":\"姜城程\",\"Area\":\"52.79\",\"StartDate\":\"2016年12月1日\",\"EndDate\":\"2017年11月30日\",\"Money\":\"3552\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"18657009768\",\"FileId\":\"60\"},{\"PropertyId\":\"36383\",\"People\":\"黄洁平\",\"Area\":\"94.44\",\"StartDate\":\"2017年3月1日\",\"EndDate\":\"2018年2月28日\",\"Money\":\"6348\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"13906702536\",\"FileId\":\"65\"},{\"PropertyId\":\"36383\",\"People\":\"张小平\",\"Area\":\"98.71\",\"StartDate\":\"2017年4月1日\",\"EndDate\":\"2018年3月31日\",\"Money\":\"6636\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"906166\",\"FileId\":\"27\"},{\"PropertyId\":\"36383\",\"People\":\"周宪彪\",\"Area\":\"52.79\",\"StartDate\":\"2016年12月8日\",\"EndDate\":\"2017年12月7日\",\"Money\":\"3552\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"908939\",\"FileId\":\"55\"},{\"PropertyId\":\"36383\",\"People\":\"绿发宿舍\",\"StartDate\":\"2017.7.10\",\"Money\":\"0\",\"Type\":\"0\",\"GovernmentId\":\"155\",\"FileId\":\"0\"},{\"PropertyId\":\"36384\",\"People\":\"张剑\",\"Area\":\"98.08\",\"StartDate\":\"2017年7月17日\",\"EndDate\":\"2018年2月10日\",\"Money\":\"4737\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"13957030247\",\"FileId\":\"66\"},{\"PropertyId\":\"36384\",\"People\":\"魏志诚\",\"Area\":\"53.16\",\"StartDate\":\"2017年8月16日\",\"EndDate\":\"2018年8月15日\",\"Money\":\"3576\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"魏志诚15057019996\",\"FileId\":\"104\"},{\"PropertyId\":\"36384\",\"People\":\"陈云忠\",\"Area\":\"98.03\",\"StartDate\":\"2016年11月11日\",\"EndDate\":\"2017年11月10日\",\"Money\":\"6588\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"13505705289\",\"FileId\":\"57\"},{\"PropertyId\":\"36384\",\"People\":\"郑文偲\",\"Area\":\"53.16\",\"StartDate\":\"2017年5月10日\",\"EndDate\":\"2018年5月9日\",\"Money\":\"3576\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"15757130399\",\"FileId\":\"51\"},{\"PropertyId\":\"36384\",\"People\":\"衢州市公安局衢州经济开发区分局\",\"Area\":\"3050\",\"StartDate\":\"2010.9.1\",\"Money\":\"0\",\"Type\":\"0\",\"GovernmentId\":\"155\",\"Remark\":\"13587107733\",\"FileId\":\"135\"},{\"PropertyId\":\"36384\",\"People\":\"衢州市综合行政执法局绿色产业集聚区分局\",\"Area\":\"914.1\",\"StartDate\":\"2017.1.22\",\"Money\":\"0\",\"Type\":\"0\",\"GovernmentId\":\"155\",\"FileId\":\"132\"},{\"PropertyId\":\"36410\",\"People\":\"浙江金维克塑料电器有限公司\",\"Area\":\"570.83\",\"StartDate\":\"2016年12月1日\",\"EndDate\":\"2017年11月30日\",\"Money\":\"30828\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"18905706152\",\"FileId\":\"84\"},{\"PropertyId\":\"36414\",\"People\":\"衢州市衢江区东港街道办事处\",\"Area\":\"263.41\",\"StartDate\":\"2017年5月18日\",\"EndDate\":\"2019年7月31日\",\"Money\":\"0\",\"Type\":\"0\",\"GovernmentId\":\"155\",\"FileId\":\"139\"},{\"PropertyId\":\"36510\",\"People\":\"衢州达能机动车驾驶员培训有限公司\",\"Area\":\"9353.333\",\"StartDate\":\"2017年3月30日\",\"EndDate\":\"2018年3月29日\",\"Money\":\"154330\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"郑慧泰13587005898\",\"FileId\":\"46\"},{\"PropertyId\":\"36541\",\"People\":\"衢州金盾机动车驾驶员培训有限公司 \",\"StartDate\":\"2016年12月10日\",\"EndDate\":\"2017年12月9日\",\"Money\":\"140800\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"13705703322\",\"FileId\":\"39\"},{\"PropertyId\":\"36537\",\"People\":\"衢州元立金属制品有限公司\",\"Area\":\"33958\",\"StartDate\":\"2013年3月1日\",\"EndDate\":\"2018年2月28日\",\"Money\":\"152811\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"邵13567025868\",\"FileId\":\"41\"},{\"PropertyId\":\"36510\",\"People\":\"衢州市长城机动车驾驶员培训学校\",\"Area\":\"16533.33\",\"StartDate\":\"2013年4月20日\",\"EndDate\":\"2019年4月19日\",\"Money\":\"148800;163680;180048;198052.8;217858.08;239643.888\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"刘13905707070\",\"FileId\":\"141\"},{\"PropertyId\":\"36514\",\"People\":\"衢州市鼎安物业管理有限公司\",\"Area\":\"12.83\",\"StartDate\":\"2016年1月1日\",\"EndDate\":\"2016年12月31日\",\"Money\":\"204967\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"13957002008\",\"FileId\":\"35\"},{\"PropertyId\":\"36393\",\"People\":\"朱舍文\",\"Area\":\"114.21\",\"StartDate\":\"2015年11月1日\",\"EndDate\":\"2017年12月31日\",\"Money\":\"24700;25935;4539\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"15868998217\",\"FileId\":\"82\"},{\"PropertyId\":\"36393\",\"People\":\"徐敏霞\",\"Area\":\"33.59\",\"StartDate\":\"2015年11月30日\",\"EndDate\":\"2017年12月31日\",\"Money\":\"11300;11865;1038\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"15057099344\",\"FileId\":\"95\"},{\"PropertyId\":\"36393\",\"People\":\"胡荣\",\"Area\":\"27\",\"StartDate\":\"2017年1月1日\",\"EndDate\":\"2017年12月31日\",\"Money\":\"2880\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"虞丽华8599099\",\"FileId\":\"81\"},{\"PropertyId\":\"36393\",\"People\":\"戴苏芬\",\"Area\":\"205\",\"StartDate\":\"2016年11月1日\",\"EndDate\":\"2017年10月31日\",\"Money\":\"28800\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"13282078179\",\"FileId\":\"83\"},{\"PropertyId\":\"36393\",\"People\":\"戴苏芬\",\"Area\":\"89.58\",\"StartDate\":\"2015年11月1日\",\"EndDate\":\"2017年12月31日\",\"Money\":\"19300;20265;3546\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"13282078179\",\"FileId\":\"142\"},{\"PropertyId\":\"36393\",\"People\":\"申洲针织（衢州）有限公司\",\"Area\":\"720\",\"StartDate\":\"2017年3月1日\",\"EndDate\":\"2018年2月28日\",\"Money\":\"122400\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"方燕15057006115\",\"FileId\":\"115\"},{\"PropertyId\":\"36393\",\"People\":\"浙江康乐游休闲用品有限公司\",\"Area\":\"120\",\"StartDate\":\"2017年7月21日\",\"EndDate\":\"2018年7月20日\",\"Money\":\"17280\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"傅志平13705706788\",\"FileId\":\"122\"},{\"PropertyId\":\"36392\",\"People\":\"江晓芬\",\"Area\":\"227.86\",\"StartDate\":\"2015年7月1日\",\"EndDate\":\"2017年12月31日\",\"Money\":\"49200;51660;16626\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"18868064878\",\"FileId\":\"90\"},{\"PropertyId\":\"36392\",\"People\":\"向守友\",\"Area\":\"203.29\",\"StartDate\":\"2015年4月1日\",\"EndDate\":\"2017年12月31日\",\"Money\":\"43900;46095;28766\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"18368605990\",\"FileId\":\"120\"},{\"PropertyId\":\"36392\",\"People\":\"浙江华凯纸业有限公司\",\"Area\":\"60\",\"StartDate\":\"2017年3月21日\",\"EndDate\":\"2018年3月20日\",\"Money\":\"7200\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"8886898\",\"FileId\":\"91\"},{\"PropertyId\":\"36392\",\"People\":\"衢州进源纸业有限公司\",\"Area\":\"2500\",\"StartDate\":\"2016年10月10日\",\"EndDate\":\"2017年10月9日\",\"Money\":\"120000\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"范思钦18668386322\",\"FileId\":\"138\"},{\"PropertyId\":\"36392\",\"People\":\"衢州港诚机电产品制造有限公司\",\"Area\":\"90\",\"StartDate\":\"2017年5月15日\",\"EndDate\":\"2018年5月14日\",\"Money\":\"36000\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"王菲13867024990\",\"FileId\":\"146\"},{\"PropertyId\":\"36392\",\"People\":\"衢州港诚机电产品制造有限公司\",\"Area\":\"300\",\"StartDate\":\"2017年3月16日\",\"EndDate\":\"2018年3月15日\",\"Money\":\"10800\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"王菲13867024990\",\"FileId\":\"145\"},{\"PropertyId\":\"36392\",\"People\":\"浙江好彩印刷包装有限公司\",\"Area\":\"30\",\"StartDate\":\"2017年3月2日\",\"EndDate\":\"2018年3月1日\",\"Money\":\"3600\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"王850687713575668598\",\"FileId\":\"88\"},{\"PropertyId\":\"36392\",\"People\":\"衢州峰仔食品有限公司\",\"Area\":\"180\",\"StartDate\":\"2017年9月4日\",\"EndDate\":\"2018年3月3日\",\"Money\":\"10800\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"杨薛13967012213\",\"FileId\":\"147\"},{\"PropertyId\":\"38903\",\"People\":\"金瑞泓科技（衢州）有限公司\",\"Area\":\"70.73\",\"StartDate\":\"2017年9月12\",\"EndDate\":\"2018年9月11日\",\"Money\":\"7200\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"联系人：汪红燕13957000034\",\"FileId\":\"128\"},{\"PropertyId\":\"38911\",\"People\":\"金瑞泓科技（衢州）有限公司\",\"Area\":\"70.73\",\"StartDate\":\"2017年9月12\",\"EndDate\":\"2018年9月11日\",\"Money\":\"8400\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"联系人：汪红燕13957000034\",\"FileId\":\"128\"},{\"PropertyId\":\"38919\",\"People\":\"金瑞泓科技（衢州）有限公司\",\"Area\":\"70.73\",\"StartDate\":\"2017年9月12\",\"EndDate\":\"2018年9月11日\",\"Money\":\"8400\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"联系人：汪红燕13957000034\",\"FileId\":\"128\"},{\"PropertyId\":\"38927\",\"People\":\"金瑞泓科技（衢州）有限公司\",\"Area\":\"70.73\",\"StartDate\":\"2017年9月12\",\"EndDate\":\"2018年9月11日\",\"Money\":\"8400\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"联系人：汪红燕13957000034\",\"FileId\":\"128\"},{\"PropertyId\":\"38935\",\"People\":\"金瑞泓科技（衢州）有限公司\",\"Area\":\"70.73\",\"StartDate\":\"2017年9月12\",\"EndDate\":\"2018年9月11日\",\"Money\":\"7200\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"联系人：汪红燕13957000034\",\"FileId\":\"128\"},{\"PropertyId\":\"38906\",\"People\":\"金瑞泓科技（衢州）有限公司\",\"Area\":\"69.86\",\"StartDate\":\"2017年9月12\",\"EndDate\":\"2018年9月11日\",\"Money\":\"7200\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"联系人：汪红燕13957000034\",\"FileId\":\"128\"},{\"PropertyId\":\"38914\",\"People\":\"金瑞泓科技（衢州）有限公司\",\"Area\":\"69.86\",\"StartDate\":\"2017年9月12\",\"EndDate\":\"2018年9月11日\",\"Money\":\"8400\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"联系人：汪红燕13957000034\",\"FileId\":\"128\"},{\"PropertyId\":\"38922\",\"People\":\"金瑞泓科技（衢州）有限公司\",\"Area\":\"69.86\",\"StartDate\":\"2017年9月12\",\"EndDate\":\"2018年9月11日\",\"Money\":\"8400\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"联系人：汪红燕13957000034\",\"FileId\":\"128\"},{\"PropertyId\":\"38930\",\"People\":\"金瑞泓科技（衢州）有限公司\",\"Area\":\"69.86\",\"StartDate\":\"2017年9月12\",\"EndDate\":\"2018年9月11日\",\"Money\":\"8400\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"联系人：汪红燕13957000034\",\"FileId\":\"128\"},{\"PropertyId\":\"38938\",\"People\":\"金瑞泓科技（衢州）有限公司\",\"Area\":\"69.86\",\"StartDate\":\"2017年9月12\",\"EndDate\":\"2018年9月11日\",\"Money\":\"7200\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"联系人：汪红燕13957000034\",\"FileId\":\"128\"},{\"PropertyId\":\"38907\",\"People\":\"金瑞泓科技（衢州）有限公司\",\"Area\":\"69.86\",\"StartDate\":\"2017年9月12\",\"EndDate\":\"2018年9月11日\",\"Money\":\"7200\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"联系人：汪红燕13957000034\",\"FileId\":\"128\"},{\"PropertyId\":\"38915\",\"People\":\"金瑞泓科技（衢州）有限公司\",\"Area\":\"69.86\",\"StartDate\":\"2017年9月12\",\"EndDate\":\"2018年9月11日\",\"Money\":\"8400\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"联系人：汪红燕13957000034\",\"FileId\":\"128\"},{\"PropertyId\":\"38923\",\"People\":\"金瑞泓科技（衢州）有限公司\",\"Area\":\"69.86\",\"StartDate\":\"2017年9月12\",\"EndDate\":\"2018年9月11日\",\"Money\":\"8400\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"联系人：汪红燕13957000034\",\"FileId\":\"128\"},{\"PropertyId\":\"38931\",\"People\":\"金瑞泓科技（衢州）有限公司\",\"Area\":\"69.86\",\"StartDate\":\"2017年9月12\",\"EndDate\":\"2018年9月11日\",\"Money\":\"8400\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"联系人：汪红燕13957000034\",\"FileId\":\"128\"},{\"PropertyId\":\"38939\",\"People\":\"金瑞泓科技（衢州）有限公司\",\"Area\":\"69.86\",\"StartDate\":\"2017年9月12\",\"EndDate\":\"2018年9月11日\",\"Money\":\"7200\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"联系人：汪红燕13957000034\",\"FileId\":\"128\"},{\"PropertyId\":\"38910\",\"People\":\"金瑞泓科技（衢州）有限公司\",\"Area\":\"70.73\",\"StartDate\":\"2017年9月12\",\"EndDate\":\"2018年9月11日\",\"Money\":\"7200\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"联系人：汪红燕13957000034\",\"FileId\":\"128\"},{\"PropertyId\":\"38918\",\"People\":\"金瑞泓科技（衢州）有限公司\",\"Area\":\"70.73\",\"StartDate\":\"2017年9月12\",\"EndDate\":\"2018年9月11日\",\"Money\":\"8400\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"联系人：汪红燕13957000034\",\"FileId\":\"128\"},{\"PropertyId\":\"36629\",\"People\":\"金瑞泓科技（衢州）有限公司\",\"Area\":\"81.28\",\"StartDate\":\"2017年9月12\",\"EndDate\":\"2018年9月11日\",\"Money\":\"10200\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"联系人：汪红燕13957000034\",\"FileId\":\"128\"},{\"PropertyId\":\"36631\",\"People\":\"金瑞泓科技（衢州）有限公司\",\"Area\":\"83\",\"StartDate\":\"2017年9月12\",\"EndDate\":\"2018年9月11日\",\"Money\":\"10200\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"联系人：汪红燕13957000034\",\"FileId\":\"128\"},{\"PropertyId\":\"36630\",\"People\":\"金瑞泓科技（衢州）有限公司\",\"Area\":\"81.59\",\"StartDate\":\"2017年9月12\",\"EndDate\":\"2018年9月11日\",\"Money\":\"10200\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"Remark\":\"联系人：汪红燕13957000034\",\"FileId\":\"128\"},{\"PropertyId\":\"38904\",\"People\":\"浙江金维克家庭用品科技有限公司\",\"Area\":\"54.15\",\"StartDate\":\"2017年9月18日\",\"EndDate\":\"2018年9月17日\",\"Money\":\"6000\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"127\"},{\"PropertyId\":\"38912\",\"People\":\"浙江金维克家庭用品科技有限公司\",\"Area\":\"54.15\",\"StartDate\":\"2017年9月18日\",\"EndDate\":\"2018年9月17日\",\"Money\":\"7200\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"127\"},{\"PropertyId\":\"38920\",\"People\":\"浙江金维克家庭用品科技有限公司\",\"Area\":\"54.15\",\"StartDate\":\"2017年9月18日\",\"EndDate\":\"2018年9月17日\",\"Money\":\"7200\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"127\"},{\"PropertyId\":\"38928\",\"People\":\"浙江金维克家庭用品科技有限公司\",\"Area\":\"54.15\",\"StartDate\":\"2017年9月18日\",\"EndDate\":\"2018年9月17日\",\"Money\":\"7200\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"127\"},{\"PropertyId\":\"38936\",\"People\":\"浙江金维克家庭用品科技有限公司\",\"Area\":\"54.15\",\"StartDate\":\"2017年9月18日\",\"EndDate\":\"2018年9月17日\",\"Money\":\"6000\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"127\"},{\"PropertyId\":\"38905\",\"People\":\"浙江金维克家庭用品科技有限公司\",\"Area\":\"54.15\",\"StartDate\":\"2017年9月18日\",\"EndDate\":\"2018年9月17日\",\"Money\":\"6000\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"127\"},{\"PropertyId\":\"38913\",\"People\":\"浙江金维克家庭用品科技有限公司\",\"Area\":\"54.15\",\"StartDate\":\"2017年9月18日\",\"EndDate\":\"2018年9月17日\",\"Money\":\"7200\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"127\"},{\"PropertyId\":\"38921\",\"People\":\"浙江金维克家庭用品科技有限公司\",\"Area\":\"54.15\",\"StartDate\":\"2017年9月18日\",\"EndDate\":\"2018年9月17日\",\"Money\":\"7200\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"127\"},{\"PropertyId\":\"38929\",\"People\":\"浙江金维克家庭用品科技有限公司\",\"Area\":\"54.15\",\"StartDate\":\"2017年9月18日\",\"EndDate\":\"2018年9月17日\",\"Money\":\"7200\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"127\"},{\"PropertyId\":\"38937\",\"People\":\"浙江金维克家庭用品科技有限公司\",\"Area\":\"54.15\",\"StartDate\":\"2017年9月18日\",\"EndDate\":\"2018年9月17日\",\"Money\":\"6000\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"127\"},{\"PropertyId\":\"38910\",\"People\":\"浙江金维克家庭用品科技有限公司\",\"Area\":\"70.73\",\"StartDate\":\"2017年9月18日\",\"EndDate\":\"2018年9月17日\",\"Money\":\"7200\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"127\"},{\"PropertyId\":\"38918\",\"People\":\"浙江金维克家庭用品科技有限公司\",\"Area\":\"70.73\",\"StartDate\":\"2017年9月18日\",\"EndDate\":\"2018年9月17日\",\"Money\":\"8400\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"127\"},{\"PropertyId\":\"38926\",\"People\":\"浙江金维克家庭用品科技有限公司\",\"Area\":\"70.73\",\"StartDate\":\"2017年9月18日\",\"EndDate\":\"2018年9月17日\",\"Money\":\"8400\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"127\"},{\"PropertyId\":\"38934\",\"People\":\"浙江金维克家庭用品科技有限公司\",\"Area\":\"70.73\",\"StartDate\":\"2017年9月18日\",\"EndDate\":\"2018年9月17日\",\"Money\":\"8400\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"127\"},{\"PropertyId\":\"38942\",\"People\":\"浙江金维克家庭用品科技有限公司\",\"Area\":\"70.73\",\"StartDate\":\"2017年9月18日\",\"EndDate\":\"2018年9月17日\",\"Money\":\"7200\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"127\"},{\"PropertyId\":\"38909\",\"People\":\"浙江金维克家庭用品科技有限公司\",\"Area\":\"54.15\",\"StartDate\":\"2017年9月18日\",\"EndDate\":\"2018年9月17日\",\"Money\":\"6000\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"127\"},{\"PropertyId\":\"38917\",\"People\":\"浙江金维克家庭用品科技有限公司\",\"Area\":\"54.15\",\"StartDate\":\"2017年9月18日\",\"EndDate\":\"2018年9月17日\",\"Money\":\"7200\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"127\"},{\"PropertyId\":\"38925\",\"People\":\"浙江金维克家庭用品科技有限公司\",\"Area\":\"54.15\",\"StartDate\":\"2017年9月18日\",\"EndDate\":\"2018年9月17日\",\"Money\":\"7200\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"127\"},{\"PropertyId\":\"38933\",\"People\":\"浙江金维克家庭用品科技有限公司\",\"Area\":\"54.15\",\"StartDate\":\"2017年9月18日\",\"EndDate\":\"2018年9月17日\",\"Money\":\"7200\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"127\"},{\"PropertyId\":\"38941\",\"People\":\"浙江金维克家庭用品科技有限公司\",\"Area\":\"54.15\",\"StartDate\":\"2017年9月18日\",\"EndDate\":\"2018年9月17日\",\"Money\":\"6000\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"127\"},{\"PropertyId\":\"36628\",\"People\":\"浙江金维克家庭用品科技有限公司\",\"Area\":\"81.83\",\"StartDate\":\"2017年9月18日\",\"EndDate\":\"2018年9月17日\",\"Money\":\"10200\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"127\"},{\"PropertyId\":\"38983\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"70.73\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"4200\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"38984\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"54.15\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"4200\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"38985\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"54.15\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"4200\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"38986\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"69.96\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"4200\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"38987\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"69.96\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"4200\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"38988\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"54.15\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"4200\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"38989\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"54.15\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"4200\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"38990\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"70.73\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"4200\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"38991\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"70.73\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"4200\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"38992\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"54.15\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"4200\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"38993\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"54.15\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"4200\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"38994\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"69.96\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"4200\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"38995\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"69.96\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"4200\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"38996\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"54.15\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"4200\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"38997\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"54.15\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"4200\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"38998\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"70.73\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"4200\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"38999\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"70.73\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"4200\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"39000\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"54.15\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"4200\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"39001\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"54.15\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"4200\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"39002\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"69.96\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"4200\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"39003\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"69.96\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"4200\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"39004\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"54.15\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"4200\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"39005\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"54.15\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"4200\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"39006\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"70.73\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"4200\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"39007\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"70.73\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"4200\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"39008\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"54.15\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"4200\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"39009\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"54.15\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"4200\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"39010\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"69.96\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"4200\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"39011\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"69.96\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"4200\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"39012\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"54.15\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"4200\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"39013\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"54.15\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"4200\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"39014\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"70.73\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"4200\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"39015\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"70.73\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"4200\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"39016\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"54.15\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"4200\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"39017\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"54.15\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"4200\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"39018\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"69.96\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"4200\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"39019\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"69.96\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"4200\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"39020\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"54.15\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"4200\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"39021\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"54.15\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"4200\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"39022\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"70.73\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"4200\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"39103\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"70.73\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"3600\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"39104\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"54.15\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"3600\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"39105\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"54.15\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"3600\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"39106\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"69.96\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"3600\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"39107\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"69.96\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"3600\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"39108\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"54.15\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"3600\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"39109\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"54.15\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"3600\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"39110\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"70.73\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"3600\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"39111\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"70.73\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"3600\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"39112\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"54.15\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"3600\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"39113\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"54.15\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"3600\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"39114\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"69.96\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"3600\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"39115\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"69.96\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"3600\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"39116\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"54.15\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"3600\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"39117\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"54.15\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"3600\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"39118\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"70.73\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"3600\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"39119\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"70.73\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"3600\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"39120\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"54.15\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"3600\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"39121\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"54.15\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"3600\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"39122\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"69.96\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"3600\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"39123\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"69.96\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"3600\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"39124\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"54.15\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"3600\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"39125\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"54.15\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"3600\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"39126\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"70.73\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"3600\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"39127\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"70.73\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"3600\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"39128\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"54.15\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"3600\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"39129\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"54.15\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"3600\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"39130\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"69.96\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"3600\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"39131\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"69.96\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"3600\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"39132\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"54.15\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"3600\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"39133\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"54.15\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"3600\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"39134\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"70.73\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"3600\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"39135\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"70.73\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"3600\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"39136\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"54.15\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"3600\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"39137\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"54.15\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"3600\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"39138\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"69.96\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"3600\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"39139\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"69.96\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"3600\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"39140\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"54.15\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"3600\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"39141\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"54.15\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"3600\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"},{\"PropertyId\":\"39142\",\"People\":\"晓星氨纶（衢州）有限公司\",\"Area\":\"70.73\",\"StartDate\":\"2017年7月3日\",\"EndDate\":\"2018年7月2日\",\"Money\":\"3600\",\"Type\":\"1\",\"GovernmentId\":\"155\",\"FileId\":\"126\"}]";
+            var records = JsonConvert.DeserializeObject<List<RentLendRecord>>(json);
+
+
+            foreach (var record in records)
+            {
+                try
+                {
+                    var property = _propertyService.GetPropertyById(record.PropertyId);
+
+                    if (property == null) throw new Exception(string.Format("id{0}为null", record.PropertyId));
+                    if (property.Deleted || property.Off) throw new Exception("资产被删除或核销");
+
+                    var pictures = new List<Picture>();
+
+                    if (!string.IsNullOrEmpty(record.FileId) && record.FileId!="0")
+                    {
+                        var files = System.IO.Directory.GetFiles(directionName + record.FileId);
+
+                        foreach (var file in files)
+                        {
+                            var fileName = System.IO.Path.GetFileName(file);
+                            var ext = System.IO.Path.GetExtension(file);
+
+                            var fileStream = new FileStream(file, FileMode.Open);
+                            var fileBinary = new byte[fileStream.Length];
+                            fileStream.Read(fileBinary, 0, fileBinary.Length);
+
+                            var picture = _pictureService.InsertPicture(fileBinary, "image/jpeg", "", "", fileName);
+                            var url = _pictureService.GetPictureUrl(picture);
+                            pictures.Add(picture);
+                            fileStream.Dispose();
+                        }
+                    }
+
+                    if (record.Type == 0)
+                    {
+                        #region 资产出借
+                        var lend = new PropertyLend
+                        {
+                            SuggestGovernmentId = record.GovernmentId,
+                            LendArea = record.Area,
+                            Property = property,
+                            Remark = record.Remark,
+                            LendTime = Convert.ToDateTime(record.StartDate),
+                            ProcessDate = DateTime.Now,
+                            State = PropertyApproveState.Start,
+                            Name = record.People,
+                            Title = property.Name
+                        };
+
+                        if (!string.IsNullOrEmpty(record.EndDate)) lend.BackTime = Convert.ToDateTime(record.EndDate);
+
+                        _propertyLendService.InsertPropertyLend(lend);
+
+                        foreach (var picture in pictures)
+                        {
+                            var propertyLendPicture = new PropertyLendPicture
+                            {
+                                Picture = picture,
+                                PropertyLend = lend,
+                            };
+
+                            lend.LendPictures.Add(propertyLendPicture);
+                        }
+                        _propertyLendService.UpdatePropertyLend(lend);
+                        #endregion
+
+                    }
+                    else if (record.Type == 1)
+                    {
+                        #region 资产出租
+                        var rent = new PropertyRent
+                        {
+                            SuggestGovernmentId = record.GovernmentId,
+                            RentArea = record.Area,
+                            Property = property,
+                            Remark = record.Remark,
+                            RentTime = Convert.ToDateTime(record.StartDate),
+                            BackTime = Convert.ToDateTime(record.EndDate),
+                            ProcessDate = DateTime.Now,
+                            State = PropertyApproveState.Start,
+                            Name = record.People,
+                            Title = property.Name,
+                            PriceString = record.Money
+                        };
+
+
+                        _propertyRentService.InsertPropertyRent(rent);
+
+                        foreach (var picture in pictures)
+                        {
+                            var propertyRentPicture = new PropertyRentPicture
+                            {
+                                Picture = picture,
+                                PropertyRent = rent,
+                            };
+
+                            rent.RentPictures.Add(propertyRentPicture);
+                        }
+                        _propertyRentService.UpdatePropertyRent(rent);
+                        #endregion
+                    }
+                }
+                catch (Exception e)
+                {
+                    sb.AppendLine(string.Format("编号为{0}，出现错误：{1}", record.PropertyId, e.Message));
+                }
+            }
+
+            return Ok(sb.ToString());
+        }
+
+        [HttpGet]
+        [Route("Temp")]
+        public IHttpActionResult Temp()
+        {
+            return Ok("closed");
+            int scucessCount = 0, errorCount = 0;
+            StringBuilder sb = new StringBuilder();
+            var g = _governmentService.GetGovernmentUnitByName("汇盛公司");
+            //拷贝图片
+            var targetPath = System.Web.HttpContext.Current.Server.MapPath("~/Content/images/");
+            var directionName = @"C:\房产证图片";
+
+            var directions = System.IO.Directory.GetDirectories(directionName);
+
+            foreach (var direction in directions)
+            {
+                try
+                {
+                    var files = System.IO.Directory.GetFiles(direction);
+                    if (files == null || files.Count() == 0) continue;
+
+                    string[] dirName = direction.Split('\\'); var id = dirName[dirName.Length - 1];
+
+                    var property = _propertyService.GetPropertyById(int.Parse(id));
+                    if (property == null) continue;
+                    if (property.Deleted || property.Off) throw new Exception("资产被删除或核销");
+
+                    var pictures = new List<Picture>();
+
+                    foreach (var file in files)
+                    {
+                        var fileName = System.IO.Path.GetFileName(file);
+                        var ext = System.IO.Path.GetExtension(file);
+
+                        var fileStream = new FileStream(file, FileMode.Open);
+                        var fileBinary = new byte[fileStream.Length];
+                        fileStream.Read(fileBinary, 0, fileBinary.Length);
+
+                        var picture = _pictureService.InsertPicture(fileBinary, "image/jpeg", "", "", fileName);
+                        var url = _pictureService.GetPictureUrl(picture);
+                        pictures.Add(picture);
+                    }
+
+                    if (property.Published)
+                    {
+                        #region 变更操作
+
+                        var logoPicture = property.Pictures.Where(pp => pp.IsLogo).FirstOrDefault();
+
+                        #region 赋值
+                        var copyProperty = new CopyProperty
+                        {
+                            Address = property.Address,
+                            ConstructArea = property.ConstructArea,
+                            ConstructId = property.ConstructId,
+                         
+                            Deleted = property.Deleted,
+                            DisplayOrder = property.DisplayOrder,
+                            Description = property.Description,
+                            EstateId = property.EstateId,
+                            Extent = property.Extent != null ? property.Extent.AsText() : "",
+                            FileIds = string.Join("_", property.Files.Select(p => p.FileId).ToArray()),
+                            GetedDate = property.GetedDate,
+                            Government_Id = property.Government.Id,
+                       
+                            LandArea = property.LandArea,
+                            LandId = property.LandId,
+                            Location = property.Location.AsText(),
+                            LogoPicture_Id = logoPicture != null ? logoPicture.PictureId : 0,
+                            Name = property.Name,
+                            Off = property.Off,
+                            PrictureIds = string.Join("_", property.Pictures.Select(p => p.PictureId).ToArray()),
+                            PropertyID = property.PropertyID,
+                            PropertyType = property.PropertyType,
+                            Property_Id = property.Id,
+                            Published = property.Published,
+                            Region = property.Region,
+                            UsedPeople = property.UsedPeople
+                        };
+                        #endregion 
+
+                        copyProperty.PrictureIds += (string.IsNullOrEmpty(copyProperty.PrictureIds) ? "" : "_") + string.Join("_", pictures.Select(p => p.Id).ToArray());
+                        _copyPropertyService.InsertCopyProperty(copyProperty);
+
+                        //添加一个资产编辑申请
+                        var propertyEdit = new PropertyEdit()
+                        {
+                            Property = property,
+                            Title = property.Name,
+                            State = PropertyApproveState.Start,
+                            ProcessDate = DateTime.Now,
+                            SuggestGovernmentId = g.Id
+                        };
+
+                        propertyEdit.CopyProperty_Id = copyProperty.Id;
+
+                        _propertyEditService.InsertPropertyEdit(propertyEdit);
+
+                        //锁定property
+                        property.Locked = true;
+                        _propertyService.UpdateProperty(property);
+
+                        #endregion
+                    }
+                    else
+                    {
+                        foreach (var picture in pictures)
+                        {
+                            var propertyPicture = new PropertyPicture {
+                                Picture = picture,
+                                Property = property,
+                                IsLogo = false
+                            };
+
+                            property.Pictures.Add(propertyPicture);
+                        }
+
+                        _propertyService.UpdateProperty(property);
+                    }
+                    sb.AppendLine(string.Format("id 为 {0} 的资产 添加附件添加成功\r\n", id));
+
+                    scucessCount++;
+                }
+                catch (Exception e)
+                {
+                    sb.AppendLine(string.Format("id 为 {0} 的资产 添加附件过程中出错\r\n", direction, e.Message));
+                    errorCount++;
+                }
+
+            }
+
+            sb.AppendLine(string.Format("共处理{0}个，成功{1}个，失败{2}个", scucessCount + errorCount, scucessCount, errorCount));
+
+            return Ok(sb.ToString());
+        }
+
+  
+
+        public class Point
+        {
+            public double lng { get; set; }
+
+            public double lat { get; set; }
+        }
+
+        protected class RentLendRecord
+        {
+            public int PropertyId { get; set; }
+
+            /// <summary>
+            /// 0为出借 1为出租
+            /// </summary>
+            public int Type { get; set; }
+
+            public string PropertyName { get; set; }
+
+            public string People { get; set; }
+
+            public double Area { get; set; }
+
+            public string StartDate { get; set; }
+
+            public string EndDate { get; set; }
+
+            public string Money { get; set; }
+
+            public string Remark { get; set; }
+
+            public string FileId { get; set; }
+
+            public int GovernmentId { get; set; }
+        }
+    }
+}
