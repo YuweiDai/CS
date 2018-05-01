@@ -1,35 +1,21 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
+
+
+import { OverviewComponent } from './component/statistics/overview/overview.component';
+import { PropertyListComponent } from './component/properties/property-list/property-list.component';
+import { MapHomeComponent } from './component/map/map-home/map-home.component';
+import { AccountListComponent } from './component/systemmanager/account-list/account-list.component';
+
+
 export const appRoutes: Routes = [
-  // {
-  //   path: 'basic',
-  //   loadChildren: './basic/basic.module#BasicModule',
-  // },
-  // {
-  //   path: 'form',
-  //   loadChildren: './form/form.module#FormModule',
-  // },
-  // {
-  //   path: 'others',
-  //   loadChildren: './others/others.module#OthersModule',
-  // },
-  // {
-  //   path: 'nav',
-  //   loadChildren: './navigation/navigation.module#NavigationModule',
-  // },
-  // {
-  //   path: 'guide',
-  //   loadChildren: './components/guide/guide.module#GuideModule',
-  // },
-  // {
-  //   path: 'data',
-  //   loadChildren: './data/data.module#DataModule',
-  // },
-  // {
-  //   path: 'notice',
-  //   loadChildren: './notice/notice.module#NoticeModule',
-  // },
-  // { path: '', redirectTo: '/guide/install', pathMatch: 'full' },
+  { path: 'dashboard', component: OverviewComponent },
+  //{ path: 'properties', component: PropertyListComponent },
+  { path: 'map', component: MapHomeComponent },
+  { path: 'manager', component: AccountListComponent },
+
+
+  { path: '', redirectTo: '/dashboard', pathMatch: 'full' },
 ]
 @NgModule({
   imports: [

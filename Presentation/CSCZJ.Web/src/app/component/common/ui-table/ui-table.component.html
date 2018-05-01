@@ -1,0 +1,41 @@
+<div class="table-header">
+    <div el-row>
+        <div el-col [span]="6">
+                <el-button-group>
+                    <el-button><i class="iconfont icon-xuanze"></i> 全选</el-button>
+                    <el-button><i class="iconfont icon-fanxuan"></i> 反选</el-button>
+                    <el-button><i class="iconfont icon-quxiaoxuanze"></i> 取消选择</el-button>
+                </el-button-group>
+            </div>              
+        <div el-col [span]="6" [offset]="12">
+            <el-input placeholder="输入关键字搜索" icon="search" [model]="input2"></el-input>
+        </div>
+    </div>
+</div>
+<div class="table-content">
+        <el-table [model]="tableDataMore" height="300px">
+                <el-table-column model-key="name" label="姓名" width="150">
+                </el-table-column>
+                <el-table-column model-key="date" label="日期" width="150">
+                </el-table-column>
+                <el-table-column model-key="address" label="地址">
+                </el-table-column>
+              </el-table>
+ 
+</div>
+<div class="table-footer">
+  <div el-row>
+      <div el-col [span]="6">
+        <el-select [(model)]="pageSize" size="mini" (modelChange)="handlePageSizeChange()">
+            <el-option *ngFor="let item of pageSizes"
+                [label]="item.label"
+                [value]="item.value">
+            </el-option>
+        </el-select>
+      </div>
+      <div el-col [span]="18">
+          <el-pagination [(model)]="pageIndex" [total]="total" [page-size]="pp"
+           [layout]="['prev', 'pager', 'next', 'jumper', 'total']" (modelChange)="handlePageIndexChange($event)"></el-pagination>        
+      </div>
+  </div>
+</div>

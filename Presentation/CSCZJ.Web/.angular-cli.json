@@ -19,9 +19,13 @@
       "testTsconfig": "tsconfig.spec.json",
       "prefix": "app",
       "styles": [
+
         "styles.less"
       ],
-      "scripts": [],
+      "scripts": [
+        "../node_modules/echarts/dist/echarts.min.js",
+        "../node_modules/leaflet/dist/leaflet.js"
+      ],
       "environmentSource": "environments/environment.ts",
       "environments": {
         "dev": "environments/environment.ts",

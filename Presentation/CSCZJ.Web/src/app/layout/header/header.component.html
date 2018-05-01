@@ -14,21 +14,27 @@
       </h1>
       <ul class="nav">
         <li class="nav-item">
-          <a [class.active]="!isGuide" [routerLink]="['/guide/install']" i18n="@@header-nav-item1"><i class="iconfont icon-tongji"></i> 资产大数据</a>
+          <a  routerLinkActive="active" [routerLink]="['/dashboard']"><i class="iconfont icon-tongji"></i> 资产大数据</a>
         </li>
         <li class="nav-item">
-          <a [class.active]="isGuide" [routerLink]="['/basic/layout']" i18n="@@header-nav-item2"><i class="iconfont icon-guanli"></i> 资产管理</a>
+          <a  routerLinkActive="active" [routerLink]="['/properties']" ><i class="iconfont icon-guanli"></i> 资产管理</a>
         </li>
         <li class="nav-item">
-          <a [class.active]="isGuide" [routerLink]="['/basic/layout']" i18n="@@header-nav-item2"><i class="iconfont icon-ditu"></i> 资产一张图</a>
+          <a  routerLinkActive="active" [routerLink]="['/map']" ><i class="iconfont icon-ditu"></i> 资产一张图</a>
         </li>
         <li class="nav-item">
-          <a [class.active]="isGuide" [routerLink]="['/basic/layout']" i18n="@@header-nav-item2"><i class="iconfont icon-guanlizhongxin"></i> 系统设置</a>
-        </li>
-        <li class="nav-item">
-            <a [class.active]="isGuide" [routerLink]="['/basic/layout']" i18n="@@header-nav-item2"><i class="iconfont icon-guanlizhongxin"></i> 衢州市财政局</a>
-        </li>        
+          <a  routerLinkActive="active" [routerLink]="['/manager']" ><i class="iconfont icon-guanlizhongxin"></i> 系统设置</a>
+        </li>    
       </ul>
+
+      <div class="user-info">
+        <el-dropdown class="user-name" [model]="data" (selected)="handle($event)">
+          衢州市财政局
+        </el-dropdown>
+        <span class="avatar">
+          <img src="../../../assets/images/user.jpg" alt="...">
+        </span>
+      </div>
     </div>
   </header>
 </div>
