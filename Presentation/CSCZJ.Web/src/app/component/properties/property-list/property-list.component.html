@@ -1,26 +1,24 @@
 <div class="component-container">
-    <div el-row >
-        <div el-col [span]="24">
-            <el-card class="box-card">
-                <ng-template #header>
-                    <div class="clearfix">
-                        <h1>资产列表</h1>
-                        <el-button-group class="tools-group">
-                            <el-button type="primary" icon="edit"></el-button>
-                            <el-button type="primary" icon="share"></el-button>
-                            <el-button type="primary" icon="delete"></el-button>
-                        </el-button-group>
-                    </div>
-                    <div>            
-                        <el-breadcrumb separator-class="el-icon-arrow-right">
-                            <el-breadcrumb-item to="">资产列表</el-breadcrumb-item>
-                        </el-breadcrumb></div>
-                </ng-template>
+    <div nz-row>
+        <div nz-col nzSpan="24" class="breadcrumb-container">
+                <nz-breadcrumb>
+                        <nz-breadcrumb-item>
+                            <a><i class="anticon anticon-user"></i><span> 资产列表</span></a>
+                        </nz-breadcrumb-item>
+                        <nz-breadcrumb-item>
+                                <a><i class="anticon anticon-user"></i><span> 资产列表1</span></a>
+                            </nz-breadcrumb-item>                            
+                    </nz-breadcrumb>            
+        </div>
+        <div nz-col nzSpan="24">
+            <nz-card nzTitle="资产列表" [nzExtra]="extraTemplate">
                 <div class="component-content">
-                        <!-- [ngStyle]="{'height.px':contentHeight-135.875}" -->
-                    <app-ui-table ></app-ui-table>
+                    <!-- [ngStyle]="{'height.px':contentHeight-135.875}" -->
+                    <app-ui-table></app-ui-table>
                 </div>
-            </el-card>
+            </nz-card>
+            <ng-template #extraTemplate>
+            </ng-template>
         </div>
     </div>
 </div>

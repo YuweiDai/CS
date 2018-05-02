@@ -22,31 +22,22 @@ export class UiTableComponent implements OnInit {
     { value: '200', label: '200条/页' },
     { value: '500', label: '500条/页' }
   ];
-
+  dataSet: any[] = []
+  tableDataMore: any[] = []
+  tableWithHTML: any[] = []
 
   constructor() { }
 
   ngOnInit() {
+    for (let i = 0; i < 100; i++) {
+      this.dataSet.push({
+        name   : `Edward King ${i}`,
+        age    : 32,
+        address: `London, Park Lane no. ${i}`
+      });
+    }
   }
-  rows: any[] = [{
-    name: '火锅',
-    date: 2017,
-    address: '上海市普陀区金沙江路 1518 弄',
-  }, {
-    name: '重庆小面',
-    date: '2017-08-20',
-    address: '上海市普陀区金沙江路 1518 弄',
-  }, {
-    name: '海蛎煎',
-    date: '2017-08-21',
-    address: '上海市普陀区金沙江路 1518 弄',
-  }, {
-    name: '榴莲酥',
-    date: '2017-08-22',
-    address: '上海市普陀区金沙江路 1510 弄',
-  }]
-  tableDataMore: any[] = []
-  tableWithHTML: any[] = []
+  
 
   handlePageSizeChange():void{
     console.log("123");

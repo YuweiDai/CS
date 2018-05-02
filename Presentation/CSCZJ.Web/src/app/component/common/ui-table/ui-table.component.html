@@ -1,41 +1,68 @@
 <div class="table-header">
-    <div el-row>
-        <div el-col [span]="6">
-                <el-button-group>
-                    <el-button><i class="iconfont icon-xuanze"></i> 全选</el-button>
-                    <el-button><i class="iconfont icon-fanxuan"></i> 反选</el-button>
-                    <el-button><i class="iconfont icon-quxiaoxuanze"></i> 取消选择</el-button>
-                </el-button-group>
+    <div nz-row>
+        <div nz-col nzSpan="6">
+                <!-- <nz-button-group>
+                        <button nz-button><i class="iconfont icon-xuanze"></i> 全选</button>
+                        <button nz-button><i class="iconfont icon-fanxuan"></i> 反选</button>
+                        <button nz-button><i class="iconfont icon-quxiaoxuanze"></i> 取消选择</button>
+                </nz-button-group>             -->
             </div>              
-        <div el-col [span]="6" [offset]="12">
-            <el-input placeholder="输入关键字搜索" icon="search" [model]="input2"></el-input>
+        <div nz-col nzSpan="6" nzOffset="12">
+            <nz-input-group nzSearch [nzSuffix]="suffixIconButton">
+                <input type="text" nz-input placeholder="input search text">
+            </nz-input-group>
+            <ng-template #suffixIconButton>
+                <button nz-button nzType="primary" nzSearch><i class="anticon anticon-search"></i></button>
+            </ng-template>
         </div>
     </div>
 </div>
 <div class="table-content">
-        <el-table [model]="tableDataMore" height="300px">
-                <el-table-column model-key="name" label="姓名" width="150">
-                </el-table-column>
-                <el-table-column model-key="date" label="日期" width="150">
-                </el-table-column>
-                <el-table-column model-key="address" label="地址">
-                </el-table-column>
-              </el-table>
- 
+        <nz-table #nzTable nzBordered [nzData]="dataSet" [nzPageSize]="10" [nzScroll]="{ x:'1800px'}" [nzFrontPagination]="true" [nzShowPagination]="false">
+            <thead>
+                <tr>
+                <th nzShowCheckbox nzShowRowSelection [nzSelections]="listOfSelection" [(nzChecked)]="allChecked" [nzIndeterminate]="indeterminate" (nzCheckedChange)="checkAll($event)"></th>                        
+                <th nzShowSort  nzWidth="100px" nzLeft="0px">Full Name</th>
+                <th nzShowSort  nzWidth="100px" nzLeft="100px">Age</th>
+                <th nzShowSort >Column 1</th>
+                <th>Column 2</th>
+                <th>Column 3</th>
+                <th>Column 4</th>
+                <th>Column 5</th>
+                <th>Column 6</th>
+                <th>Column 7</th>
+                <th>Column 8</th>
+                <th nzWidth="100px" nzRight="0px">Action</th>
+                </tr>
+            </thead>
+            <tbody>                
+                <tr *ngFor="let data of nzTable.data">
+                        <td nzShowCheckbox [(nzChecked)]="data.checked" (nzCheckedChange)="refreshStatus($event)"></td>                    
+                <td nzLeft="0px">{{data.name}}</td>
+                <td nzLeft="100px">{{data.age}}</td>
+                <td>{{data.address}}</td>
+                <td>{{data.address}}</td>
+                <td>{{data.address}}</td>
+                <td>{{data.address}}</td>
+                <td>{{data.address}}</td>
+                <td>{{data.address}}</td>
+                <td>{{data.address}}</td>
+                <td>{{data.address}}</td>
+                <td nzRight="0px">
+                    <a>action</a>
+                </td>
+                </tr>
+            </tbody>
+        </nz-table>     
 </div>
 <div class="table-footer">
-  <div el-row>
-      <div el-col [span]="6">
-        <el-select [(model)]="pageSize" size="mini" (modelChange)="handlePageSizeChange()">
-            <el-option *ngFor="let item of pageSizes"
-                [label]="item.label"
-                [value]="item.value">
-            </el-option>
-        </el-select>
-      </div>
-      <div el-col [span]="18">
-          <el-pagination [(model)]="pageIndex" [total]="total" [page-size]="pp"
-           [layout]="['prev', 'pager', 'next', 'jumper', 'total']" (modelChange)="handlePageIndexChange($event)"></el-pagination>        
+  <div nz-row>
+      <div nz-col nzSpan="24" class="text-center">
+        <nz-pagination nzShowSizeChanger nzShowQuickJumper [nzPageIndex]="3" [nzTotal]="500" [nzShowTotal]="rangeTemplate"
+        [nzPageSize]="15" [nzPageSizeOptions]="[15,50,100,200,500]"></nz-pagination>
+        <ng-template #rangeTemplate let-range="range" let-total>
+                第{{range[0]}}至{{range[1]}}  共{{total}}条数据
+        </ng-template>        
       </div>
   </div>
 </div>

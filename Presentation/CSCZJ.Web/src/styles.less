@@ -1,5 +1,7 @@
 /* You can add global styles to this file, and also import other style files */
-@import url('http://at.alicdn.com/t/font_642111_mwnffg6lae1urf6r.css');
+@import "../node_modules/ng-zorro-antd/src/ng-zorro-antd.less";
+@import 'http://at.alicdn.com/t/font_642111_4y2j274ykt162yb9.css';
+
 * {
   -webkit-box-sizing: border-box;
   -moz-box-sizing: border-box;
@@ -117,4 +119,19 @@ html, body {
   .text-right
   {
       text-align: right;
+  }
+
+  .component-container
+  {
+      padding: 15px;
+      .breadcrumb-container
+      {
+        margin-bottom: 15px;
+      }
+  }  
+
+  // userinfo 退出下来 强制修改top值
+  #cdk-overlay-1
+  {
+    top: 85px !important;
   }

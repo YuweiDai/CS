@@ -3,11 +3,12 @@ import { ScreenSize } from "../viewModels/layout/ScreenSize";
 
 @Injectable()
 export class LayoutService{
+    headerHeight:number;
+    footerHeight:number;
 
-    constructor(
-
-    ){
-
+    constructor(){
+        this.headerHeight=80;
+        this.footerHeight=51;
     }
 
     getActualScreenSize():ScreenSize{
@@ -21,6 +22,6 @@ export class LayoutService{
     }
 
     getContentHeight():number{
-        return this.getActualScreenSize().height-80-54;
+        return this.getActualScreenSize().height-this.headerHeight-this.footerHeight;
     }
 }

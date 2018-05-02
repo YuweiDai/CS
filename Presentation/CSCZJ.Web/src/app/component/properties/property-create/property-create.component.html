@@ -1,27 +1,21 @@
 <div class="component-container" style="width: 100%">
-<div el-row>
-    <div el-col [span]="24">
+<div nz-row>
+    <div nz-col nzSpan="24">
         <h1>资产管理中心</h1>
-        <el-breadcrumb separator-class="el-icon-arrow-right">
-            <el-breadcrumb-item to="">首页</el-breadcrumb-item>
-            <el-breadcrumb-item to="">活动管理</el-breadcrumb-item>
-            <el-breadcrumb-item to="">活动列表</el-breadcrumb-item>
-            <el-breadcrumb-item to="/nav/breadcrumb">面包屑导航</el-breadcrumb-item>
-        </el-breadcrumb>
+        <nz-breadcrumb>
+            <nz-breadcrumb-item>
+                <i class="anticon anticon-home"></i>
+            </nz-breadcrumb-item>
+            <nz-breadcrumb-item>
+                <a><i class="anticon anticon-user"></i><span>Application List</span></a>
+            </nz-breadcrumb-item>
+            <nz-breadcrumb-item>
+                Application
+            </nz-breadcrumb-item>
+        </nz-breadcrumb>
     </div>
 </div>
-<div el-row>
-    <div el-col [span]="24"></div>
+<div nz-row>
+    <div nz-col nzSpan="24"></div>
 </div>
-<el-card class="box-card">
-    <ng-template #header>
-        <div class="clearfix">
-        <span style="line-height: 36px;">卡片名称</span>
-        <el-button style="float: right;" type="primary">操作按钮</el-button>
-        </div>
-    </ng-template>
-    <div *ngFor="let item of [0, 1, 2, 4]" class="text item">
-        {{'列表内容 ' + item }}
-    </div>
-    </el-card>
 </div>
