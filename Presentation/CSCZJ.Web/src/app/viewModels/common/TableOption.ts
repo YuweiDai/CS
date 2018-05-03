@@ -1,8 +1,9 @@
 //表格页码选项
 export class TablePageSize {
-    index: number;
-    size:number;
+    pageIndex: number;
+    pageSize:number;
     total:number;
+    filterCount:number;
 }
 
 //列元数据
@@ -10,13 +11,15 @@ export class TableColumn {
   name: string;
   title:string;
   width:number;
-  showSort:boolean;
-  showFilter:boolean;
+  left:number;
+  showSort?:boolean;
+  showFilter?:boolean;
 }  
 
 //表格选项
 export class TableOption
 {
-  pageSize:TablePageSize;
-  columns:TableColumn[];
+  pageSize?:TablePageSize;
+  columns?:TableColumn[];
+  nzScroll?:object;
 }

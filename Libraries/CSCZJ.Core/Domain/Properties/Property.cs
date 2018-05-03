@@ -66,7 +66,7 @@ namespace CSCZJ.Core.Domain.Properties
         /// <summary>
         /// 是否入账
         /// </summary>
-        public bool Account { get; set; }
+        public bool IsAdmission { get; set; }
 
         /// <summary>
         /// 取得时间
@@ -141,6 +141,7 @@ namespace CSCZJ.Core.Domain.Properties
         public string LandId { get; set;}
 
         public DateTime LandTime { get; set; }
+
         /// <summary>
         /// 使用现状
         /// </summary>
@@ -148,11 +149,11 @@ namespace CSCZJ.Core.Domain.Properties
         /// <summary>
         /// 用途
         /// </summary>
-        public UseType UserType { get; set; }
+        public UseType UseType { get; set; }
         /// <summary>
         /// 是否抵押
         /// </summary>
-        public bool Mortgage { get; set; }
+        public bool IsMortgage { get; set; }
 
         public virtual PropertyNewCreate PropertyNewCreate { get; set; }
 

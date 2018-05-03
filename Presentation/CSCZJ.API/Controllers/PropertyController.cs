@@ -30,7 +30,7 @@ using System.Web.Http;
 namespace CSCZJ.API.Controllers
 {
     [RoutePrefix("Properties")]
-    public class PropertyController : BaseAdminApiController
+    public class PropertyController : ApiController //BaseAdminApiController
     {
         private readonly IPropertyService _propertyService;
         private readonly IGovernmentService _governmentService;
@@ -1283,17 +1283,17 @@ namespace CSCZJ.API.Controllers
 
         [HttpGet]
         [Route("")]
-        public IHttpActionResult GetAll(string query = "", string sort = "", int pageSize = Int32.MaxValue, int pageIndex = 0, bool showHidden = false, long time = 0,
-            bool manage = false, bool isGovernment = false, bool isInstitution = false, bool isCompany = false, int selectedId = 0,
-            bool construct = false, bool land = false, bool constructOnLand = false,//资产类型
-            bool old = false, bool west = false, bool jjq = false, bool kc = false, bool qj = false, bool other = false, //区域
-            bool certi_both = false, bool certi_land = false, bool certi_construct = false, bool certi_none = false, //证书情况
-            bool current_self = false, bool current_rent = false, bool current_lend = false, bool currnet_idle = false, //使用现状
-            bool auction = false, bool ct = false, bool jt = false, bool jk = false, bool self = false, bool storeUp = false, bool adjust = false, bool greenland = false, bool house = false,//下步使用
-            bool constructArea_L=false, bool constructArea_M = false, bool constructArea_H = false, bool constructArea_T = false,
-            bool landArea_L = false, bool landArea_M = false, bool landArea_H = false, bool landArea_T = false,
-            bool price_L = false, bool price_M = false, bool price_H = false, bool price_T = false,
-            string lifeTime_min="",string lifeTime_max=""
+        public IHttpActionResult GetAll(string query = "", string sort = "", int pageSize = Int32.MaxValue, int pageIndex = 0, bool showHidden = false, long time = 0
+            //bool manage = false, bool isGovernment = false, bool isInstitution = false, bool isCompany = false, int selectedId = 0,
+            //bool construct = false, bool land = false, bool constructOnLand = false,//资产类型
+            //bool old = false, bool west = false, bool jjq = false, bool kc = false, bool qj = false, bool other = false, //区域
+            //bool certi_both = false, bool certi_land = false, bool certi_construct = false, bool certi_none = false, //证书情况
+            //bool current_self = false, bool current_rent = false, bool current_lend = false, bool currnet_idle = false, //使用现状
+            //bool auction = false, bool ct = false, bool jt = false, bool jk = false, bool self = false, bool storeUp = false, bool adjust = false, bool greenland = false, bool house = false,//下步使用
+            //bool constructArea_L=false, bool constructArea_M = false, bool constructArea_H = false, bool constructArea_T = false,
+            //bool landArea_L = false, bool landArea_M = false, bool landArea_H = false, bool landArea_T = false,
+            //bool price_L = false, bool price_M = false, bool price_H = false, bool price_T = false,
+            //string lifeTime_min="",string lifeTime_max=""
             )
         {
             var currentUser = _workContext.CurrentAccountUser;
@@ -1306,48 +1306,48 @@ namespace CSCZJ.API.Controllers
             //特殊字段排序调整
             if (sort.ToLower().StartsWith("governmentname")) sortConditions[0].PropertyName = "Government";
 
+            ////高级搜索参数设置
+            //PropertyAdvanceConditionModel advance = new PropertyAdvanceConditionModel
+            //{
+            //    Government = new GovernmentFilterModel { Manage = manage, IsCompany = isCompany, IsGovernment = isGovernment, IsInstitution = isInstitution, SelectedId = selectedId },
+            //    PropertyType = new PropertyTypeModel { Construct = construct, Land = land, ConstructOnLand = constructOnLand },
+            //    Region = new RegionModel { West = west, Jjq = jjq, Kc = kc, Old = old, Other = other, Qj = qj },
+            //    Certificate = new Certificate { Both = certi_both, Construct = certi_construct, Land = certi_land, None = certi_land },
+            //    Current = new CurrentModel { Idle = currnet_idle, Lend = current_lend, Rent = current_rent, Self = current_self },
+            //    NextStep = new NextStepModel { Adjust = adjust, Auction = auction, Ct = ct, Jt = jt, Jk = jk, Greenland = greenland, House = house, Self = self, StoreUp = storeUp },
+            //    Extent = new ExtentModel { Geo = "", Type = "" },
+            //    ConstructArea = new RangeList { Ranges = new List<Range>() },
+            //    LandArea = new RangeList { Ranges = new List<Range>() },
+            //    Price = new RangeList { Ranges = new List<Range>() },
+            //    LifeTime = new Range { Min = Convert.ToDouble(lifeTime_min), Max = Convert.ToDouble(lifeTime_max) }
+            //};
+
+            ////建筑面积
+            //if (constructArea_L) advance.ConstructArea.Ranges.Add(new Range { Min = 0, Max = 5000 });
+            //if (constructArea_M) advance.ConstructArea.Ranges.Add(new Range { Min = 5001, Max = 10000 });
+            //if (constructArea_H) advance.ConstructArea.Ranges.Add(new Range { Min = 10001, Max = 20000 });
+            //if (constructArea_T) advance.ConstructArea.Ranges.Add(new Range { Min = 20001, Max = 0 });
+
+            ////土地面积
+            //if (landArea_L) advance.LandArea.Ranges.Add(new Range { Min = 0, Max = 51 * 666.67 - 1 });
+            //if (landArea_M) advance.LandArea.Ranges.Add(new Range { Min = 51 * 666.67, Max = 301 * 666.67-1 });
+            //if (landArea_H) advance.LandArea.Ranges.Add(new Range { Min = 301 * 666.67, Max = 501 * 666.67-1 });
+            //if (landArea_T) advance.LandArea.Ranges.Add(new Range { Min = 501 * 666.67, Max = 0 });
+
+            ////账面价值
+            //if (price_L) advance.Price.Ranges.Add(new Range { Min = 0, Max = 500 });
+            //if (price_M) advance.Price.Ranges.Add(new Range { Min = 501, Max = 5000 });
+            //if (price_H) advance.Price.Ranges.Add(new Range { Min = 5001, Max = 10000 });
+            //if (price_T) advance.Price.Ranges.Add(new Range { Min = 10001, Max = 0 });                      
+
+
             //高级搜索参数设置
-            PropertyAdvanceConditionModel advance = new PropertyAdvanceConditionModel
-            {
-                Government = new GovernmentFilterModel { Manage = manage, IsCompany = isCompany, IsGovernment = isGovernment, IsInstitution = isInstitution, SelectedId = selectedId },
-                PropertyType = new PropertyTypeModel { Construct = construct, Land = land, ConstructOnLand = constructOnLand },
-                Region = new RegionModel { West = west, Jjq = jjq, Kc = kc, Old = old, Other = other, Qj = qj },
-                Certificate = new Certificate { Both = certi_both, Construct = certi_construct, Land = certi_land, None = certi_land },
-                Current = new CurrentModel { Idle = currnet_idle, Lend = current_lend, Rent = current_rent, Self = current_self },
-                NextStep = new NextStepModel { Adjust = adjust, Auction = auction, Ct = ct, Jt = jt, Jk = jk, Greenland = greenland, House = house, Self = self, StoreUp = storeUp },
-                Extent = new ExtentModel { Geo = "", Type = "" },
-                ConstructArea = new RangeList { Ranges = new List<Range>() },
-                LandArea = new RangeList { Ranges = new List<Range>() },
-                Price = new RangeList { Ranges = new List<Range>() },
-                LifeTime = new Range { Min = Convert.ToDouble(lifeTime_min), Max = Convert.ToDouble(lifeTime_max) }
-            };
-
-            //建筑面积
-            if (constructArea_L) advance.ConstructArea.Ranges.Add(new Range { Min = 0, Max = 5000 });
-            if (constructArea_M) advance.ConstructArea.Ranges.Add(new Range { Min = 5001, Max = 10000 });
-            if (constructArea_H) advance.ConstructArea.Ranges.Add(new Range { Min = 10001, Max = 20000 });
-            if (constructArea_T) advance.ConstructArea.Ranges.Add(new Range { Min = 20001, Max = 0 });
-
-            //土地面积
-            if (landArea_L) advance.LandArea.Ranges.Add(new Range { Min = 0, Max = 51 * 666.67 - 1 });
-            if (landArea_M) advance.LandArea.Ranges.Add(new Range { Min = 51 * 666.67, Max = 301 * 666.67-1 });
-            if (landArea_H) advance.LandArea.Ranges.Add(new Range { Min = 301 * 666.67, Max = 501 * 666.67-1 });
-            if (landArea_T) advance.LandArea.Ranges.Add(new Range { Min = 501 * 666.67, Max = 0 });
-
-            //账面价值
-            if (price_L) advance.Price.Ranges.Add(new Range { Min = 0, Max = 500 });
-            if (price_M) advance.Price.Ranges.Add(new Range { Min = 501, Max = 5000 });
-            if (price_H) advance.Price.Ranges.Add(new Range { Min = 5001, Max = 10000 });
-            if (price_T) advance.Price.Ranges.Add(new Range { Min = 10001, Max = 0 });                      
-
-
-            //高级搜索参数设置
-            PropertyAdvanceConditionRequest request = PrepareAdvanceCondition(advance);
+            //PropertyAdvanceConditionRequest request = PrepareAdvanceCondition(advance);
 
             var governmentIds =_governmentService.GetGovernmentIdsByCurrentUser();  //获取当前账户的可查询的资产
            
             var properties = _propertyService.GetAllProperties(governmentIds, query, pageIndex, pageSize,
-               showHidden, request, sortConditions);
+               showHidden, null, sortConditions);
 
             var response = new ListResponse<PropertyListModel>
             {
@@ -1369,7 +1369,6 @@ namespace CSCZJ.API.Controllers
 
 
                     propertyModel.CanEditDelete = PropertyCanEditDelete(s);
-                    propertyModel.CanChange = PropertyCanChange(s);
 
                     return propertyModel;
                 })
@@ -4630,9 +4629,6 @@ namespace CSCZJ.API.Controllers
         }
 
         #endregion
-
-
-
 
     }
 }

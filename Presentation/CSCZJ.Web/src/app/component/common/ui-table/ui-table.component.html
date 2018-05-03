@@ -18,41 +18,37 @@
     </div>
 </div>
 <div class="table-content">
-        <nz-table #nzTable nzBordered [nzData]="dataset" [nzScroll]="{ x:'1800px'}" [nzFrontPagination]="false" [nzShowPagination]="false">
+        <nz-table #nzTable nzBordered [nzData]="dataset" [nzScroll]="tableOption.nzScroll" [nzFrontPagination]="false" [nzShowPagination]="false">
             <thead>
                 <tr>
                 <!-- <th nzShowCheckbox nzShowRowSelection [nzSelections]="listOfSelection" [(nzChecked)]="allChecked" [nzIndeterminate]="indeterminate" (nzCheckedChange)="checkAll($event)"></th>                         -->
-                <th nzWidth="50px" nzLeft="0px">序号</th>                
-                <th nzShowSort nzWidth="100px" nzLeft="50px">Full Name</th>
-                <th nzShowSort nzWidth="100px" nzLeft="150px">Age</th>
-                <th nzShowSort nzWidth="100px" nzLeft="250px">Column 1</th>
-                <th>Column 2</th>
-                <th>Column 3</th>
-                <th>Column 4</th>
-                <th>Column 5</th>
-                <th>Column 6</th>
-                <th>Column 7</th>
-                <th>Column 8</th>
-                <th nzWidth="100px" nzRight="0px">Action</th>
+                    <th nzWidth="70px" nzLeft="0px">序号</th>                
+                    <ng-container *ngFor="let column of tableOption.columns">
+                        <th  *ngIf="column.left>0" nzShowSort="column.showSort" nzWidth="{{column.width}}px" nzLeft="{{column.left}}px">
+                            {{column.title}}
+                        </th>
+                        <th  *ngIf="column.left==0" nzShowSort="column.showSort" nzWidth="{{column.width}}px">
+                            {{column.title}}
+                        </th>                        
+                    </ng-container >
+                    <th nzWidth="200px" nzRight="0px"></th>
                 </tr>
             </thead>
             <tbody>                
                 <tr *ngFor="let data of nzTable.data; let i = index">
                         <!-- <td nzShowCheckbox [(nzChecked)]="data.checked" (nzCheckedChange)="refreshStatus($event)"></td>                     -->
-                <td nzLeft="0px">{{i+1}}</td>
-                <td nzLeft="50px">{{data.name}}</td>                
-                <td nzLeft="150px">{{data.age}}</td>
-                <td nzLeft="250px">{{data.address}}</td>
-                <td>{{data.address}}</td>
-                <td>{{data.address}}</td>
-                <td>{{data.address}}</td>
-                <td>{{data.address}}</td>
-                <td>{{data.address}}</td>
-                <td>{{data.address}}</td>
-                <td>{{data.address}}</td>
-                <td nzRight="0px">
-                    <a>action</a>
-                </td>
+                    <td nzLeft="0px">{{i+1}}</td>
+                    <ng-container *ngFor="let column of tableOption.columns">
+                        <td *ngIf="column.left>0" nzLeft="{{column.left}}px">
+                            {{data[column.name]}}
+                        </td>
+                        <td *ngIf="column.left==0">
+                            {{data[column.name]}}
+                        </td>                        
+                    </ng-container >                    
+                    <td nzRight="0px">
+                        <a>查询详情</a>|<a>删除</a>
+                    </td>
                 </tr>
             </tbody>
         </nz-table>     
@@ -60,9 +56,9 @@
 <!-- [nzPageSize]="tableOption.pageSize.size"  -->
 <div class="table-footer">
   <div nz-row>
-      <div nz-col nzSpan="24" class="text-center">
-        <nz-pagination nzShowSizeChanger nzShowQuickJumper [nzPageIndex]="tableOption.pageSize.index" [nzTotal]="tableOption.pageSize.total" [nzShowTotal]="rangeTemplate"
-        [nzPageSize]="tableOption.pageSize.size" [nzPageSizeOptions]="[15,50,100,200,500]"></nz-pagination>
+      <div nz-col nzSpan="24" class="text-center" *ngIf="tableOption.pageSize.total>0">
+        <nz-pagination nzShowSizeChanger nzShowQuickJumper [nzPageIndex]="tableOption.pageSize.pageIndex" [nzTotal]="tableOption.pageSize.total" [nzShowTotal]="rangeTemplate"
+        [nzPageSize]="tableOption.pageSize.pageSize" [nzPageSizeOptions]="[15,50,100,200,500]"></nz-pagination>
         <ng-template #rangeTemplate let-range="range" let-total>
                 第{{range[0]}}至{{range[1]}}  共{{total}}条数据
         </ng-template>        

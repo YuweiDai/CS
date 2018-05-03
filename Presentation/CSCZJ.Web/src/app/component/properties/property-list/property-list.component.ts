@@ -5,6 +5,7 @@ import { UiTableComponent } from '../../common/ui-table/ui-table.component';
 import { LayoutService } from "./../../../services/layoutService";
 
 import { TablePageSize,TableColumn,TableOption } from "../../../viewModels/common/TableOption";
+import { PropertyService } from '../../../services/propertyService';
 
 @Component({
   selector: 'app-property-list',
@@ -22,27 +23,69 @@ export class PropertyListComponent implements OnInit {
   data:any[];
   tableOption:TableOption;
 
-  constructor(private layoutService:LayoutService){
+  constructor(
+    private propertyService:PropertyService,
+    private layoutService:LayoutService){
     this.contentHeight=layoutService.getContentHeight()-70-2;
   }
 
   ngOnInit() {
-    this.data=[];
-    for (let i = 0; i < 100; i++) {
-      this.data.push({
-        name   : `Edward King ${i}`,
-        age    : 32,
-        address: `London, Park Lane no. ${i}`
-      });
-    }
+    this.getProperties();
 
-    var pageSize=new TablePageSize();
-    pageSize.size=15;
-    pageSize.total=2000;
-    pageSize.index=1;
-    this.tableOption=new TableOption();
-    this.tableOption.columns=[];
-    this.tableOption.pageSize=pageSize;
+    this.tableOption={
+      pageSize:{
+        pageIndex:1,
+        pageSize:15,
+        filterCount:0,
+        total:0
+      },
+      columns:[
+        {name:"name",title:"资产名称",width:350,left:70,showSort:true},
+        {name:"propertyType",title:"类别",width:100,left:420,showSort:true},     
+        {name:"address",title:"坐落位置",width:300,left:0,showSort:true},
+        {name:"fourToStation",title:"四至情况",width:300,left:0,showSort:true},
+        {name:"governmentName",title:"权属单位",width:300,left:0,showSort:true},
+        {name:"getMode",title:"获取方式",width:150,left:0,showSort:true},
+        {name:"getedDate",title:"取得时间",width:150,left:0,showSort:true},
+        {name:"floor",title:"层数",width:90,left:0,showSort:true},     
+        {name:"propertyID",title:"产权证号",width:150,left:0,showSort:true},   
+        {name:"constructArea",title:"建筑面积",width:150,left:0,showSort:true},
+        {name:"constructId",title:"房产证",width:150,left:0,showSort:true},
+        // {name:"constructTime",title:"房产证发证时间",width:150,left:0,showSort:true},
+        {name:"landArea",title:"土地面积",width:150,left:0,showSort:true},
+        {name:"landId",title:"土地证",width:150,left:0,showSort:true},
+        // {name:"landTime",title:"土地证发证时间",width:100,left:0,showSort:true},
+        {name:"usedPeople",title:"使用人员",width:150,left:0,showSort:true},        
+        {name:"currentType",title:"使用现状",width:150,left:0,showSort:true},
+        {name:"useType",title:"用途",width:100,left:0,showSort:true},
+        {name:"isAdmission",title:"入账",width:100,left:0,showSort:true},        
+        {name:"isMortgage",title:"抵押",width:100,left:0,showSort:true}
+      ],
+      nzScroll:{}
+    };
+
+    var fullWidth=370;
+    this.tableOption.columns.forEach(element => {
+      console.log(fullWidth);
+      fullWidth+=element.width;
+    });
+
+    this.tableOption.nzScroll={ x:fullWidth+"px"};
+
+    console.log(this.tableOption);
+  }
+
+  getProperties():void{
+    this.propertyService.getAllProperties()
+    .subscribe(response=>{
+      if(response.data!=undefined && response.data!=null)
+      {
+      console.log("subscribe");
+      console.log(response);
+      this.data=response.data;
+      this.tableOption.pageSize=response.paging;
+      }
+    });
   }
 
 }

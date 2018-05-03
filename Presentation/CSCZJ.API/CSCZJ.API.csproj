@@ -236,7 +236,7 @@
     <Compile Include="Controllers\MediaController.cs" />
     <Compile Include="Controllers\PropertyController.cs" />
     <Compile Include="Controllers\StatisticsController.cs" />
-    <Compile Include="Extensions\MappingExtensions.cs" />
+    <Compile Include="Infrastructure\Extensions\MappingExtensions.cs" />
     <Compile Include="Infrastructure\AutoMapperStartupTask.cs" />
     <Compile Include="Infrastructure\DependencyRegistrar.cs" />
     <Compile Include="Models\AccountUsers\AccountResetPwdModel.cs" />

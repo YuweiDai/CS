@@ -109,9 +109,13 @@ namespace CSCZJ.Web.Api.Infrastructure
 
 
             Mapper.CreateMap<Property, PropertyListModel>()
-              //.ForMember(dest => dest.GovernmentName, mo => mo.MapFrom(src => src.Region.ToDescription()))
-              .ForMember(dest => dest.Region, mo => mo.MapFrom(src => src.Region.ToDescription()))
-              .ForMember(dest => dest.GetedDate, mo => mo.MapFrom(src => src.GetedDate.HasValue ? src.GetedDate.Value.ToString("yyyy-MM-dd") : "未知"));
+              .ForMember(dest => dest.PropertyType, mo => mo.MapFrom(src => src.PropertyType.ToDescription()))
+              .ForMember(dest => dest.GetMode, mo => mo.MapFrom(src => src.GetMode.ToDescription()))
+              .ForMember(dest => dest.GetedDate, mo => mo.MapFrom(src => src.GetedDate.HasValue ? src.GetedDate.Value.ToString("yyyy-MM-dd") : "未知"))
+              .ForMember(dest => dest.ConstructTime, mo => mo.MapFrom(src => src.ConstructTime.ToString("yyyy-MM-dd")))
+              .ForMember(dest => dest.LandTime, mo => mo.MapFrom(src => src.LandTime.ToString("yyyy-MM-dd")))
+              .ForMember(dest => dest.CurrentType, mo => mo.MapFrom(src => src.CurrentType.ToDescription()))
+              .ForMember(dest => dest.UseType, mo => mo.MapFrom(src => src.UseType.ToDescription()));
 
             Mapper.CreateMap<Property, PropertyBasicInfo>()
               //.ForMember(dest => dest.GovernmentName, mo => mo.MapFrom(src => src.Region.ToDescription()))

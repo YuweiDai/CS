@@ -16,7 +16,11 @@ import { PropertiesModule } from './component/properties/properties.module';
 import { MapHomeComponent } from './component/map/map-home/map-home.component';
 import { AccountListComponent } from './component/systemmanager/account-list/account-list.component';
 
+
+import { PropertyService } from "./services/propertyService";
 import { MapService } from "./services/map/mapService";
+import { LogService } from "./services/logService";
+import { ConfigService } from "./services/configService";
 import { LayoutService } from "./services/layoutService";
 
 import { PerfectScrollbarModule ,PERFECT_SCROLLBAR_CONFIG,PerfectScrollbarConfigInterface} from 'ngx-perfect-scrollbar';
@@ -52,7 +56,10 @@ const DEFAULT_PERFECT_SCROLLBAR_CONFIG: PerfectScrollbarConfigInterface = {
       provide: PERFECT_SCROLLBAR_CONFIG,
       useValue: DEFAULT_PERFECT_SCROLLBAR_CONFIG
     },
+    PropertyService,
     MapService,
+    LogService,
+    ConfigService,
     LayoutService
   ],
   bootstrap: [AppComponent]

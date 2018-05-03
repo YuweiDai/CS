@@ -248,8 +248,8 @@ namespace CSCZJ.Services.ExportImport
                                 else if (p.Name == "PropertyType") worksheet.Cells[row, col].Value = property.PropertyType.ToDescription();
                              
                                 else if (p.Name == "GetedDate") worksheet.Cells[row, col].Value = (property.GetedDate == null ? "" : Convert.ToDateTime(property.GetedDate).ToString("yyyy-MM-dd"));
-                                else if (p.Name == "Account") worksheet.Cells[row, col].Value = (property.Account == true ? "是" : "否");
-                                else if (p.Name == "Mortgage") worksheet.Cells[row, col].Value = (property.Mortgage == true ? "是" : "否");
+                                else if (p.Name == "Account") worksheet.Cells[row, col].Value = (property.IsAdmission == true ? "是" : "否");
+                                else if (p.Name == "Mortgage") worksheet.Cells[row, col].Value = (property.IsMortgage == true ? "是" : "否");
                                 else worksheet.Cells[row, col].Value = p.GetValue(property);
 
                             }
