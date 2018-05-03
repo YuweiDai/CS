@@ -20,7 +20,7 @@ export class MapHomeComponent implements OnInit {
 
   ngOnInit() {
 
-    this.mapHeight=this.layoutService.getActualScreenSize().height-80-54;  //计算除了header footer的高度
+    this.mapHeight=this.layoutService.getContentHeight();  //计算除了header footer的高度
 
     setTimeout(() => {
       var normal = this.mapService.getLayer("vector");

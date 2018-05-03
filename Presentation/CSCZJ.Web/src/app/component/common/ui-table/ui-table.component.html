@@ -18,13 +18,14 @@
     </div>
 </div>
 <div class="table-content">
-        <nz-table #nzTable nzBordered [nzData]="dataSet" [nzPageSize]="10" [nzScroll]="{ x:'1800px'}" [nzFrontPagination]="true" [nzShowPagination]="false">
+        <nz-table #nzTable nzBordered [nzData]="dataset" [nzScroll]="{ x:'1800px'}" [nzFrontPagination]="false" [nzShowPagination]="false">
             <thead>
                 <tr>
-                <th nzShowCheckbox nzShowRowSelection [nzSelections]="listOfSelection" [(nzChecked)]="allChecked" [nzIndeterminate]="indeterminate" (nzCheckedChange)="checkAll($event)"></th>                        
-                <th nzShowSort  nzWidth="100px" nzLeft="0px">Full Name</th>
-                <th nzShowSort  nzWidth="100px" nzLeft="100px">Age</th>
-                <th nzShowSort >Column 1</th>
+                <!-- <th nzShowCheckbox nzShowRowSelection [nzSelections]="listOfSelection" [(nzChecked)]="allChecked" [nzIndeterminate]="indeterminate" (nzCheckedChange)="checkAll($event)"></th>                         -->
+                <th nzWidth="50px" nzLeft="0px">序号</th>                
+                <th nzShowSort nzWidth="100px" nzLeft="50px">Full Name</th>
+                <th nzShowSort nzWidth="100px" nzLeft="150px">Age</th>
+                <th nzShowSort nzWidth="100px" nzLeft="250px">Column 1</th>
                 <th>Column 2</th>
                 <th>Column 3</th>
                 <th>Column 4</th>
@@ -36,11 +37,12 @@
                 </tr>
             </thead>
             <tbody>                
-                <tr *ngFor="let data of nzTable.data">
-                        <td nzShowCheckbox [(nzChecked)]="data.checked" (nzCheckedChange)="refreshStatus($event)"></td>                    
-                <td nzLeft="0px">{{data.name}}</td>
-                <td nzLeft="100px">{{data.age}}</td>
-                <td>{{data.address}}</td>
+                <tr *ngFor="let data of nzTable.data; let i = index">
+                        <!-- <td nzShowCheckbox [(nzChecked)]="data.checked" (nzCheckedChange)="refreshStatus($event)"></td>                     -->
+                <td nzLeft="0px">{{i+1}}</td>
+                <td nzLeft="50px">{{data.name}}</td>                
+                <td nzLeft="150px">{{data.age}}</td>
+                <td nzLeft="250px">{{data.address}}</td>
                 <td>{{data.address}}</td>
                 <td>{{data.address}}</td>
                 <td>{{data.address}}</td>
@@ -55,11 +57,12 @@
             </tbody>
         </nz-table>     
 </div>
+<!-- [nzPageSize]="tableOption.pageSize.size"  -->
 <div class="table-footer">
   <div nz-row>
       <div nz-col nzSpan="24" class="text-center">
-        <nz-pagination nzShowSizeChanger nzShowQuickJumper [nzPageIndex]="3" [nzTotal]="500" [nzShowTotal]="rangeTemplate"
-        [nzPageSize]="15" [nzPageSizeOptions]="[15,50,100,200,500]"></nz-pagination>
+        <nz-pagination nzShowSizeChanger nzShowQuickJumper [nzPageIndex]="tableOption.pageSize.index" [nzTotal]="tableOption.pageSize.total" [nzShowTotal]="rangeTemplate"
+        [nzPageSize]="tableOption.pageSize.size" [nzPageSizeOptions]="[15,50,100,200,500]"></nz-pagination>
         <ng-template #rangeTemplate let-range="range" let-total>
                 第{{range[0]}}至{{range[1]}}  共{{total}}条数据
         </ng-template>        

@@ -14,7 +14,7 @@
             <nz-card nzTitle="资产列表" [nzExtra]="extraTemplate">
                 <div class="component-content">
                     <!-- [ngStyle]="{'height.px':contentHeight-135.875}" -->
-                    <app-ui-table></app-ui-table>
+                    <app-ui-table [dataset]="data" [tableOption]="tableOption"></app-ui-table>
                 </div>
             </nz-card>
             <ng-template #extraTemplate>
