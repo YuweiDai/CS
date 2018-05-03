@@ -15,6 +15,10 @@ namespace CSCZJ.Core.Domain.Properties
         ZZ = 1,
         [Description("业务")]
         YW = 2,
+        [Description("工业厂房")]
+        GYCF = 3,
+        [Description("仓储")]
+        CC = 4,
         [Description("其他")]
         Others = 99
     }

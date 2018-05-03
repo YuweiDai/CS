@@ -36,7 +36,7 @@ namespace CSCZJ.Core.Domain.Properties
         /// <summary>
         /// 获取方式
         /// </summary>
-        public GetType Type { get; set; }
+        public GetMode GetMode { get; set; }
 
         /// <summary>
         /// 地址
@@ -130,11 +130,17 @@ namespace CSCZJ.Core.Domain.Properties
         /// 房产证
         /// </summary>
         public string ConstructId { get; set; }
+        /// <summary>
+        /// 房产证发证时间
+        /// </summary>
+        public DateTime ConstructTime { get; set; }
 
         /// <summary>
         /// 土地证号
         /// </summary>
         public string LandId { get; set;}
+
+        public DateTime LandTime { get; set; }
         /// <summary>
         /// 使用现状
         /// </summary>

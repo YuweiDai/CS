@@ -24,6 +24,7 @@ using System.Net.Http;
 using System.Text;
 using System.Web.Http;
 using Newtonsoft.Json;
+using System.Data;
 
 namespace CSCZJ.API.Controllers
 {
@@ -327,9 +328,168 @@ namespace CSCZJ.API.Controllers
         {
             //return BadRequest("导入关闭");
 
-            var filePath = System.Web.HttpContext.Current.Server.MapPath("~/App_Data/import.mdb");
+            //var filePath = System.Web.HttpContext.Current.Server.MapPath("~/App_Data/import.mdb");
 
-            var result = ReadXlsFile(filePath);
+            //var result = ReadXlsFile(filePath);
+
+
+            var filePath = @"G:\全县房地产汇总表.xls";
+
+
+            string strConn = "Provider=Microsoft.Jet.OLEDB.4.0;" + "Data Source=" + filePath + ";" + "Extended Properties=Excel 8.0;";
+            System.Data.OleDb.OleDbConnection conn = new System.Data.OleDb.OleDbConnection(strConn);
+            conn.Open();
+            string strExcel = "";
+            System.Data.OleDb.OleDbDataAdapter myCommand = null;
+            System.Data.DataSet ds = null;
+            strExcel = "select * from [全县地产$]";
+            myCommand = new System.Data.OleDb.OleDbDataAdapter(strExcel, strConn);
+            ds = new System.Data.DataSet();
+            myCommand.Fill(ds, "table1");
+
+            var table = ds.Tables[0];
+           // var goverments = _governmentService.GetAllGovernmentUnits();
+
+            for (var i = 0; i < table.Rows.Count; i++) {
+
+                var row = table.Rows[i];
+                var p = new Property();
+                p.Name = row[2].ToString();
+                p.Address = row[3].ToString();
+                p.PropertyType = PropertyType.Land;
+                p.Government = _governmentService.GetGovernmentUnitByName(row[0].ToString());
+                p.UsedPeople = row[0].ToString();
+                if (row[4].ToString() != "")  p.Floor = Convert.ToInt32(row[4]);
+                p.FourToStation = row[5].ToString();
+                p.GetedDate = (row[6] == null) ? Convert.ToDateTime(row[5]) : DateTime.Now;
+                switch (row[7].ToString()) {
+                    case "自建":
+                        p.GetMode = GetMode.SelfBuilt;
+                        break;
+                    case "购入":
+                        p.GetMode = GetMode.Purchase;
+                        break;
+                    case "调配":
+                        p.GetMode = GetMode.Deploy;
+                        break;
+                    case "划拨":
+                        p.GetMode = GetMode.HB;
+                        break;
+                }
+                p.Account = (row[8].ToString() == "是") ? true : false;
+                p.ConstructId = row[9].ToString();
+                p.ConstructTime = (row[10] == null) ? Convert.ToDateTime(row[10]) : DateTime.Now;
+                p.LandId = row[12].ToString();
+                p.LandTime = (row[13] == null) ? Convert.ToDateTime(row[13]) : DateTime.Now;
+                if(row[15].ToString()!="") p.ConstructArea = Convert.ToDouble(row[15]);
+                if(row[16].ToString() !="")  p.LandArea = Convert.ToDouble(row[16]);
+                switch (row[17].ToString()) {
+                    case "办公":
+                        p.UserType = UseType.BG;
+                        break;
+                    case "业务":
+                        p.UserType = UseType.YW;
+                        break;
+                    case "住宅":
+                        p.UserType = UseType.ZZ;
+                        break;
+                    case "其他":
+                        p.UserType = UseType.Others;
+                        break;
+                    case "工业厂房":
+                        p.UserType = UseType.GYCF;
+                        break;
+                    case "仓储":
+                        p.UserType = UseType.CC;
+                        break;
+
+                }
+                switch (row[18].ToString()) {
+                    case "拆除":
+                        p.CurrentType = CurrentType.CC;
+                        break;
+                    case "出借":
+                        p.CurrentType = CurrentType.CJ;
+                        break;
+                    case "出租":
+                        p.CurrentType = CurrentType.CZ;
+                        break;
+                    case "调配使用":
+                        p.CurrentType = CurrentType.DPSY;
+                        break;
+                    case "自用":
+                        p.CurrentType = CurrentType.ZY;
+                        break;
+                    case "闲置":
+                        p.CurrentType = CurrentType.XZ;
+                        break;
+                }
+                p.Mortgage = (row[19].ToString() == "是") ? true : false;
+                p.Description = row[20].ToString();
+                var points = row[21].ToString().Split(',');
+                var point1 = points[0].Substring(7);
+                var point2 = points[1].Substring(6);
+                var point3 = point2.Substring(0, point2.Length - 1);
+                var point = "POINT(" + point3 + " " + point1 + ")";
+                p.Location = DbGeography.FromText(point);
+
+                if (row[22].ToString() != "") {
+
+                    var arr1 = row[22].ToString().Substring(1);
+                    var arr2 = row[22].ToString().Substring(1, arr1.Length - 1);
+                    var arr = arr2.Split(',');
+
+                    var wkt = "";
+
+                    for (var j = 0; j <= arr.Length - 1; j++)
+                    {
+                        if (j % 2 == 0)
+                        {
+                            wkt +=  arr[j + 1].Substring(6, arr[j + 1].Length - 7) + " " +  arr[j].Substring(7) + ",";
+                        }
+
+                           
+                    }
+                    wkt = wkt + arr[1].Substring(6, arr[1].Length - 7) + " " + arr[0].Substring(7) ;
+                    wkt = "MULTIPOLYGON(((" + wkt + ")))";
+                    p.Extent = DbGeography.FromText(wkt);
+                }
+
+
+                _propertyService.InsertProperty(p);                   
+
+            }
+
+
+
+
+
+            //单位导入
+            //for (var i = 0; i < table.Rows.Count; i++)
+            //{
+
+            //    var row = table.Rows[i];
+            //    var goverment = new GovernmentUnit();
+
+            //    goverment.Name = row[0].ToString();
+            //    goverment.Address = row[4].ToString();
+            //    goverment.Person = row[1].ToString();
+            //    goverment.Tel = row[2].ToString();
+            //    switch (row[3].ToString()) {
+            //        case "行政机关":
+            //            goverment.GovernmentType = GovernmentType.Government;
+            //            break;
+            //        case "事业单位":
+            //            goverment.GovernmentType = GovernmentType.Institution;
+            //            break;
+            //        case "企业":
+            //            goverment.GovernmentType = GovernmentType.Company;
+            //            break;
+            //    }
+            //    _governmentService.InsertGovernmentUnit(goverment);
+
+            //}
+
 
             #region old code
             #region 用户角色创建

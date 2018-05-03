@@ -18,7 +18,9 @@ namespace CSCZJ.Core.Domain.Properties
         [Description("出借")]
         CJ = 3,
         [Description("调配使用")]
-        DPSY = 4
+        DPSY = 4,
+        [Description("闲置")]
+        XZ = 5
 
     }
 }
