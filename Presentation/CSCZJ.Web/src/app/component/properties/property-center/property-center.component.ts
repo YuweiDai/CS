@@ -16,7 +16,7 @@ export class PropertyCenterComponent implements OnInit {
 
   constructor(private layoutService:LayoutService){
     this.containerHeight=layoutService.getActualScreenSize().height;
-    this.containerHeight=this.containerHeight-80-54;  //计算除了header footer的高度
+    this.containerHeight=layoutService.getContentHeight();  //获取内容高度
 
     this.menuItems= [
       { icon: "icon-liebiao", title: "资产列表",url:"./",active:true },

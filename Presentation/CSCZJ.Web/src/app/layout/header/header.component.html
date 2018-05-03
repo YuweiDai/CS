@@ -28,12 +28,17 @@
       </ul>
 
       <div class="user-info">
-        <el-dropdown class="user-name" [model]="data" (selected)="handle($event)">
-          衢州市财政局
-        </el-dropdown>
-        <span class="avatar">
-          <img src="../../../assets/images/user.jpg" alt="...">
-        </span>
+          <nz-dropdown class="user-name" [nzClickHide]="false" [(nzVisible)]="visible">
+              <a nz-dropdown>
+                  衢州市财政局 <i class="anticon anticon-down"></i>
+              </a>
+              <ul nz-menu nzSelectable>
+                <li nz-menu-item>
+                  <a>退出</a>
+                </li>
+              </ul>
+            </nz-dropdown>        
+        <nz-avatar nzIcon="anticon anticon-user" nzSrc="../../../assets/images/user.jpg"></nz-avatar>
       </div>
     </div>
   </header>
