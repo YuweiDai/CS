@@ -1,4 +1,4 @@
-export class PropertyList{
+export class property_map{
     name:string;
     propertyType:string;
     getMode?:string;
@@ -21,5 +21,7 @@ export class PropertyList{
     isMortgage:boolean;
     governmentId:number;
     governmentName:string;
-    canEditDelete: boolean;   
+    canEditDelete: boolean;
+    location: string;
+    extends?: string;
 }

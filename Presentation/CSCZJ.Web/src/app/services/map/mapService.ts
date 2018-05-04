@@ -1,14 +1,19 @@
 import { Injectable } from '@angular/core';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { ScreenSize } from "../../viewModels/layout/ScreenSize";
+import { catchError, map, tap } from 'rxjs/operators';
+import { Observable } from 'rxjs';
+import { ConfigService } from "../../services/configService";
+import { LogService } from "../../services/logService";
+import {MapListResponse} from"../../viewModels/Response/MapListResponse";
+
 declare var L:any;
 
 @Injectable()
 export class MapService{
-
-    constructor(
-
-    ){
-
+    private apiUrl = "";
+    constructor(private configService: ConfigService, private http: HttpClient, private logService: LogService){
+        this.apiUrl += configService.getApiUrl() + "properties/map";
     }
 
     //获取指定类型的地图
@@ -106,4 +111,32 @@ export class MapService{
         return layerGroup;
         
     }
+
+    getAllMapProperties():Observable<MapListResponse> {
+        return this.http.get(this.apiUrl)
+            .pipe(
+            tap(response => { }),
+            catchError(this.handleError('getHeroes', {}))
+            );
+    }
+
+
+    private handleError<T>(operation = 'operation', result?: T) {
+        return (error: any): Observable<T> => {
+
+            // TODO: send the error to remote logging infrastructure
+            console.error(error); // log to console instead
+
+            // TODO: better job of transforming error for user consumption
+            this.log(`${operation} failed: ${error.message}`);
+
+            // Let the app keep running by returning an empty result.
+            return Observable.of(result as T);
+        };
+    }  
+
+    private log(message: string) {
+        this.LogService.add('mapService: ' + message);
+    }  
+
 }
