@@ -19,17 +19,29 @@ export class PropertyService{
     constructor( private http: HttpClient,
         private logService:LogService,
         private configService:ConfigService){ 
-            this.apiUrl+=configService.getApiUrl()+"properties/";
+            this.apiUrl+=configService.getApiUrl()+"properties";
         }
 
+        //http://localhost:8084/properties?_=1525397490189&pageIndex=0&pageSize=15&showHidden=true&sort=getedDate,desc;
     //获取资产列表
     getAllProperties():Observable<ListResponse>{
-        return this.http.get<ListResponse>(this.apiUrl)      
+        return this.http.get<ListResponse>(this.apiUrl+"?_=1525397490189&pageIndex=0&pageSize=15&showHidden=true&sort=getedDate,desc;")      
         .pipe(
             tap(response =>{}),
             catchError(this.handleError('getHeroes', {}))
           );
     }
+
+  
+
+
+
+
+
+
+
+
+
 
   /**
    * Handle Http operation that failed.

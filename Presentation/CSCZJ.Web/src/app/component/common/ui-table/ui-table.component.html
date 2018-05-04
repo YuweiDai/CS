@@ -18,7 +18,7 @@
     </div>
 </div>
 <div class="table-content">
-        <nz-table #nzTable nzBordered [nzData]="dataset" [nzScroll]="tableOption.nzScroll" [nzFrontPagination]="false" [nzShowPagination]="false">
+        <nz-table #nzTable nzBordered [nzData]="dataset" [nzScroll]="tableOption.nzScroll" [nzFrontPagination]="false" [nzShowPagination]="false" [nzSize]="small">
             <thead>
                 <tr>
                 <!-- <th nzShowCheckbox nzShowRowSelection [nzSelections]="listOfSelection" [(nzChecked)]="allChecked" [nzIndeterminate]="indeterminate" (nzCheckedChange)="checkAll($event)"></th>                         -->
@@ -47,7 +47,7 @@
                         </td>                        
                     </ng-container >                    
                     <td nzRight="0px">
-                        <a>查询详情</a>|<a>删除</a>
+                        <a>查询详情</a> | <a>删除</a>
                     </td>
                 </tr>
             </tbody>

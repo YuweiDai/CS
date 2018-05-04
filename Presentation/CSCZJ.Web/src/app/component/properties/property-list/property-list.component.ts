@@ -50,10 +50,10 @@ export class PropertyListComponent implements OnInit {
         {name:"floor",title:"层数",width:90,left:0,showSort:true},     
         {name:"propertyID",title:"产权证号",width:150,left:0,showSort:true},   
         {name:"constructArea",title:"建筑面积",width:150,left:0,showSort:true},
-        {name:"constructId",title:"房产证",width:150,left:0,showSort:true},
+        {name:"constructId",title:"房产证",width:400,left:0,showSort:true},
         // {name:"constructTime",title:"房产证发证时间",width:150,left:0,showSort:true},
         {name:"landArea",title:"土地面积",width:150,left:0,showSort:true},
-        {name:"landId",title:"土地证",width:150,left:0,showSort:true},
+        {name:"landId",title:"土地证",width:400,left:0,showSort:true},
         // {name:"landTime",title:"土地证发证时间",width:100,left:0,showSort:true},
         {name:"usedPeople",title:"使用人员",width:150,left:0,showSort:true},        
         {name:"currentType",title:"使用现状",width:150,left:0,showSort:true},
@@ -80,10 +80,10 @@ export class PropertyListComponent implements OnInit {
     .subscribe(response=>{
       if(response.data!=undefined && response.data!=null)
       {
-      console.log("subscribe");
-      console.log(response);
-      this.data=response.data;
-      this.tableOption.pageSize=response.paging;
+        console.log("subscribe");
+        console.log(response);
+        this.data=response.data;
+        this.tableOption.pageSize=response.paging;
       }
     });
   }
