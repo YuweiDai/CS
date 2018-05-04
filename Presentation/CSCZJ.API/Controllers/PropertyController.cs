@@ -1282,9 +1282,19 @@ namespace CSCZJ.API.Controllers
             return Ok(propertyCreatModel);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="query"></param>
+        /// <param name="sort"></param>
+        /// <param name="pageSize"></param>
+        /// <param name="pageIndex">页码从1开始</param>
+        /// <param name="showHidden"></param>
+        /// <param name="time"></param>
+        /// <returns></returns>
         [HttpGet]
         [Route("")]
-        public IHttpActionResult GetAll(string query = "", string sort = "", int pageSize = Int32.MaxValue, int pageIndex = 0, bool showHidden = false, long time = 0
+        public IHttpActionResult GetAll(string query = "", string sort = "", int pageSize = Int32.MaxValue, int pageIndex = 1, bool showHidden = false, long time = 0
             //bool manage = false, bool isGovernment = false, bool isInstitution = false, bool isCompany = false, int selectedId = 0,
             //bool construct = false, bool land = false, bool constructOnLand = false,//资产类型
             //bool old = false, bool west = false, bool jjq = false, bool kc = false, bool qj = false, bool other = false, //区域
@@ -1297,10 +1307,12 @@ namespace CSCZJ.API.Controllers
             //string lifeTime_min="",string lifeTime_max=""
             )
         {
-            var currentUser = _workContext.CurrentAccountUser;
+            //var currentUser = _workContext.CurrentAccountUser;
 
             //showHidden = currentUser.IsRegistered() && !(currentUser.IsAdmin() || currentUser.IsGovAuditor() || currentUser.IsStateOwnerAuditor() || currentUser.IsDataReviewer());   //只是注册单位可以获取未发布的
 
+            //页码-1
+            if (pageIndex <= 0) pageIndex = 1;
             //初始化排序条件
             var sortConditions = PropertySortCondition.Instance(sort);
 
@@ -1346,8 +1358,9 @@ namespace CSCZJ.API.Controllers
             //PropertyAdvanceConditionRequest request = PrepareAdvanceCondition(advance);
 
             var governmentIds = new List<int>();//  _governmentService.GetGovernmentIdsByCurrentUser();  //获取当前账户的可查询的资产
-           
-            var properties = _propertyService.GetAllProperties(governmentIds, query, pageIndex, pageSize,
+
+
+            var properties = _propertyService.GetAllProperties(governmentIds, query, pageIndex-1, pageSize,
                showHidden, null, sortConditions);
 
             var response = new ListResponse<PropertyListModel>

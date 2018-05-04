@@ -12,6 +12,7 @@ export class TableColumn {
   title:string;
   width:number;
   left:number;
+  center:boolean;
   showSort?:boolean;
   showFilter?:boolean;
 }  
@@ -22,4 +23,13 @@ export class TableOption
   pageSize?:TablePageSize;
   columns?:TableColumn[];
   nzScroll?:object;
+}
+
+//搜索选项
+export class TableParams
+{
+  pageIndex: number;
+  pageSize:number;
+  sort?:string;
+  query?:string;
 }
