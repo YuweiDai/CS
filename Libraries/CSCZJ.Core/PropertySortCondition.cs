@@ -43,7 +43,7 @@ namespace CSCZJ.Core
             {
                 if (!field.Contains(",")) continue;
 
-                conditions.Add(new PropertySortCondition(field.Split(',')[0], field.Split(',')[1].ToLower() == "desc" ? ListSortDirection.Descending : ListSortDirection.Ascending));
+                conditions.Add(new PropertySortCondition(field.Split(',')[0], field.Split(',')[1].ToLower() == "descend" ? ListSortDirection.Descending : ListSortDirection.Ascending));
             }
 
             return conditions.ToArray();
