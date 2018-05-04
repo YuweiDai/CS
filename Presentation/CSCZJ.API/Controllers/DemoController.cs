@@ -134,7 +134,7 @@ namespace CSCZJ.API.Controllers
 
             _settingService.SaveSetting(_accountUserSettings);
 
-            return Ok("配置保存成功");
+            return Ok("配置保存成功！");
         }
         [HttpGet]
         [Route("resetpwd")]
