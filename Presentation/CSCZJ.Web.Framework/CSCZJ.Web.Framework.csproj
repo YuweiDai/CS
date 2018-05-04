@@ -156,6 +156,20 @@
     <None Include="App.config" />
     <None Include="packages.config" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Libraries\CSCZJ.Core\CSCZJ.Core.csproj">
+      <Project>{2ff95af7-9ef1-4fe2-9f93-9a16c60de366}</Project>
+      <Name>CSCZJ.Core</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Libraries\CSCZJ.Data\CSCZJ.Data.csproj">
+      <Project>{cbf56dde-20bb-44b4-8a28-28039e5d0f7e}</Project>
+      <Name>CSCZJ.Data</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Libraries\CSCZJ.Services\CSCZJ.Services.csproj">
+      <Project>{2f47c9b9-c8cf-449c-bd60-0936d86d1927}</Project>
+      <Name>CSCZJ.Services</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

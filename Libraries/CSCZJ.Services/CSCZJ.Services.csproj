@@ -176,21 +176,21 @@
     <Compile Include="Tasks\TaskThread.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\CSCZJ.Core\CSCZJ.Core.csproj">
-      <Project>{2ff95af7-9ef1-4fe2-9f93-9a16c60de366}</Project>
-      <Name>QZCHY.Core</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\CSCZJ.Data\CSCZJ.Data.csproj">
-      <Project>{cbf56dde-20bb-44b4-8a28-28039e5d0f7e}</Project>
-      <Name>QZCHY.Data</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
     <None Include="App.config" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Installation\" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\CSCZJ.Core\CSCZJ.Core.csproj">
+      <Project>{2ff95af7-9ef1-4fe2-9f93-9a16c60de366}</Project>
+      <Name>CSCZJ.Core</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\CSCZJ.Data\CSCZJ.Data.csproj">
+      <Project>{cbf56dde-20bb-44b4-8a28-28039e5d0f7e}</Project>
+      <Name>CSCZJ.Data</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

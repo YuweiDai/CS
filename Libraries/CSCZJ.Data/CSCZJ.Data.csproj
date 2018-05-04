@@ -119,15 +119,15 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\CSCZJ.Core\CSCZJ.Core.csproj">
-      <Project>{2ff95af7-9ef1-4fe2-9f93-9a16c60de366}</Project>
-      <Name>QZCHY.Core</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
     <EmbeddedResource Include="Migrations\201804240256043_initialCreate.resx">
       <DependentUpon>201804240256043_initialCreate.cs</DependentUpon>
     </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\CSCZJ.Core\CSCZJ.Core.csproj">
+      <Project>{2ff95af7-9ef1-4fe2-9f93-9a16c60de366}</Project>
+      <Name>CSCZJ.Core</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
