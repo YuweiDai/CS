@@ -1,11 +1,12 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpHeaders,HttpParams  } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { catchError, map, tap } from 'rxjs/operators';
 
 import { ConfigService } from "./configService";
 import { LogService } from "./logService";
 
+import { TableParams } from "../viewModels/common/TableOption";
 import { ListResponse } from '../viewModels/Response/ListResponse'
 import { MapListResponse } from '../viewModels/Response/MapListResponse';
 import {property_map} from '../viewModels/Properties/property_map';
@@ -24,13 +25,22 @@ export class PropertyService{
     constructor( private http: HttpClient,
         private logService:LogService,
         private configService:ConfigService){ 
-            this.apiUrl+=configService.getApiUrl()+"properties";
+          this.apiUrl+=configService.getApiUrl()+"properties";
         }
-
-        //http://localhost:8084/properties?_=1525397490189&pageIndex=0&pageSize=15&showHidden=true&sort=getedDate,desc;
+       
     //获取资产列表
-    getAllProperties():Observable<ListResponse>{
-        return this.http.get<ListResponse>(this.apiUrl+"?_=1525397490189&pageIndex=0&pageSize=15&showHidden=true&sort=getedDate,desc;")      
+    getAllProperties(params:TableParams):Observable<ListResponse>{
+      let url=this.apiUrl;
+
+      let requestParams = new URLSearchParams();
+      if(!(params.query==""|| params.query==null||params.query==undefined)) requestParams.append('query', params.query)
+      requestParams.append('pageIndex', params.pageIndex.toString())
+      requestParams.append('pageSize', params.pageSize.toString())
+      requestParams.append('showHidden', "true")
+      if(!(params.sort==""|| params.sort==null||params.sort==undefined)) requestParams.append('sort', params.sort)
+      requestParams.append('time', new Date().getTime().toString());
+
+        return this.http.get<ListResponse>(url+"?"+requestParams.toString())      
         .pipe(
             tap(response =>{}),
             catchError(this.handleError('getAllProperties', {}))

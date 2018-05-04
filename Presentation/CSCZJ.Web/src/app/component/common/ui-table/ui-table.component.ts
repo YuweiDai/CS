@@ -1,6 +1,6 @@
-import { Component, OnInit,ViewEncapsulation,Input } from '@angular/core';
+import { Component, OnInit,ViewEncapsulation,Input,Output,EventEmitter,NgModule } from '@angular/core';
 
-import { TablePageSize,TableColumn,TableOption } from "../../../viewModels/common/TableOption";
+import { TablePageSize,TableColumn,TableOption,TableParams } from "../../../viewModels/common/TableOption";
 
 @Component({
   selector: 'app-ui-table',
@@ -9,9 +9,12 @@ import { TablePageSize,TableColumn,TableOption } from "../../../viewModels/commo
   encapsulation: ViewEncapsulation.None,
 })
 export class UiTableComponent implements OnInit { 
+  @Input() loading:boolean;
   @Input() dataset:any[];
   @Input() tableOption:TableOption;
-
+  @Output() paramsChange:EventEmitter<TableParams>=new EventEmitter();
+  private q:string;
+  private sortString:string;
 
   pageSizes=[
     { value: '15', label: '15条/页' },
@@ -24,14 +27,41 @@ export class UiTableComponent implements OnInit {
   constructor() { }
 
   ngOnInit() {
-    // this.dataset=[];
-    // for (let i = 0; i < 100; i++) {
-    //   this.dataset.push({
-    //     name   : `Edward King ${i}`,
-    //     age    : 32,
-    //     address: `London, Park Lane no. ${i}`
-    //   });
-    // }
-    console.log(this.dataset);
+    this.paramsChange.emit(this.buildTableParams(true));
   }
+
+  //生成表格查询参数
+  buildTableParams(reset:boolean):TableParams{
+    let tableParams:TableParams={
+      pageIndex:reset?1:this.tableOption.pageSize.pageIndex,
+      pageSize:this.tableOption.pageSize.pageSize,
+      query:this.q==undefined?"":this.q,
+      sort:this.sortString==undefined?"":this.sortString
+    }
+
+    console.log(tableParams);
+    return tableParams;
+  }
+
+  //排序
+  sort(sort: { key: string, value: string }): void {
+    this.sortString=sort.key+ ","+sort.value+";";
+    this.paramsChange.emit(this.buildTableParams(true));
+  }
+
+  //搜索
+  search(term: string):void{    
+    this.q=term;
+    this.paramsChange.emit(this.buildTableParams(true));
+  }
+
+  //页码转跳
+  pageIndexChange($event):void{
+    this.paramsChange.emit(this.buildTableParams(false));
+  }
+
+  //每页数变化
+  pageSizeChange($event):void{
+    this.paramsChange.emit(this.buildTableParams(true));
+  }  
 }
