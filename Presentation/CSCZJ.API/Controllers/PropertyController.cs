@@ -29,6 +29,7 @@ using System.Web.Http;
 
 namespace CSCZJ.API.Controllers
 {
+  
     [RoutePrefix("Properties")]
     public class PropertyController : ApiController //BaseAdminApiController
     {
@@ -1052,7 +1053,7 @@ namespace CSCZJ.API.Controllers
 
             return Ok(result);
         }
-
+        
         [HttpGet]
         [Route("MonthTotal")]
         public IHttpActionResult GetMonthTotal() {
@@ -1298,7 +1299,7 @@ namespace CSCZJ.API.Controllers
         {
             var currentUser = _workContext.CurrentAccountUser;
 
-            showHidden = currentUser.IsRegistered() && !(currentUser.IsAdmin() || currentUser.IsGovAuditor() || currentUser.IsStateOwnerAuditor() || currentUser.IsDataReviewer());   //只是注册单位可以获取未发布的
+            //showHidden = currentUser.IsRegistered() && !(currentUser.IsAdmin() || currentUser.IsGovAuditor() || currentUser.IsStateOwnerAuditor() || currentUser.IsDataReviewer());   //只是注册单位可以获取未发布的
 
             //初始化排序条件
             var sortConditions = PropertySortCondition.Instance(sort);
@@ -1344,7 +1345,7 @@ namespace CSCZJ.API.Controllers
             //高级搜索参数设置
             //PropertyAdvanceConditionRequest request = PrepareAdvanceCondition(advance);
 
-            var governmentIds =_governmentService.GetGovernmentIdsByCurrentUser();  //获取当前账户的可查询的资产
+            var governmentIds = new List<int>();//  _governmentService.GetGovernmentIdsByCurrentUser();  //获取当前账户的可查询的资产
            
             var properties = _propertyService.GetAllProperties(governmentIds, query, pageIndex, pageSize,
                showHidden, null, sortConditions);
@@ -1368,7 +1369,7 @@ namespace CSCZJ.API.Controllers
                         propertyModel.Name = propertyModel.Name + "（未发布）";
 
 
-                    propertyModel.CanEditDelete = PropertyCanEditDelete(s);
+                    propertyModel.CanEditDelete = false;// PropertyCanEditDelete(s);
 
                     return propertyModel;
                 })
