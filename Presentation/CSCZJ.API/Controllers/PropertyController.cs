@@ -1493,11 +1493,11 @@ namespace CSCZJ.API.Controllers
         [Route("geo/bigdata")]
         public IHttpActionResult GetMapBigData()
         {
-            var currentUser = _workContext.CurrentAccountUser;
-            var showHidden = currentUser.IsRegistered() && currentUser.AccountUserRoles.Count == 1;
-            var governmentIds = _governmentService.GetGovernmentIdsByCurrentUser();
-            var properties = _propertyService.GetAllProperties(governmentIds, showHidden);
-
+            //var currentUser = _workContext.CurrentAccountUser;
+            //var showHidden = currentUser.IsRegistered() && currentUser.AccountUserRoles.Count == 1;
+            //var governmentIds = _governmentService.GetGovernmentIdsByCurrentUser();
+            //var properties = _propertyService.GetAllProperties(governmentIds, showHidden);
+            var properties = _propertyService.GetAllProperties();
             var mapProperties = properties.ToList().Select(p => { return p.ToGeoModel(); });
 
             //activity log

@@ -1,7 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { MapService } from '../../../services/map/mapService';
 import { LayoutService } from "../../../services/layoutService";
-import {property_map} from "../../../viewModels/Properties/property_map";
+import { property_map } from "../../../viewModels/Properties/property_map";
+import { PropertyService } from '../../../services/propertyService';
+import {MapListResponse} from '../../../viewModels/Response/MapListResponse';
 
 declare var L:any;
 
@@ -14,14 +16,16 @@ export class MapHomeComponent implements OnInit {
 
     map: any;
     mapHeight = 500;
-    data: property_map[];
+    properties: any;
 
-    constructor(private mapService: MapService, private layoutService: LayoutService) {
+    constructor(private mapService: MapService, private layoutService: LayoutService,private PropertyService:PropertyService) {
     }
 
 
     ngOnInit() {
-        this.getAllMapProperties();
+        var markers = new L.MarkerClusterGroup();  
+        
+        this.getMapProperties(markers);
 
         this.mapHeight = this.layoutService.getContentHeight();  //计算除了header footer的高度
 
@@ -37,7 +41,7 @@ export class MapHomeComponent implements OnInit {
             normal.addTo(this.map);
 
             L.marker([28.905527517199516, 118.50629210472107], { title: "28.905527517199516, 118.50629210472107" }).addTo(this.map);
-
+            L.marker([28.805527517199516, 118.50629210472107], { title: "28.805527517199516, 118.50629210472107" }).addTo(this.map);
             // var iconLayersControl = new L.Control.IconLayers(
             //     [
             //         {
@@ -65,7 +69,11 @@ export class MapHomeComponent implements OnInit {
             // mapService.setMapAttribute(map);
         }, 500);
 
+      this.map.addLayer(markers);
 
+         
+
+        
 
     }
     panTo(): any {
@@ -79,12 +87,23 @@ export class MapHomeComponent implements OnInit {
 
     }
 
-    getAllMapProperties(): void {
-        this.mapService.getAllMapProperties()
+    getMapProperties(markers): void {
+      
+        this.PropertyService.getAllPropertiesInMap()
             .subscribe(response => {
-                if (response.data != undefined && response.data != null) {
-                    this.data = response.data;
+                console.log(response[2]);
+                if (response!=null) {
+               this.properties = response;
+               this.properties.forEach(element => {
+               var point = element.location.split(' ');
+               var m = new L.Marker(new L.LatLng (point[2].substring(0,point[2].length-1),point[1].substring(6))); 
+               markers.addLayer(m);
+        });    
                 }
                 });
+              
     }
+
+
+
 }

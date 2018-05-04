@@ -311,10 +311,10 @@ namespace CSCZJ.Web.Api.Infrastructure
 
 
             Mapper.CreateMap<Property, GeoPropertyModel>()
-            .ForMember(dest => dest.Region, mo => mo.MapFrom(src => src.Region.ToDescription()))
+            // .ForMember(dest => dest.Region, mo => mo.MapFrom(src => src.Region.ToDescription()))
             .ForMember(dest => dest.PropertyType, mo => mo.MapFrom(src => src.PropertyType.ToDescription()))
-           .ForMember(dest => dest.Location, mo => mo.MapFrom(src => src.Location == null ? "" : src.Location.AsText()))
-           .ForMember(dest => dest.Extent, mo => mo.MapFrom(src => src.Extent == null ? "" : src.Extent.AsText()));
+           .ForMember(dest => dest.Location, mo => mo.MapFrom(src => src.Location == null ? "" : src.Location.AsText()));
+         //  .ForMember(dest => dest.Extent, mo => mo.MapFrom(src => src.Extent == null ? "" : src.Extent.AsText()));
 
             Mapper.CreateMap<PropertyPictureModel, PropertyPicture>();
             Mapper.CreateMap<PropertyPicture, PropertyPictureModel>()

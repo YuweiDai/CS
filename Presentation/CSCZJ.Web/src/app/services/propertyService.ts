@@ -7,14 +7,19 @@ import { ConfigService } from "./configService";
 import { LogService } from "./logService";
 
 import { ListResponse } from '../viewModels/Response/ListResponse'
+import { MapListResponse } from '../viewModels/Response/MapListResponse';
+import {property_map} from '../viewModels/Properties/property_map';
+
+
 
 const httpOptions = {
     headers: new HttpHeaders({ 'Content-Type': 'application/json' })
 };
-  
+
 @Injectable()
 export class PropertyService{
     private apiUrl="";
+    
 
     constructor( private http: HttpClient,
         private logService:LogService,
@@ -28,11 +33,18 @@ export class PropertyService{
         return this.http.get<ListResponse>(this.apiUrl+"?_=1525397490189&pageIndex=0&pageSize=15&showHidden=true&sort=getedDate,desc;")      
         .pipe(
             tap(response =>{}),
-            catchError(this.handleError('getHeroes', {}))
+            catchError(this.handleError('getAllProperties', {}))
           );
     }
 
-  
+
+    getAllPropertiesInMap():Observable<property_map[]> {
+      return this.http.get<property_map[]>(this.apiUrl+"/geo/bigdata")
+          .pipe(
+          tap(response => { }),
+          catchError(this.handleError('getAllPropertiesInMap', []))
+          );
+  }
 
 
 

@@ -1,5 +1,4 @@
-
+import {property_map} from '../Properties/property_map';
 export class MapListResponse{
-    time?:number;
-    data?:any[];    
+    data?:property_map[];    
 }
