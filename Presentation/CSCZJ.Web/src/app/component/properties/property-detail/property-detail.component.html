@@ -1,3 +1,50 @@
-<p>
-  资产详情
-</p>
+<div class="component-container">
+  <div nz-row>
+      <div nz-col nzSpan="24" class="breadcrumb-container">
+          <nz-breadcrumb>
+              <nz-breadcrumb-item>
+                  <a [routerLink]="'../'" ><span> 资产列表</span></a>
+              </nz-breadcrumb-item>   
+              <nz-breadcrumb-item>
+                  资产详情
+            </nz-breadcrumb-item>                                       
+          </nz-breadcrumb>               
+      </div>    
+      <div nz-col nzSpan="24">        
+          <nz-card nzTitle="资产详情" [nzExtra]="extraTemplate">
+            <div nz-row [nzGutter]="{ xs: 8, sm: 16, md: 24, lg: 32, xl: 32, xxl: 32 }">
+              <div nz-col  nzXs="24" nzSm="24" nzMd="12" nzLg="12" nzXl="12">
+                  <nz-table  #nzTable nzBordered nzTitle="基本信息" [nzData]="basicInfo" [nzLoading]="loading" [nzFrontPagination]="false" [nzShowPagination]="false" [nzSize]="small">
+                      <tbody>
+                        <tr *ngFor="let data of nzTable.data">
+                          <td nzWidth="200px">{{data.title}}</td>                          
+                          <td>{{data.value}}</td>
+                        </tr>                      
+                      </tbody>
+                    </nz-table>
+              </div>
+              <div nz-col  nzXs="24" nzSm="24" nzMd="12" nzLg="12" nzXl="12">
+                  <nz-table  #filesTable nzBordered nzTitle="附件信息" [nzData]="filesInfo" [nzLoading]="loading" [nzFrontPagination]="false" [nzShowPagination]="false" [nzSize]="small">
+                      <tbody>
+                        <tr *ngFor="let data of filesTable.data">
+                          <td nzWidth="200px">{{data.title}}</td>                          
+                          <td>{{data.value}}</td>
+                        </tr>                      
+                      </tbody>
+                    </nz-table>
+              </div>       
+              <div nz-col  nzXs="24" nzSm="24" nzMd="12" nzLg="12" nzXl="12">
+                  <div class="ant-table ant-table-bordered">
+                    <div class="ant-table-title ng-star-inserted">地图信息</div>
+                    <div class="ant-table-content">               
+                      <div id="map"></div>
+                    </div>                     
+                  </div> 
+              </div>                        
+            </div>                
+          </nz-card>
+          <ng-template #extraTemplate>
+          </ng-template>
+      </div>
+  </div>
+</div>

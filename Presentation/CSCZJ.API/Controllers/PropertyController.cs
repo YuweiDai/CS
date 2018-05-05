@@ -1135,29 +1135,15 @@ namespace CSCZJ.API.Controllers
         [Route("{propertyId:int}")]
         public IHttpActionResult Get(int propertyId)
         {
-            var currentUser = _workContext.CurrentAccountUser;
+            //var currentUser = _workContext.CurrentAccountUser;
 
             var property = _propertyService.GetPropertyById(propertyId);
             if (property == null || property.Deleted)
                 return NotFound();
 
-            if (!(currentUser.IsAdmin()|| currentUser.IsDataReviewer() || PropertyCanView(property))) 
-                return NotFound();
-            //var index = 1;
-            //foreach (var rent in property.Rents) {
-            //    if (rent != null)
-            //    {
-            //        var priceList = rent.PriceString.Split(';');
-            //        rent.PriceString = "";
-            //        foreach (var price in priceList)
-            //        {
-            //            if (!string.IsNullOrEmpty(price)) {
-            //                rent.PriceString += string.Format("第{0}年租金{1}元;", index, price);
-            //                index++;
-            //            }                       
-            //        }
-            //    }
-            //}
+            //if (!(currentUser.IsAdmin()|| currentUser.IsDataReviewer() || PropertyCanView(property))) 
+            //    return NotFound();
+
 
             var model = property.ToModel();
             model.LogoUrl = GetLogoUrl(property);
@@ -1166,8 +1152,8 @@ namespace CSCZJ.API.Controllers
             model.Rents = model.Rents.Where(m => m.Deleted != true).ToList();
             model.Lends = model.Lends.Where(m => m.Deleted).ToList();
 
-            model.CanEditDelete = PropertyCanEditDelete(property);
-            model.CanChange = PropertyCanChange(property);
+            model.CanEditDelete = false;// PropertyCanEditDelete(property);
+            model.CanChange = false;// PropertyCanChange(property);
             var propertyOff= _propertyOffService.GetPropertyOffById(model.Id).ToModel();
             if (propertyOff != null) model.PropertyOff = propertyOff;
 

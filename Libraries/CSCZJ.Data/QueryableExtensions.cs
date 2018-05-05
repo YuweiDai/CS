@@ -77,6 +77,8 @@ namespace CSCZJ.Data
                     source = QuerySortHelper<T>.OrderBy(source, condition.PropertyName, condition.ListSortDirection);
                 else
                     source = QuerySortHelper<T>.ThenBy(source, condition.PropertyName, condition.ListSortDirection);
+
+                index++;
             }
 
             return source;

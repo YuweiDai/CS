@@ -1,4 +1,6 @@
-export class PropertyList{
+//表格对象
+export class PropertyListItem{
+    id:number;
     name:string;
     propertyType:string;
     getMode?:string;
@@ -22,4 +24,10 @@ export class PropertyList{
     governmentId:number;
     governmentName:string;
     canEditDelete: boolean;   
+}
+
+//详细的资产对象
+export class Property extends PropertyListItem {
+    lon?:number;
+    lat?:number;
 }

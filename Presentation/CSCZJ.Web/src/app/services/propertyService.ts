@@ -7,8 +7,10 @@ import { ConfigService } from "./configService";
 import { LogService } from "./logService";
 
 import { TableParams } from "../viewModels/common/TableOption";
+
 import { ListResponse } from '../viewModels/Response/ListResponse'
 import { MapListResponse } from '../viewModels/Response/MapListResponse';
+import { Property } from '../viewModels/Properties/property';
 import {property_map} from '../viewModels/Properties/property_map';
 
 
@@ -27,6 +29,15 @@ export class PropertyService{
         private configService:ConfigService){ 
           this.apiUrl+=configService.getApiUrl()+"properties";
         }
+
+    //获取单个资产
+    getPropertyById(id:number):Observable<Property>{
+      const url = `${this.apiUrl}/${id}`;
+      return this.http.get<Property>(url).pipe(
+        tap(_ => this.log(`fetched hero id=${id}`)),
+        catchError(this.handleError<Property>(`getHero id=${id}`))
+      );    
+    }
        
     //获取资产列表
     getAllProperties(params:TableParams):Observable<ListResponse>{

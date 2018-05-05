@@ -162,6 +162,51 @@ namespace CSCZJ.API.Models.Properties
 
         public string LogoUrl { get; set; }
 
+
+
+        /// <summary>
+        /// 获取方式
+        /// </summary>
+        public string GetMode { get; set; }
+
+        /// <summary>
+        /// 层数
+        /// </summary>
+        public int Floor { get; set; }
+
+        /// <summary>
+        /// 是否入账
+        /// </summary>
+        public bool IsAdmission { get; set; }
+
+        /// <summary>
+        /// 四至情况
+        /// </summary>
+        public string FourToStation { get; set; }
+
+        /// <summary>
+        /// 房产证发证时间
+        /// </summary>
+        public string ConstructTime { get; set; }
+
+        public string LandTime { get; set; }
+
+        /// <summary>
+        /// 使用现状
+        /// </summary>
+        public string CurrentType { get; set; }
+        /// <summary>
+        /// 用途
+        /// </summary>
+        public string UseType { get; set; }
+
+        /// <summary>
+        /// 是否抵押
+        /// </summary>
+        public bool IsMortgage { get; set; }
+
+
+
         public bool CanEditDelete { get; set; }
 
         public bool CanChange { get; set; }

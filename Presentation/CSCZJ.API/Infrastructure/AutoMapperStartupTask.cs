@@ -79,7 +79,6 @@ namespace CSCZJ.Web.Api.Infrastructure
             ;
 
             Mapper.CreateMap<Property, PropertyModel>()
-              //.ForMember(dest => dest.GovernmentName, mo => mo.MapFrom(src => src.Region.ToDescription()))
               .ForMember(dest => dest.Region, mo => mo.MapFrom(src => src.Region.ToDescription()))
               .ForMember(dest => dest.RegionId, mo => mo.MapFrom(src => src.Region))
               .ForMember(dest => dest.PropertyType, mo => mo.MapFrom(src => src.PropertyType.ToDescription()))
@@ -87,7 +86,13 @@ namespace CSCZJ.Web.Api.Infrastructure
      
               .ForMember(dest => dest.GetedDate, mo => mo.MapFrom(src => src.GetedDate.HasValue ? src.GetedDate.Value.ToString("yyyy-MM-dd") : "未知"))
            .ForMember(dest => dest.Location, mo => mo.MapFrom(src => src.Location == null ? "" : src.Location.AsText()))
-           .ForMember(dest => dest.Extent, mo => mo.MapFrom(src => src.Extent == null ? "" : src.Extent.AsText()));
+           .ForMember(dest => dest.Extent, mo => mo.MapFrom(src => src.Extent == null ? "" : src.Extent.AsText()))
+              .ForMember(dest => dest.PropertyType, mo => mo.MapFrom(src => src.PropertyType.ToDescription()))
+              .ForMember(dest => dest.GetMode, mo => mo.MapFrom(src => src.GetMode.ToDescription()))
+              .ForMember(dest => dest.ConstructTime, mo => mo.MapFrom(src => src.ConstructTime.ToString("yyyy-MM-dd")))
+              .ForMember(dest => dest.LandTime, mo => mo.MapFrom(src => src.LandTime.ToString("yyyy-MM-dd")))
+              .ForMember(dest => dest.CurrentType, mo => mo.MapFrom(src => src.CurrentType.ToDescription()))
+              .ForMember(dest => dest.UseType, mo => mo.MapFrom(src => src.UseType.ToDescription()));
 
             //创建资产复制映射
             Mapper.CreateMap<PropertyCreateModel, CopyProperty>()

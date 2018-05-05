@@ -6,7 +6,6 @@ import { LayoutService } from "./../../../services/layoutService";
 
 import { TablePageSize,TableColumn,TableOption } from "../../../viewModels/common/TableOption";
 import { PropertyService } from '../../../services/propertyService';
-import { setTimeout } from 'timers';
 
 @Component({
   selector: 'app-property-list',
@@ -52,8 +51,8 @@ export class PropertyListComponent implements OnInit {
         {name:"getMode",title:"获取方式",width:150,left:0,center:true,showSort:true},
         {name:"getedDate",title:"取得时间",width:150,left:0,center:true,showSort:true},
         {name:"floor",title:"层数",width:90,left:0,center:true,showSort:true},     
-        {name:"propertyID",title:"产权证号",width:150,left:0,center:true,showSort:true},   
-        {name:"constructArea",title:"建筑面积",width:150,left:0,center:true,showSort:true},
+        {name:"propertyId",title:"产权证号",width:150,left:0,center:true,showSort:true},   
+        {name:"constructorArea",title:"建筑面积",width:150,left:0,center:true,showSort:true},
         {name:"constructId",title:"房产证",width:400,left:0,center:true,showSort:true},
         // {name:"constructTime",title:"房产证发证时间",width:150,left:0,center:true,showSort:true},
         {name:"landArea",title:"土地面积",width:150,left:0,center:true,showSort:true},

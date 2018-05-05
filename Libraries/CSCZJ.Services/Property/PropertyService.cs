@@ -12,6 +12,7 @@ using System.Linq.Expressions;
 using CSCZJ.Core.Domain.Properties;
 using System.Data.Entity.Spatial;
 
+
 namespace CSCZJ.Services.Properties
 {
     public class PropertyService : IPropertyService
@@ -102,7 +103,7 @@ namespace CSCZJ.Services.Properties
         public IPagedList<CSCZJ.Core.Domain.Properties.Property> GetAllProperties(IList<int> governmentIds,string search = "", int pageIndex = 0, int pageSize = int.MaxValue,
             bool showHidden = true, PropertyAdvanceConditionRequest advanceCondition = null, params PropertySortCondition[] sortConditions)
         {
-            var query = _propertyRepository.Table.AsNoTracking();
+            var query = _propertyRepository.Table.AsNoTracking().AsQueryable();
 
             if (governmentIds.Count > 0) query = query.Where(p => governmentIds.Contains(p.Government.Id));
 
@@ -114,12 +115,12 @@ namespace CSCZJ.Services.Properties
             if (!string.IsNullOrEmpty(search))
             {
                 expression = expression.And(p => p.Name.Contains(search) || p.Address.Contains(search));
-                //query = query.Where(e => e.Name.Contains(search) || e.Address.Contains(search));
             }
 
             //高级搜索条件
             if (advanceCondition != null)
             {
+                #region 高级搜索实现
                 if (advanceCondition.GovernmentId > 0)
                 {
                     if (advanceCondition.SerachParentGovernement)
@@ -262,21 +263,21 @@ namespace CSCZJ.Services.Properties
                 if (!(advanceCondition.Current_Self && advanceCondition.Current_Rent && advanceCondition.Current_Lend && advanceCondition.Current_Idle))
                 {
                     Expression<Func<CSCZJ.Core.Domain.Properties.Property, bool>> ex = null;
-                   // if (advanceCondition.Current_Self) ex = p => p.CurrentUse_Self > 0;
+                    // if (advanceCondition.Current_Self) ex = p => p.CurrentUse_Self > 0;
                     if (advanceCondition.Current_Rent)
                     {
-                    //    if (ex == null) ex = p => p.CurrentUse_Rent > 0;
-                     //   else ex = ex.Or(p => p.CurrentUse_Rent > 0);
+                        //    if (ex == null) ex = p => p.CurrentUse_Rent > 0;
+                        //   else ex = ex.Or(p => p.CurrentUse_Rent > 0);
                     }
                     if (advanceCondition.Current_Lend)
                     {
-                    //    if (ex == null) ex = p => p.CurrentUse_Lend > 0;
-                    //    else ex = ex.Or(p => p.CurrentUse_Lend > 0);
+                        //    if (ex == null) ex = p => p.CurrentUse_Lend > 0;
+                        //    else ex = ex.Or(p => p.CurrentUse_Lend > 0);
                     }
                     if (advanceCondition.Current_Idle)
                     {
-                    //    if (ex == null) ex = p => p.CurrentUse_Idle > 0;
-                    //    else ex = ex.Or(p => p.CurrentUse_Idle > 0);
+                        //    if (ex == null) ex = p => p.CurrentUse_Idle > 0;
+                        //    else ex = ex.Or(p => p.CurrentUse_Idle > 0);
                     }
 
                     if (ex != null) expression = expression.And(ex);
@@ -284,23 +285,23 @@ namespace CSCZJ.Services.Properties
                 #endregion
 
                 if (advanceCondition.NextStep.Count != 0)
-                 //   expression = expression.And(p => advanceCondition.NextStep.Contains((int)p.NextStepUsage));
+                    //   expression = expression.And(p => advanceCondition.NextStep.Contains((int)p.NextStepUsage));
 
-                #region 价格区间集合
-                if (advanceCondition.Price.Count > 0)
-                {
-                    foreach (var range in advanceCondition.Price)
+                    #region 价格区间集合
+                    if (advanceCondition.Price.Count > 0)
                     {
-                        var min = range[0];
-                        var max = range[1];
+                        foreach (var range in advanceCondition.Price)
+                        {
+                            var min = range[0];
+                            var max = range[1];
 
-                        if (max == 0) max = int.MaxValue;
+                            if (max == 0) max = int.MaxValue;
 
-                        if (min >= max) continue;
+                            if (min >= max) continue;
 
-                     //   expression = expression.And(p => p.Price >= min && p.Price <= max);
+                            //   expression = expression.And(p => p.Price >= min && p.Price <= max);
+                        }
                     }
-                }
                 #endregion
 
                 #region 价格区间集合
@@ -315,7 +316,7 @@ namespace CSCZJ.Services.Properties
 
                         if (min >= max) continue;
 
-                      //  expression = expression.And(p => p.Price >= min && p.Price <= max);
+                        //  expression = expression.And(p => p.Price >= min && p.Price <= max);
                     }
                 }
                 #endregion
@@ -325,7 +326,7 @@ namespace CSCZJ.Services.Properties
                     var min = advanceCondition.LifeTime[0];
                     var max = advanceCondition.LifeTime[1];
 
-                //    expression = expression.And(p => p.LifeTime >= min && p.LifeTime <= max);
+                    //    expression = expression.And(p => p.LifeTime >= min && p.LifeTime <= max);
                 }
 
                 //if (advanceCondition.GetedDate.Count == 2)
@@ -338,22 +339,20 @@ namespace CSCZJ.Services.Properties
 
                 //范围过滤
                 if (advanceCondition.Extent != null)
-                    expression = expression.And(p => !advanceCondition.Extent.Intersects(p.Location));
+                    expression = expression.And(p => !advanceCondition.Extent.Intersects(p.Location)); 
+                #endregion
             }
 
             query = query.Where(expression);
-
-            var defaultSort = new PropertySortCondition("CreatedOn", System.ComponentModel.ListSortDirection.Ascending);
+ 
+            var defaultSort = new PropertySortCondition("Id", System.ComponentModel.ListSortDirection.Ascending);
             if (sortConditions != null && sortConditions.Length != 0)
             {
-                query = query.Sort(sortConditions[0], defaultSort);
+                query = query.Sort(sortConditions[0]);
             }
             else
             {
-                query = query.Sort(new PropertySortCondition[2] {
-                    new PropertySortCondition("DisplayOrder", System.ComponentModel.ListSortDirection.Ascending),
-                    defaultSort
-                });
+                query = query.Sort(new PropertySortCondition("DisplayOrder", System.ComponentModel.ListSortDirection.Ascending));
             }
 
             var properties = new PagedList<CSCZJ.Core.Domain.Properties.Property>(query, pageIndex, pageSize);
