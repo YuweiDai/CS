@@ -6,7 +6,7 @@ import { LayoutService } from "./../../../services/layoutService";
 
 import { TablePageSize,TableColumn,TableOption } from "../../../viewModels/common/TableOption";
 import { PropertyService } from '../../../services/propertyService';
-import { setTimeout } from 'timers';
+// import { setTimeout } from 'timers';
 
 @Component({
   selector: 'app-property-list',
