@@ -23,23 +23,21 @@ export class MapHomeComponent implements OnInit {
 
 
     ngOnInit() {
-        
-
+    
         this.mapHeight = this.layoutService.getContentHeight();  //计算除了header footer的高度
-
+        var that=this;
         setTimeout(() => {
             var normal = this.mapService.getLayer("vector");
             var satellite = this.mapService.getLayer("img");
-            this.map = L.map('map', {
+            that.map = L.map('map', {
                 crs: L.CRS.EPSG4326,
                 center: [28.905527517199516, 118.50629210472107],
                 zoom: 14
             });
 
-            normal.addTo(this.map);
+            normal.addTo(that.map);
 
-            L.marker([28.905527517199516, 118.50629210472107], { title: "28.905527517199516, 118.50629210472107" }).addTo(this.map);
-            L.marker([28.805527517199516, 118.50629210472107], { title: "28.805527517199516, 118.50629210472107" }).addTo(this.map);
+           
             // var iconLayersControl = new L.Control.IconLayers(
             //     [
             //         {
@@ -58,18 +56,25 @@ export class MapHomeComponent implements OnInit {
             //     }
             // );
 
-            var zoomControl = this.map.zoomControl;
+            var zoomControl = that.map.zoomControl;
 
             zoomControl.setPosition("topright");
 
             // iconLayersControl.addTo(map);
 
             // mapService.setMapAttribute(map);
+
+
+            var markers = new L.MarkerClusterGroup({
+                spiderfyOnMaxZoom: false,
+                showCoverageOnHover: false,
+                zoomToBoundsOnClick: false                
+            });  
+
+            that.getMapProperties(markers);
+            that.map.addLayer(markers);  
         }, 500);
-        var markers = new L.MarkerClusterGroup();  
-        
-        this.getMapProperties(markers);
-        
+
 
          
 
@@ -91,17 +96,19 @@ export class MapHomeComponent implements OnInit {
       
         this.PropertyService.getAllPropertiesInMap()
             .subscribe(response => {
-                console.log(response[2]);
+                //console.log(response[2]);
                 if (response!=null) {
-               this.properties = response;
-               this.properties.forEach(element => {
-               var point = element.location.split(' ');
-               var m = new L.marker(new L.LatLng (point[2].substring(0,point[2].length-1),point[1].substring(1,point[1].length-1))); 
-               markers.addLayer(m);
-        });    
+                    this.properties = response;
+                    this.properties.forEach(element => {
+                    var point = element.location.split(' ');
+                        var m = new L.marker(new L.LatLng (point[2].substring(0,point[2].length-1),point[1].substring(1,point[1].length-1)),{
+                           // title:element.name
+                        }).bindTooltip(element.name,{permanent:true,direction:"top",offset:[0,-15]});
+                        
+                        markers.addLayer(m);
+                    });    
                 }
-                });
-                this.map.addLayer(markers);  
+            });       
     }
 
 

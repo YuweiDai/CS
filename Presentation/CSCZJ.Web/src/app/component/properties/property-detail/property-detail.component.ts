@@ -15,6 +15,7 @@ export class PropertyDetailComponent implements OnInit {
   private loading:boolean;
   private property:Property;
   private basicInfo:any[];
+  private filesInfo:any[];
 
   constructor(    
     private propertyService:PropertyService,
@@ -55,6 +56,8 @@ export class PropertyDetailComponent implements OnInit {
         {title:"入账",value:this.property.isAdmission},
         {title:"抵押",value:this.property.isMortgage},
       ];
+
+      this.filesInfo=[];
 
 
       this.loading=false;
