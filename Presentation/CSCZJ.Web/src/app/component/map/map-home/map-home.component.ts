@@ -23,9 +23,7 @@ export class MapHomeComponent implements OnInit {
 
 
     ngOnInit() {
-        var markers = new L.MarkerClusterGroup();  
         
-        this.getMapProperties(markers);
 
         this.mapHeight = this.layoutService.getContentHeight();  //计算除了header footer的高度
 
@@ -68,8 +66,10 @@ export class MapHomeComponent implements OnInit {
 
             // mapService.setMapAttribute(map);
         }, 500);
-
-      this.map.addLayer(markers);
+        var markers = new L.MarkerClusterGroup();  
+        
+        this.getMapProperties(markers);
+        
 
          
 
@@ -96,12 +96,12 @@ export class MapHomeComponent implements OnInit {
                this.properties = response;
                this.properties.forEach(element => {
                var point = element.location.split(' ');
-               var m = new L.Marker(new L.LatLng (point[2].substring(0,point[2].length-1),point[1].substring(6))); 
+               var m = new L.marker(new L.LatLng (point[2].substring(0,point[2].length-1),point[1].substring(1,point[1].length-1))); 
                markers.addLayer(m);
         });    
                 }
                 });
-              
+                this.map.addLayer(markers);  
     }
 
 
