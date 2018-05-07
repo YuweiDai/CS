@@ -24,6 +24,8 @@ namespace CSCZJ.API.Models.Properties
 
         public string Location { get; set; }
 
+        public double X { get; set; }
+        public double Y { get; set; }
         //public string Extent { get; set; }
 
         //public float C_Self { get; set; }

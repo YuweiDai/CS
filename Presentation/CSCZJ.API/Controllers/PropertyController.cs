@@ -1497,7 +1497,12 @@ namespace CSCZJ.API.Controllers
             //var governmentIds = _governmentService.GetGovernmentIdsByCurrentUser();
             //var properties = _propertyService.GetAllProperties(governmentIds, showHidden);
             var properties = _propertyService.GetAllProperties();
-            var mapProperties = properties.ToList().Select(p => { return p.ToGeoModel(); });
+            var mapProperties = properties.ToList().Select(p => {
+                var geoModel = p.ToGeoModel();
+                geoModel.X =Convert.ToDouble( geoModel.Location.Split(' ')[2].Substring(0, geoModel.Location.Split(' ')[2].Length - 1));
+                geoModel.Y = Convert.ToDouble(geoModel.Location.Split(' ')[1].Substring(1, geoModel.Location.Split(' ')[1].Length - 1));
+
+                return geoModel; });
 
             //activity log
             _accountUserActivityService.InsertActivity("GetGeopropertyList", "地图获取资产列表信息");

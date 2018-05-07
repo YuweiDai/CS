@@ -2,4 +2,36 @@
   <div id="map" [ngStyle]="{'height.px': mapHeight}"></div>
   <!-- <button (click)="panTO()" style="position: absolute;bottom: 10px;left: 10px;"> click</button>
   <button (click)="showLngLat()" style="position: absolute;bottom: 10px;left: 10px;"> click2</button> -->
+
+ 
+
+
+</div>
+
+<!-- 资产详细信息 -->
+<div nz-sider style="position: absolute;width: 350px;z-index: 100000;top:140px;height: 300px;left: 10px;" *ngIf="basicInfo">
+  <div nz-col nzSpan="24">        
+    <nz-card nzTitle="资产详情列表" [nzExtra]="extraTemplate">
+      <div nz-row [nzGutter]="{ xs: 8, sm: 16, md: 24, lg: 32, xl: 32, xxl: 32 }">
+        <div nz-col  nzXs="24" nzSm="24" nzMd="24" nzLg="24" nzXl="24">
+            <nz-table  #nzTable nzBordered nzTitle="基本信息" [nzData]="basicInfo" [nzLoading]="loading" [nzFrontPagination]="false" [nzShowPagination]="false" [nzSize]="small"[nzScroll]="{ y: '550px' }">
+                <tbody>
+                  <tr *ngFor="let data of nzTable.data">
+                    <td nzWidth="300px">{{data.title}}</td>                          
+                    <td>{{data.value}}</td>
+                  </tr>                      
+                </tbody>
+              </nz-table>
+        </div>                            
+      </div>                
+    </nz-card>
+    <ng-template #extraTemplate>
+    </ng-template>
+</div>
+</div>
+
+<!-- 搜索栏 -->
+<div class="example-input" style="position: absolute;width: 293px;z-index: 100000;top:90px;left: 10px;">
+  <input nz-input placeholder="输入资产名称、地址....." nzSize="large">
+  <button id="search-button" data-title="搜索" data-tooltip="2"></button>
 </div>

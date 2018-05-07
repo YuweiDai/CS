@@ -33,7 +33,7 @@ export class PropertyDetailComponent implements OnInit {
     
     this.propertyService.getPropertyById(id).subscribe(property=>{
       this.property=property;
-
+      console.log(this.property);
       this.basicInfo=[
         {title:"资产名称",value:this.property.name},
         {title:"类别",value:this.property.propertyType},
@@ -63,7 +63,7 @@ export class PropertyDetailComponent implements OnInit {
       this.loading=false;
     });
 
-    console.log(this.property);
+    
   }
 
 }

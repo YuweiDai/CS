@@ -38,6 +38,17 @@ export class PropertyService{
         catchError(this.handleError<Property>(`getHero id=${id}`))
       );    
     }
+   //通过名称地址搜索资产
+   getPropertiesBySearch(search:string):Observable<Property[]>{
+    const url = `${this.apiUrl}/${search}`;
+    return this.http.get<Property[]>(url).pipe(
+      tap(_ => this.log(`search properties search=${search}`)),
+      catchError(this.handleError<Property[]>(`getHero search=${search}`))
+    );    
+   }
+
+
+
        
     //获取资产列表
     getAllProperties(params:TableParams):Observable<ListResponse>{
