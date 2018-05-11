@@ -4385,8 +4385,8 @@ namespace CSCZJ.API.Controllers
             return propertyTypeList;
 
         }
-        public ArrayList GetRegionList(HighSearchModel highSearch) {
-            var regionList = new ArrayList();
+        public IList<int> GetRegionList(HighSearchModel highSearch) {
+            var regionList = new List<int>();
             if (highSearch.TMZ == true) regionList.Add(0);
             if (highSearch.ZSZ == true) regionList.Add(1);
             if (highSearch.HBZ == true) regionList.Add(2);
@@ -4396,16 +4396,25 @@ namespace CSCZJ.API.Controllers
         public ArrayList GetAreaList(HighSearchModel highSearch)
         {
             var areaList = new ArrayList();
-            if (highSearch.One == true) areaList.Add(50);
-            if (highSearch.Two == true) areaList.Add(200);
-            if (highSearch.Three == true) areaList.Add(500);
-            if (highSearch.Four == true) areaList.Add(1000);
+            if (highSearch.One == true) areaList.Add(49);
+            if (highSearch.Two == true) {
+                areaList.Add(50);
+                areaList.Add(200);
+            }
+            if (highSearch.Three == true) {
+                areaList.Add(200);
+                areaList.Add(500);
+            }
+            if (highSearch.Four == true) {
+                areaList.Add(500);
+                areaList.Add(1000);
+            }
             if (highSearch.Five == true) areaList.Add(1001);
             return areaList;
         }
-        public ArrayList GetCurrentTypeList(HighSearchModel highSearch)
+        public IList<int> GetCurrentTypeList(HighSearchModel highSearch)
         {
-            var currentTypeList = new ArrayList();
+            var currentTypeList = new List<int>();
             if (highSearch.ZY == true) currentTypeList.Add(0);
             if (highSearch.CC == true) currentTypeList.Add(2);
             if (highSearch.XZ == true) currentTypeList.Add(5);
