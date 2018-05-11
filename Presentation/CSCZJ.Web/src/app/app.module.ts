@@ -1,4 +1,5 @@
 import { NgModule } from '@angular/core'
+import { FormsModule } from '@angular/forms';
 import { BrowserModule } from '@angular/platform-browser'
 import { RouterModule } from '@angular/router'
 import { HttpModule } from '@angular/http'
@@ -38,8 +39,10 @@ const DEFAULT_PERFECT_SCROLLBAR_CONFIG: PerfectScrollbarConfigInterface = {
     OverviewComponent,
     MapHomeComponent,
     AccountListComponent,
+    
   ],
   imports: [
+    FormsModule,
     BrowserModule,
     BrowserAnimationsModule,
     RouterModule,    
@@ -50,6 +53,7 @@ const DEFAULT_PERFECT_SCROLLBAR_CONFIG: PerfectScrollbarConfigInterface = {
     PerfectScrollbarModule,
     PropertiesModule,    
     AppRoutingModule,
+    
   ],
   providers: [
     {

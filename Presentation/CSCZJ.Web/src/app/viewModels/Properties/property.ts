@@ -24,6 +24,7 @@ export class PropertyListItem{
     governmentId:number;
     governmentName:string;
     canEditDelete: boolean;   
+    location:string;
 }
 
 //详细的资产对象

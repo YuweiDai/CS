@@ -1,18 +1,24 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit,ViewEncapsulation } from '@angular/core';
 import { MapService } from '../../../services/map/mapService';
 import { LayoutService } from "../../../services/layoutService";
 import { property_map } from "../../../viewModels/Properties/property_map";
 import { PropertyService } from '../../../services/propertyService';
 import {MapListResponse} from '../../../viewModels/Response/MapListResponse';
-import { DH_UNABLE_TO_CHECK_GENERATOR } from 'constants';
+//import { DH_UNABLE_TO_CHECK_GENERATOR } from 'constants';
 import { Property } from "../../../viewModels/Properties/property";
+import {PropertyNameList} from "../../../viewModels/Properties/propertyName";
+import { ActivatedRoute } from '@angular/router';  
+import { DOCUMENT } from '@angular/platform-browser';  
+import {HighSearchProperty} from '../../../viewModels/Properties/highSearchModel';
 
 declare var L:any;
 
 @Component({
     selector: 'app-map-home',
-    templateUrl: './map-home.component.html',
-    styleUrls: ['./map-home.component.less'] 
+    encapsulation: ViewEncapsulation.None ,
+    templateUrl: './map-home.component.html',   
+    styleUrls: ['./map-home.component.less']
+    
 })
 export class MapHomeComponent implements OnInit {
 
@@ -22,6 +28,77 @@ export class MapHomeComponent implements OnInit {
     propertyID:number;
     private basicInfo:any[];
     private property:Property;
+    private propertyNameList:any;
+    search:string;
+    inputValue: string;
+    private options=[];
+    option=[];
+    allChecked = false;
+    indeterminate = true;
+    highSearchProperty = new HighSearchProperty;
+   
+    markers = new L.MarkerClusterGroup({
+        spiderfyOnMaxZoom: false,
+        showCoverageOnHover: false,
+        zoomToBoundsOnClick: false                
+    });  
+    propertyType = [
+        { label: '房产', value: 'House', checked: false },
+        { label: '土地', value: 'Land', checked: false }
+       
+      ];
+      regionType =[
+        { label: '天马镇', value: 'TMZ', checked: false },
+        { label: '招贤镇', value: 'ZSZ', checked: false },
+        { label: '辉埠镇', value: 'HBZ', checked: false },
+        { label: '球川镇', value: 'LQZ', checked: false },
+        { label: '宋畈乡', value: 'SBZ', checked: false }
+
+      ];
+      area=[
+        { label: '50以下', value: 'One', checked: false },
+        { label: '50-200', value: 'Two', checked: false },
+        { label: '200-500', value: 'Three', checked: false },
+        { label: '500-1000', value: 'Four', checked: false },
+        { label: '1000以上', value: 'Five', checked: false }
+      ];
+      currentType=[
+        { label: '自用', value: 'ZY', checked: false },
+        { label: '出租', value: 'CC', checked: false },
+        { label: '闲置', value: 'XZ', checked: false },
+        { label: '调配使用', value: 'SYDP', checked: false }
+      ];
+      propertyRights=[
+        { label: '两证齐全', value: 'All', checked: false },
+        { label: '有房产证', value: 'isHouse', checked: false },
+        { label: '有土地证', value: 'isLand', checked: false },
+        { label: '两证全无', value: 'None', checked: false }
+      ];
+
+
+    //输入框模糊搜索
+    onInput(value: string): void {
+    if(this.inputValue!=""&&this.inputValue!=null){
+        this.propertyService.getPropertiesBySearch(value).subscribe(response=>{  
+            this.propertyNameList = response;        
+            response.forEach(p=>{             
+                this.options.push( {id:p.id,value:p.name +" "+p.address}); 
+            })               
+        });
+      this.options.forEach(o=>{
+
+        console.log(o.value);
+      })
+    }    
+    
+    else {
+        this.options =[];
+    }
+
+      };
+
+      
+      
 
     constructor(private mapService: MapService, private layoutService: LayoutService,private propertyService:PropertyService) {
     }
@@ -63,29 +140,24 @@ export class MapHomeComponent implements OnInit {
 
             var zoomControl = that.map.zoomControl;
 
-            zoomControl.setPosition("topright");
+            zoomControl.setPosition("bottomright");
 
             // iconLayersControl.addTo(map);
 
             // mapService.setMapAttribute(map);
 
 
-            var markers = new L.MarkerClusterGroup({
-                spiderfyOnMaxZoom: false,
-                showCoverageOnHover: false,
-                zoomToBoundsOnClick: false                
-            });  
+          
 
-            that.getMapProperties(markers);
-            that.map.addLayer(markers);     
+            that.getMapProperties(that.markers);
+            that.map.addLayer(that.markers);     
 
             //点击获取单个资产信息
-            markers.on('click', function (a) {
+           that.markers.on('click', function (a) {
                 that.properties.forEach(element => {
                   if(a.latlng.lat==element.x&&a.latlng.lng==element.y){
                      
                       that.propertyService.getPropertyById(element.id).subscribe(property=>{
-                        console.log(property);
                         that.property=property;
 
                         that.basicInfo=[
@@ -116,17 +188,50 @@ export class MapHomeComponent implements OnInit {
                   }
               });
 
-          });  
-
+          });           
 
         }, 500);
-
-
-      
-
-        
-
+             
     }
+
+
+//选择搜索的单个资产
+findThisOne(option):void{
+
+     this.markers.clearLayers();
+     this.propertyService.getPropertyById(option.id).subscribe(property=>{
+     var response = property;
+         var house = L.icon({
+                        iconUrl: '../../assets/js/MarkerClusterGroup/house.png',
+                        iconAnchor: [12, 12],
+                    });
+         var land = L.icon({
+                        iconUrl: '../../assets/js/MarkerClusterGroup/land.png',
+                        iconAnchor: [12, 12],
+                    });
+         var points = response.location.split(' ');
+         if(response.propertyType=="房屋"){
+            
+            var m = new L.marker(new L.LatLng (points[2].substring(0,points[2].length-1),points[1].substring(1,points[1].length-1)),{
+                 icon:house
+             }).bindTooltip(response.name,{permanent:true,direction:"top",offset:[0,-15]});                      
+            this.markers.addLayer(m);
+           }
+           else{
+            var m = new L.marker(new L.LatLng (points[2].substring(0,points[2].length-1),points[1].substring(1,points[1].length)),{
+                icon:land
+            }).bindTooltip(response.name,{permanent:true,direction:"top",offset:[0,-15]});   
+          this.map.setView([points[2].substring(0,points[2].length-1),points[1].substring(1,points[1].length-1)],16);
+           this.markers.addLayer(m);
+     
+
+         }
+
+     })
+
+}
+
+
     panTo(): any {
 
         this.map.panTo({ lon: 118.8656, lat: 28.9718 });
@@ -137,7 +242,7 @@ export class MapHomeComponent implements OnInit {
         console.log(this.map.getCenter());
 
     }
-
+    //获取地图大数据
     getMapProperties(markers): void {
         var house = L.icon({
             iconUrl: '../../assets/js/MarkerClusterGroup/house.png',
@@ -174,9 +279,94 @@ export class MapHomeComponent implements OnInit {
                     });    
                 }
             });      
-             
-           
-
+                       
     }
+
+    //高级搜索提交
+    Submit(): void {
+       // this.highSearchProperty=highSearchProperty;
+        console.log(this.highSearchProperty);
+        this.highSearchProperty.House=false;
+        this.highSearchProperty.Land=false;
+        this.highSearchProperty.TMZ=false;
+        this.highSearchProperty.ZSZ=false;
+        this.highSearchProperty.HBZ=false;
+        this.highSearchProperty.SBZ=false;
+        this.highSearchProperty.ZY=false;
+        this.highSearchProperty.CC=false;
+        this.highSearchProperty.XZ=false;
+        this.highSearchProperty.SYDP=false;
+        this.highSearchProperty.All=false;
+        this.highSearchProperty.isHouse=false;
+        this.highSearchProperty.isLand=false;
+        this.highSearchProperty.None=false;
+        this.highSearchProperty.One=false;
+        this.highSearchProperty.Two=false;
+        this.highSearchProperty.Three=false;
+        this.highSearchProperty.Four=false;
+        this.highSearchProperty.Five=false;
+
+        this.propertyType.forEach(p=>{     
+            if(p.checked==true){                         
+               
+                
+              for(var h in this.highSearchProperty){
+                  if(h==p.value) this.highSearchProperty[h]=true;
+              }
+
+            }
+        });
+
+        // this.regionType.forEach(p=>{     
+        //     if(p.checked==true){
+               
+        //         for(var h in this.highSearchProperty){
+        //             if(h==p.value) this.highSearchProperty[h]=true;
+        //         }
+
+        //     }
+        // });
+
+        // this.area.forEach(p=>{     
+        //     if(p.checked==true){
+               
+        //         for(var h in this.highSearchProperty){
+        //             if(h==p.value) this.highSearchProperty[h]=true;
+        //         }
+
+        //     }
+        // });
+
+        // this.currentType.forEach(p=>{     
+        //     if(p.checked==true){
+               
+        //         for(var h in this.highSearchProperty){
+        //             if(h==p.value) this.highSearchProperty[h]=true;
+        //         }
+
+        //     }
+        // });
+        
+        // this.propertyRights.forEach(p=>{     
+        //     if(p.checked==true){
+               
+        //         for(var h in this.highSearchProperty){
+        //             if(h==p.value) this.highSearchProperty[h]=true;
+        //         }
+        //     }
+        // });
+
+        this.propertyService.getHighSearchProperties(this.highSearchProperty).subscribe(response=>{
+
+            console.log(response);
+        })
+
+
+      
+      }
+    
+    
+
+
 
 }

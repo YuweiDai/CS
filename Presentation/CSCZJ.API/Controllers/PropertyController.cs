@@ -25,7 +25,7 @@ using System.Reflection;
 using System.Text;
 using System.Web;
 using System.Web.Http;
-
+using System.Collections;
 
 namespace CSCZJ.API.Controllers
 {
@@ -205,11 +205,11 @@ namespace CSCZJ.API.Controllers
             if (advanceCondition.PropertyType.Count == 3) advanceCondition.PropertyType = new List<int>();
 
             advanceCondition.Region = new List<int>();
-            if (propertyAdvanceConditionModel.Region.Old) advanceCondition.Region.Add((int)Region.OldCity);
-            if (propertyAdvanceConditionModel.Region.West) advanceCondition.Region.Add((int)Region.West);
-            if (propertyAdvanceConditionModel.Region.Jjq) advanceCondition.Region.Add((int)Region.Clusters);
-            if (propertyAdvanceConditionModel.Region.Kc) advanceCondition.Region.Add((int)Region.KC);
-            if (propertyAdvanceConditionModel.Region.Qj) advanceCondition.Region.Add((int)Region.QJ);
+            //if (propertyAdvanceConditionModel.Region.Old) advanceCondition.Region.Add((int)Region.OldCity);
+            //if (propertyAdvanceConditionModel.Region.West) advanceCondition.Region.Add((int)Region.West);
+            //if (propertyAdvanceConditionModel.Region.Jjq) advanceCondition.Region.Add((int)Region.Clusters);
+            //if (propertyAdvanceConditionModel.Region.Kc) advanceCondition.Region.Add((int)Region.KC);
+            //if (propertyAdvanceConditionModel.Region.Qj) advanceCondition.Region.Add((int)Region.QJ);
             if (propertyAdvanceConditionModel.Region.Other) advanceCondition.Region.Add((int)Region.Others);
             if (advanceCondition.Region.Count == 6) advanceCondition.Region = new List<int>();
 
@@ -1509,6 +1509,17 @@ namespace CSCZJ.API.Controllers
 
             return Ok(mapProperties);
         }
+        [HttpGet]
+        [Route("search")]
+        public IHttpActionResult GetSearchKey(string search) {
+
+            var response = _propertyService.GetKeyProperties(search).ToList().Select(p =>
+            {
+                return p.ToSimpleModel();
+            });
+
+            return Ok(response);
+        }
 
         /// <summary>
         /// 搜索联想提示
@@ -1888,8 +1899,8 @@ namespace CSCZJ.API.Controllers
                 return new SimplePropertyModel
                 {
                     Id = p.Id,
-                    Name = p.Name,
-                    GovernmentName = p.Government.Name
+                    Name = p.Name
+                 //   GovernmentName = p.Government.Name
                 };
             });
 
@@ -4364,6 +4375,81 @@ namespace CSCZJ.API.Controllers
             response.Off = _propertyOffService.GetAllOffRecords(targetGovIds, "unchecked", "", 0, int.MaxValue, condition).Count;
 
             return Ok(response);
+        }
+
+        public ArrayList GetPropertyTypeList(HighSearchModel highSearch) {      
+            var propertyTypeList = new ArrayList();
+      
+            if(highSearch.House==true) propertyTypeList.Add(0);
+            if(highSearch.Land==true) propertyTypeList.Add(1);       
+            return propertyTypeList;
+
+        }
+        public ArrayList GetRegionList(HighSearchModel highSearch) {
+            var regionList = new ArrayList();
+            if (highSearch.TMZ == true) regionList.Add(0);
+            if (highSearch.ZSZ == true) regionList.Add(1);
+            if (highSearch.HBZ == true) regionList.Add(2);
+            if (highSearch.SBZ == true) regionList.Add(3);
+            return regionList;
+        }
+        public ArrayList GetAreaList(HighSearchModel highSearch)
+        {
+            var areaList = new ArrayList();
+            if (highSearch.One == true) areaList.Add(50);
+            if (highSearch.Two == true) areaList.Add(200);
+            if (highSearch.Three == true) areaList.Add(500);
+            if (highSearch.Four == true) areaList.Add(1000);
+            if (highSearch.Five == true) areaList.Add(1001);
+            return areaList;
+        }
+        public ArrayList GetCurrentTypeList(HighSearchModel highSearch)
+        {
+            var currentTypeList = new ArrayList();
+            if (highSearch.ZY == true) currentTypeList.Add(0);
+            if (highSearch.CC == true) currentTypeList.Add(2);
+            if (highSearch.XZ == true) currentTypeList.Add(5);
+            if (highSearch.SYDP == true) currentTypeList.Add(4);
+            return currentTypeList;
+        }
+        public ArrayList GetRightList(HighSearchModel highSearch)
+        {
+            var rightList = new ArrayList();
+            if (highSearch.All == true) rightList.Add(3);
+            if (highSearch.isHouse == true) rightList.Add(2);
+            if (highSearch.isLand == true) rightList.Add(1);
+            if (highSearch.None == true) rightList.Add(0);
+            return rightList;
+        }
+
+
+
+        [HttpPost]
+        [Route("highSearch")]
+        public IHttpActionResult GetHighSearchProperties(HighSearchModel highSearch) {
+
+            var properyTypeList = GetPropertyTypeList(highSearch);
+            var regionList = GetRegionList(highSearch);
+            var areaList = GetAreaList(highSearch);
+            var currentList = GetCurrentTypeList(highSearch);
+            var rightList = GetRightList(highSearch);
+
+            var properties = _propertyService.GetHighSearchProperties(properyTypeList, regionList,areaList, currentList, rightList);
+
+
+
+            var response =   properties.Select(p =>
+            {
+                var geoModel = p.ToGeoModel();
+                geoModel.X = Convert.ToDouble(geoModel.Location.Split(' ')[2].Substring(0, geoModel.Location.Split(' ')[2].Length - 1));
+                geoModel.Y = Convert.ToDouble(geoModel.Location.Split(' ')[1].Substring(1, geoModel.Location.Split(' ')[1].Length - 1));
+
+                return geoModel;
+            });
+
+
+            return Ok(response);
+
         }
 
         [HttpGet]

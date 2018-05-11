@@ -6,6 +6,8 @@ namespace CSCZJ.API.Models.Properties
     {
         public string Name { get; set; }
 
-        public string GovernmentName { get; set; }
+        public string Address { get; set; }
+
+     //   public string GovernmentName { get; set; }
     }
 }

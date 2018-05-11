@@ -12,7 +12,8 @@ import { ListResponse } from '../viewModels/Response/ListResponse'
 import { MapListResponse } from '../viewModels/Response/MapListResponse';
 import { Property } from '../viewModels/Properties/property';
 import {property_map} from '../viewModels/Properties/property_map';
-
+import {PropertyNameList} from '../viewModels/Properties/propertyName';
+import{HighSearchProperty} from '../viewModels/Properties/highSearchModel';
 
 
 const httpOptions = {
@@ -38,13 +39,17 @@ export class PropertyService{
         catchError(this.handleError<Property>(`getHero id=${id}`))
       );    
     }
+
    //通过名称地址搜索资产
-   getPropertiesBySearch(search:string):Observable<Property[]>{
-    const url = `${this.apiUrl}/${search}`;
-    return this.http.get<Property[]>(url).pipe(
-      tap(_ => this.log(`search properties search=${search}`)),
-      catchError(this.handleError<Property[]>(`getHero search=${search}`))
-    );    
+   getPropertiesBySearch(search:string):Observable<PropertyNameList[]>{
+  
+      return this.http.get<PropertyNameList[]>(this.apiUrl+"/search?search="+search)
+      .pipe(
+      tap(response => { }),
+      catchError(this.handleError('getPropertiesBySearch', []))
+      );  
+     
+   
    }
 
 
@@ -76,6 +81,16 @@ export class PropertyService{
           tap(response => { }),
           catchError(this.handleError('getAllPropertiesInMap', []))
           );
+  }
+
+  //获取高级搜索资产
+  getHighSearchProperties(highSearch:HighSearchProperty):Observable<property_map[]>{
+    return this.http.post<property_map[]>(this.apiUrl+"/highSearch",highSearch)
+    .pipe(
+    tap(response => { }),
+    catchError(this.handleError('gethighSearchPropertiesInMap', []))
+    );
+
   }
 
 

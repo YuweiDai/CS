@@ -381,6 +381,8 @@ namespace CSCZJ.Web.Api.Infrastructure
               .ForMember(dest => dest.FileId, mo => mo.MapFrom(src => src.FileId))
               .ForMember(dest => dest.Title, mo => mo.MapFrom(src => src.File.Name));
 
+            Mapper.CreateMap<Property,SimplePropertyModel>();
+
         }
     }
 }

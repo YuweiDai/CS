@@ -43,6 +43,11 @@ namespace CSCZJ.Web.Api.Extensions
             return entity.MapTo<Property, GeoPropertyModel>();
         }
 
+        public static SimplePropertyModel ToSimpleModel(this Property entity)
+        {
+            return entity.MapTo<Property, SimplePropertyModel>();
+        }
+
         public static PropertyListModel ToListModel(this Property entity)
         {
             return entity.MapTo<Property, PropertyListModel>();

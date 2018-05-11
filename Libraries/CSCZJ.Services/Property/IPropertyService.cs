@@ -1,5 +1,7 @@
 ﻿using CSCZJ.Core;
 using CSCZJ.Core.Domain.Properties;
+using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Data.Entity.Spatial;
 using System.Linq;
@@ -79,6 +81,10 @@ namespace CSCZJ.Services.Property
         Region GetPropertyRegion(DbGeography location);
 
         List<CSCZJ.Core.Domain.Properties.Property> GetExportMonthTotalProperties(int id);
+
+        IList<CSCZJ.Core.Domain.Properties.Property> GetKeyProperties(string search);
+
+        IList<CSCZJ.Core.Domain.Properties.Property> GetHighSearchProperties(ArrayList properyTypeList, ArrayList regionList, ArrayList areaList, ArrayList currentList, ArrayList rightList);
 
 
         #region Property pictures

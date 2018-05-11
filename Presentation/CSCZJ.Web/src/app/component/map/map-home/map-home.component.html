@@ -3,13 +3,10 @@
   <!-- <button (click)="panTO()" style="position: absolute;bottom: 10px;left: 10px;"> click</button>
   <button (click)="showLngLat()" style="position: absolute;bottom: 10px;left: 10px;"> click2</button> -->
 
- 
-
-
 </div>
 
 <!-- 资产详细信息 -->
-<div nz-sider style="position: absolute;width: 350px;z-index: 100000;top:140px;height: 300px;left: 10px;" *ngIf="basicInfo">
+<div nz-sider style="position: absolute;width: 350px;z-index: 10000;top:140px;height: 300px;left: 10px;" *ngIf="basicInfo">
   <div nz-col nzSpan="24">        
     <nz-card nzTitle="资产详情列表" [nzExtra]="extraTemplate">
       <div nz-row [nzGutter]="{ xs: 8, sm: 16, md: 24, lg: 32, xl: 32, xxl: 32 }">
@@ -31,7 +28,46 @@
 </div>
 
 <!-- 搜索栏 -->
-<div class="example-input" style="position: absolute;width: 293px;z-index: 100000;top:90px;left: 10px;">
-  <input nz-input placeholder="输入资产名称、地址....." nzSize="large">
+<div class="example-input" style="position: absolute;width: 293px;z-index: 100000;top:90px;left: 10px;" (scroll)="onScroll($event)">
+ 
+        <input placeholder="请输入资产名称、地址......" nz-input [(ngModel)]="inputValue" (input)="onInput($event.target?.value)" [nzAutocomplete]="auto" style="height: 40px;">
+        <nz-autocomplete nzBackfill #auto style="z-index: 100000">
+        <nz-auto-option *ngFor="let option of options" [nzValue]="option.value" (click)="findThisOne(option)">
+        {{option.value}}
+        </nz-auto-option>
+        </nz-autocomplete>     
+
   <button id="search-button" data-title="搜索" data-tooltip="2"></button>
+</div>
+
+<!-- 高级搜索 -->
+<div style="position: absolute;left: 500px;top:90px;z-index: 10000;" >
+  <nz-popover [nzTitle]="'高级搜索'" [nzPlacement]="'bottomLeft'"  [nzTrigger]="'click'" [(nzVisible)]="visible">
+    <button nz-button nz-popover [nzType]="'primary'">高级搜索</button>
+    <ng-template #nzTemplate>
+     
+      <p>资产类别</p>
+      <nz-checkbox-group [(ngModel)]="propertyType" ></nz-checkbox-group><br>
+      <nz-divider></nz-divider>
+      <p>所属乡镇</p>
+      <nz-checkbox-group [(ngModel)]="regionType" ></nz-checkbox-group><br>
+      <nz-divider></nz-divider>
+      <p>使用现状</p>
+      <nz-checkbox-group [(ngModel)]="currentType" ></nz-checkbox-group><br>
+      <nz-divider></nz-divider>
+      <p>产权情况</p>
+      <nz-checkbox-group [(ngModel)]="propertyRights" ></nz-checkbox-group><br>
+      <nz-divider></nz-divider>
+
+      <p>建筑面积</p>
+      <nz-checkbox-group [(ngModel)]="area" ></nz-checkbox-group><br>
+      <nz-divider></nz-divider>
+
+      <button nz-button [nzType]="'danger'" (click)='Close()' >关闭</button>
+      <button nz-button [nzType]="'default'" (click)='Reset()'>重置</button>
+      <button nz-button [nzType]="'primary'" (click)='Submit()' style="margin-left: 250px">确定</button>
+      
+
+    </ng-template>
+  </nz-popover>
 </div>

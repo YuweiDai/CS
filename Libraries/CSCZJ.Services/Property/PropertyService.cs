@@ -11,7 +11,8 @@ using System.Data.Entity;
 using System.Linq.Expressions;
 using CSCZJ.Core.Domain.Properties;
 using System.Data.Entity.Spatial;
-
+using System.Reflection;
+using System.Collections;
 
 namespace CSCZJ.Services.Properties
 {
@@ -117,7 +118,7 @@ namespace CSCZJ.Services.Properties
                 expression = expression.And(p => p.Name.Contains(search) || p.Address.Contains(search));
             }
 
-            //高级搜索条件
+            //搜索条件
             if (advanceCondition != null)
             {
                 #region 高级搜索实现
@@ -824,12 +825,12 @@ namespace CSCZJ.Services.Properties
             var lcq = DbGeography.FromText(lcqregion);
             var jjq = DbGeography.FromText(jjqregion);
 
-            if (xq.Intersects(location)) return Region.West;
-            else if (kc.Intersects(location)) return Region.KC;
-            else if (qj.Intersects(location)) return Region.QJ;
-            else if (jjq.Intersects(location)) return Region.Clusters;
-            else if (lcq.Intersects(location)) return Region.OldCity;
-            else return Region.Others;
+            //if (xq.Intersects(location)) return Region.West;
+            //else if (kc.Intersects(location)) return Region.KC;
+            //else if (qj.Intersects(location)) return Region.QJ;
+            //else if (jjq.Intersects(location)) return Region.Clusters;
+            //else if (lcq.Intersects(location)) return Region.OldCity;
+             return Region.Others;
         }
 
         public List<Core.Domain.Properties.Property> GetExportMonthTotalProperties(int id)
@@ -865,6 +866,83 @@ namespace CSCZJ.Services.Properties
                         select c;
             return query.ToList();
 
+        }
+
+        public IList<Core.Domain.Properties.Property> GetKeyProperties(string search)
+        {
+            var query = from c in _propertyRepository.Table
+                        where c.Name.Contains(search) || c.Address.Contains(search)
+                        select c;
+            return query.ToList();
+
+          //  throw new NotImplementedException();
+        }
+
+        public IList<Core.Domain.Properties.Property> GetHighSearchProperties(ArrayList properyTypeList, ArrayList regionList, ArrayList areaList, ArrayList currentList, ArrayList rightList)
+        {
+            var query = from c in _propertyRepository.Table             
+                            select c;
+            Expression<Func<CSCZJ.Core.Domain.Properties.Property, bool>> expression = p => !p.Deleted;
+            #region 资产类别和建筑面积土地面积
+            if (properyTypeList.Count == 0)
+            {
+                if (areaList.Count != 0)
+                {
+                    double min = 0, max = 10000000;
+                    for (int i = 1; i <= areaList.Count; i++)
+                    {
+
+                        if ((int)areaList[i] > (int)areaList[i + 1]) areaList[i] = areaList[i + 1];
+                        min = (double)areaList[i];
+                        max = (double)areaList[i + 1];
+                    }
+                    expression = expression.And(p => p.ConstructArea >= min && p.ConstructArea <= max);
+                    expression = expression.And(p => p.LandArea >= min && p.LandArea <= max);
+                }
+
+            }
+            else {
+                expression = expression.And(p=> properyTypeList.Contains((int)p.PropertyType));
+                if (properyTypeList.Contains(0) && areaList.Count != 0) {
+                    double min = 0, max = 10000000;
+                    for (int i = 1; i <= areaList.Count; i++)
+                    {
+
+                        if ((int)areaList[i] > (int)areaList[i + 1]) areaList[i] = areaList[i + 1];
+                        min = (double)areaList[i];
+                        max = (double)areaList[i + 1];
+                    }
+                    expression = expression.And(p => p.ConstructArea >= min && p.ConstructArea <= max);
+                }
+                if (properyTypeList.Contains(1) && areaList.Count != 0)
+                {
+                    double min = 0, max = 10000000;
+                    for (int i = 1; i <= areaList.Count; i++)
+                    {
+
+                        if ((int)areaList[i] > (int)areaList[i + 1]) areaList[i] = areaList[i + 1];
+                        min = (double)areaList[i];
+                        max = (double)areaList[i + 1];
+                    }
+                    expression = expression.And(p => p.LandArea >= min && p.LandArea <= max);
+                }
+
+            }
+            #endregion
+
+            if (regionList.Count != 0) expression = expression.And(p => regionList.Contains((int)p.Region));
+            if (currentList.Count != 0) expression = expression.And(p => regionList.Contains((int)p.CurrentType));
+
+            if (rightList.Count != 0) {
+                if(rightList.Contains(1)) expression = expression.And(p => p.LandId!=null);
+                if (rightList.Contains(2)) expression = expression.And(p => p.ConstructId != null);
+                if (rightList.Contains(3)) expression = expression.And(p => p.LandId != null && p.ConstructId!=null);
+                if (rightList.Contains(0)) expression = expression.And(p => p.LandId == null&&p.ConstructId==null);
+            }
+
+            query = query.Where(expression);
+
+            return query.ToList();
         }
     }
 }
