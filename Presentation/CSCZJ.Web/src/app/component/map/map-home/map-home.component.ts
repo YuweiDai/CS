@@ -317,44 +317,47 @@ findThisOne(option):void{
             }
         });
 
-        // this.regionType.forEach(p=>{     
-        //     if(p.checked==true){
+        this.regionType.forEach(p=>{     
+            if(p.checked==true){                         
                
-        //         for(var h in this.highSearchProperty){
-        //             if(h==p.value) this.highSearchProperty[h]=true;
-        //         }
+                
+              for(var h in this.highSearchProperty){
+                  if(h==p.value) this.highSearchProperty[h]=true;
+              }
 
-        //     }
-        // });
+            }
+        });
 
-        // this.area.forEach(p=>{     
-        //     if(p.checked==true){
+        this.area.forEach(p=>{     
+            if(p.checked==true){                         
                
-        //         for(var h in this.highSearchProperty){
-        //             if(h==p.value) this.highSearchProperty[h]=true;
-        //         }
+                
+              for(var h in this.highSearchProperty){
+                  if(h==p.value) this.highSearchProperty[h]=true;
+              }
 
-        //     }
-        // });
-
-        // this.currentType.forEach(p=>{     
-        //     if(p.checked==true){
+            }
+        });
+        this.currentType.forEach(p=>{     
+            if(p.checked==true){                         
                
-        //         for(var h in this.highSearchProperty){
-        //             if(h==p.value) this.highSearchProperty[h]=true;
-        //         }
+                
+              for(var h in this.highSearchProperty){
+                  if(h==p.value) this.highSearchProperty[h]=true;
+              }
 
-        //     }
-        // });
-        
-        // this.propertyRights.forEach(p=>{     
-        //     if(p.checked==true){
+            }
+        });
+        this.propertyRights.forEach(p=>{     
+            if(p.checked==true){                         
                
-        //         for(var h in this.highSearchProperty){
-        //             if(h==p.value) this.highSearchProperty[h]=true;
-        //         }
-        //     }
-        // });
+                
+              for(var h in this.highSearchProperty){
+                  if(h==p.value) this.highSearchProperty[h]=true;
+              }
+
+            }
+        });     
 
         this.propertyService.getHighSearchProperties(this.highSearchProperty).subscribe(response=>{
 
