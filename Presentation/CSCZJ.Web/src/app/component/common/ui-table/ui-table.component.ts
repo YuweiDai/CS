@@ -45,7 +45,7 @@ export class UiTableComponent implements OnInit {
 
   //排序
   sort(sort: { key: string, value: string }): void {
-    if(sort.key==undefined || sort.key==null || sort.key==""||sort.value==undefined || sort.value==null || sort.value=="") this.sortString=undefined;
+    if(sort.value==""|| sort.value==null|| sort.value==undefined) this.sortString=undefined;
     else this.sortString=sort.key+ ","+sort.value+";";
     this.paramsChange.emit(this.buildTableParams(true));
   }

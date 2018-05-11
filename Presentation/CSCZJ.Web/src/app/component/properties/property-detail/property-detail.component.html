@@ -11,40 +11,94 @@
           </nz-breadcrumb>               
       </div>    
       <div nz-col nzSpan="24">        
-          <nz-card nzTitle="资产详情" [nzExtra]="extraTemplate">
+          <nz-spin nzTip='资产详细信息加载中...' [nzSize]="'large'" [nzSpinning]="loading" [nzDelay]="500">
+
+          <nz-card id="propertyDetail" nzTitle="资产详情" [nzExtra]="extraTemplate" *ngIf="!loading">
+            <div class="basicInfo m-b-md" nz-row [nzGutter]="{ xs: 8, sm: 16, md: 24, lg: 32, xl: 32, xxl: 32 }">
+              <div nz-col nzXs="8" nzSm="8" nzMd="8" nzLg="8" nzXl="8">
+                <img class="logo" src="http://iph.href.lu/1000x330?text=暂无图片&bg=836&fg=fff" />           
+              </div>  
+              <div nz-col nzXs="16" nzSm="16" nzMd="16" nzLg="16" nzXl="16">
+                <h1 class="title">
+                  {{property.name}} 
+                  <nz-tag [nzColor]="property.propertyType=='房屋'?'#2db7f5':'#f50'">{{property.propertyType}}</nz-tag>
+                </h1>         
+                <nz-divider nzDashed="true"></nz-divider>
+                <div nz-row>
+                    <div nz-col nzSpan="24"  class="item">
+                        <div>产权单位：<a href="">{{property.governmentName}}</a></div>
+                      </div>
+                      <div nz-col nzSpan="24"  class="item">
+                        <div>坐落位置：{{property.address}}</div>
+                      </div>
+                      <div nz-col nzSpan="24"  class="item">
+                          <div>四至情况：{{property.fourToStation}}</div>
+                        </div>                      
+                      <div nz-col nzSpan="12"  class="item">
+                          <div>取得方式：{{property.getMode}}</div>
+                      </div>                
+                      <div nz-col nzSpan="12"  class="item">
+                          <div>取得日期：{{property.getedDate}}</div>
+                      </div>                        
+                      <div nz-col nzSpan="24"  class="item">
+                        <div>使用现状：{{property.currentType}}</div>        
+                      </div>                    
+                      <div nz-col nzSpan="12"  class="item">
+                        <div>入账情况：<i class="anticon" [ngClass]="{'anticon-check-circle':property.isAdmission,'anticon-close-circle':!property.isAdmission}"></i></div>        
+                      </div>                         
+                      <div nz-col nzSpan="12"  class="item">
+                        <div>抵押情况：<i class="anticon" [ngClass]="{'anticon-check-circle':property.isMortgage,'anticon-close-circle':!property.isMortgage}"></i></div>        
+                      </div>                        
+                </div>                                      
+              </div>                
+            </div>
+            
             <div nz-row [nzGutter]="{ xs: 8, sm: 16, md: 24, lg: 32, xl: 32, xxl: 32 }">
-              <div nz-col  nzXs="24" nzSm="24" nzMd="12" nzLg="12" nzXl="12">
-                  <nz-table  #nzTable nzBordered nzTitle="基本信息" [nzData]="basicInfo" [nzLoading]="loading" [nzFrontPagination]="false" [nzShowPagination]="false" [nzSize]="small">
-                      <tbody>
-                        <tr *ngFor="let data of nzTable.data">
-                          <td nzWidth="200px">{{data.title}}</td>                          
-                          <td>{{data.value}}</td>
-                        </tr>                      
-                      </tbody>
-                    </nz-table>
-              </div>
-              <div nz-col  nzXs="24" nzSm="24" nzMd="12" nzLg="12" nzXl="12">
-                  <nz-table  #filesTable nzBordered nzTitle="附件信息" [nzData]="filesInfo" [nzLoading]="loading" [nzFrontPagination]="false" [nzShowPagination]="false" [nzSize]="small">
-                      <tbody>
-                        <tr *ngFor="let data of filesTable.data">
-                          <td nzWidth="200px">{{data.title}}</td>                          
-                          <td>{{data.value}}</td>
-                        </tr>                      
-                      </tbody>
-                    </nz-table>
-              </div>       
-              <div nz-col  nzXs="24" nzSm="24" nzMd="12" nzLg="12" nzXl="12">
-                  <div class="ant-table ant-table-bordered">
-                    <div class="ant-table-title ng-star-inserted">地图信息</div>
-                    <div class="ant-table-content">               
-                      <div id="map"></div>
-                    </div>                     
-                  </div> 
-              </div>                        
+              <div nz-col  nzXs="24" nzSm="24" nzMd="24" nzLg="24" nzXl="24">               
+                  <nz-tabset [nzTabPosition]="'top'" [nzType]="'card'" nzSize="large">
+                    <nz-tab nzTitle="详细信息">
+                        <div nz-row>
+                            <div nz-col nzXs="24" nzSm="24" nzMd="12" nzLg="12" nzXl="12">
+                              <table class="detailTable">
+                                <tbody>
+                                  <tr class="detailTitle"> 
+                                    <td>使用现状</td>
+                                    <td></td>
+                                  </tr>                               
+                                  <tr>
+                                      <td class="label">使用方</td>
+                                      <td class="value">{{property.useType}} </td>
+                                  </tr>
+                                  <tr>
+                                      <td class="col-md-6">供电条件</td>
+                                      <td class="col-md-6 text_darkgrey">已有接通电源的电线或电缆 </td>
+                                  </tr>
+                                  <tr>
+                                      <td class="col-md-6">网络状况</td>
+                                      <td class="col-md-6 text_darkgrey">已有网络连通光纤 </td>
+                                  </tr>
+                                </tbody>
+                              </table>
+                            </div>
+                            <div nz-col nzXs="8" nzSm="8" nzMd="8" nzLg="8" nzXl="8">
+
+                            </div>                   
+                        </div> 
+                    </nz-tab>
+                    <nz-tab nzTitle="租用信息">
+                        租用信息
+                    </nz-tab>
+                    <nz-tab nzTitle="空间信息">
+                        空间信息
+                    </nz-tab>                                          
+                  </nz-tabset>
+              </div>                      
             </div>                
           </nz-card>
           <ng-template #extraTemplate>
           </ng-template>
+
+          </nz-spin>
       </div>
   </div>
 </div>
