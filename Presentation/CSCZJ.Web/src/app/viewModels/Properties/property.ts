@@ -32,3 +32,9 @@ export class Property extends PropertyListItem {
     lon?:number;
     lat?:number;
 }
+
+//新建资产对象
+export class PropertyCreate 
+{
+
+}

@@ -3,8 +3,10 @@ import { ActivatedRoute } from '@angular/router';
 import { Location } from '@angular/common';
 
 import { Property } from "../../../viewModels/Properties/property";
-import { PropertyService } from '../../../services/propertyService';
 
+import { MapService } from '../../../services/map/mapService';
+import { PropertyService } from '../../../services/propertyService';
+declare var L:any;
 @Component({
   selector: 'app-property-detail',
   templateUrl: './property-detail.component.html',
@@ -16,11 +18,13 @@ export class PropertyDetailComponent implements OnInit {
   private property:Property;
   private basicInfo:any[];
   private filesInfo:any[];
+  private map:any;
 
   constructor(    
-    private propertyService:PropertyService,
+    private propertyService:PropertyService,private mapService:MapService,
     private route: ActivatedRoute) 
     { 
+      this.property=new Property();
   }
 
   ngOnInit() {
@@ -64,6 +68,44 @@ export class PropertyDetailComponent implements OnInit {
     });
 
     
+  }
+
+  mapStepInitial():void
+  {
+    var that=this;
+    setTimeout(() => {
+      var normal = this.mapService.getLayer("vector");
+      var satellite = this.mapService.getLayer("img");
+      this.map = L.map('map', {
+          crs:L.CRS.EPSG4326,
+          center: [28.905527517199516, 118.50629210472107],
+          zoom: 17
+      });
+  
+      satellite.addTo(this.map);
+      var baseLayers = {
+        "矢量": normal,
+        "卫星": satellite
+    };
+      // L.control.layers(baseLayers).addTo(that.map);
+    var zoomControl = this.map.zoomControl;
+
+    zoomControl.setPosition("topright");
+
+    if(that.property!=null && that.property!=undefined)
+    {
+    //   var m = new L.marker(new L.LatLng (element.x,element.y),{
+    //     icon:land
+    // }).bindTooltip(element.name,{permanent:true,direction:"top",offset:[0,-15]});                           
+    
+      L.marker([28.922364246100187,118.47742885351181],{title:that.property.name})
+      .bindTooltip(that.property.name,{permanent:true,direction:"top",offset:[0,-15]})
+      .addTo(this.map);
+
+
+      // that.map.panTo([28.922364246100187,118.47742885351181]);
+    }
+    }, 500); 
   }
 
 }

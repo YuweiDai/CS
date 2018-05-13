@@ -42,30 +42,30 @@ export class PropertyCreateComponent implements OnInit {
 
   fileList2 = [...this.defaultFileList];  
 
-  validateForm: FormGroup;
+  basicInfoForm: FormGroup;
   submitForm = ($event, value) => {
     $event.preventDefault();
-    for (const key in this.validateForm.controls) {
-      this.validateForm.controls[ key ].markAsDirty();
-      this.validateForm.controls[ key ].updateValueAndValidity();
+    for (const key in this.basicInfoForm.controls) {
+      this.basicInfoForm.controls[ key ].markAsDirty();
+      this.basicInfoForm.controls[ key ].updateValueAndValidity();
     }
     console.log(value);
   }
 
   resetForm(e: MouseEvent): void {
     e.preventDefault();
-    this.validateForm.reset();
-    for (const key in this.validateForm.controls) {
-      this.validateForm.controls[ key ].markAsPristine();
-      this.validateForm.controls[ key ].updateValueAndValidity();
+    this.basicInfoForm.reset();
+    for (const key in this.basicInfoForm.controls) {
+      this.basicInfoForm.controls[ key ].markAsPristine();
+      this.basicInfoForm.controls[ key ].updateValueAndValidity();
     }
   }
 
   validateConfirmPassword(): void {
-    setTimeout(() => this.validateForm.controls.confirm.updateValueAndValidity());
+    setTimeout(() => this.basicInfoForm.controls.confirm.updateValueAndValidity());
   }
 
-  userNameAsyncValidator = (control: FormControl) => Observable.create((observer: Observer<ValidationErrors>) => {
+  propertyNameAsyncValidator = (control: FormControl) => Observable.create((observer: Observer<ValidationErrors>) => {
     setTimeout(() => {
       if (control.value === 'JasonWood') {
         observer.next({ error: true, duplicated: true });
@@ -79,18 +79,19 @@ export class PropertyCreateComponent implements OnInit {
   confirmValidator = (control: FormControl): { [s: string]: boolean } => {
     if (!control.value) {
       return { required: true };
-    } else if (control.value !== this.validateForm.controls.password.value) {
+    } else if (control.value !== this.basicInfoForm.controls.password.value) {
       return { confirm: true, error: true };
     }
   }
 
   constructor(private fb: FormBuilder,private mapService:MapService,) {
-    this.validateForm = this.fb.group({
-      userName: [ '', [ Validators.required ], [ this.userNameAsyncValidator ] ],
+    this.basicInfoForm = this.fb.group({
+      propertyName: [ '', [ Validators.required ], [ this.propertyNameAsyncValidator ] ],
       email   : [ '', [ Validators.email ] ],
       password: [ '', [ Validators.required ] ],
       confirm : [ '', [ this.confirmValidator ] ],
-      comment : [ '', [ Validators.required ] ]
+      comment : [ '', [ Validators.required ] ],
+      pType:['',[Validators.required]]
     });
   }
 
@@ -112,6 +113,7 @@ export class PropertyCreateComponent implements OnInit {
     console.log('done');
   }
 
+  //切换输入内容
   changeContent():void
   {
     switch (this.current) {
@@ -123,6 +125,12 @@ export class PropertyCreateComponent implements OnInit {
       default:
         break;
     }
+  }
+
+  //当前激活表单验证，是否可以进行下一步
+  formValiateCheck():void
+  {
+
   }
 
   mapStepInitial():void

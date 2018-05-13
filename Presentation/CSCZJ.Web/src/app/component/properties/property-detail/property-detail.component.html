@@ -13,7 +13,7 @@
       <div nz-col nzSpan="24">        
           <nz-spin nzTip='资产详细信息加载中...' [nzSize]="'large'" [nzSpinning]="loading" [nzDelay]="500">
 
-          <nz-card id="propertyDetail" nzTitle="资产详情" [nzExtra]="extraTemplate" *ngIf="!loading">
+          <nz-card id="propertyDetail" nzTitle="资产详情" [nzExtra]="extraTemplate" >
             <div class="basicInfo m-b-md" nz-row [nzGutter]="{ xs: 8, sm: 16, md: 24, lg: 32, xl: 32, xxl: 32 }">
               <div nz-col nzXs="8" nzSm="8" nzMd="8" nzLg="8" nzXl="8">
                 <img class="logo" src="http://iph.href.lu/1000x330?text=暂无图片&bg=836&fg=fff" />           
@@ -53,47 +53,114 @@
               </div>                
             </div>
             
-            <div nz-row [nzGutter]="{ xs: 8, sm: 16, md: 24, lg: 32, xl: 32, xxl: 32 }">
-              <div nz-col  nzXs="24" nzSm="24" nzMd="24" nzLg="24" nzXl="24">               
-                  <nz-tabset [nzTabPosition]="'top'" [nzType]="'card'" nzSize="large">
-                    <nz-tab nzTitle="详细信息">
-                        <div nz-row>
-                            <div nz-col nzXs="24" nzSm="24" nzMd="12" nzLg="12" nzXl="12">
-                              <table class="detailTable">
-                                <tbody>
-                                  <tr class="detailTitle"> 
-                                    <td>使用现状</td>
-                                    <td></td>
-                                  </tr>                               
-                                  <tr>
-                                      <td class="label">使用方</td>
-                                      <td class="value">{{property.useType}} </td>
-                                  </tr>
-                                  <tr>
-                                      <td class="col-md-6">供电条件</td>
-                                      <td class="col-md-6 text_darkgrey">已有接通电源的电线或电缆 </td>
-                                  </tr>
-                                  <tr>
-                                      <td class="col-md-6">网络状况</td>
-                                      <td class="col-md-6 text_darkgrey">已有网络连通光纤 </td>
-                                  </tr>
-                                </tbody>
-                              </table>
-                            </div>
-                            <div nz-col nzXs="8" nzSm="8" nzMd="8" nzLg="8" nzXl="8">
+            <nz-tabset [nzTabPosition]="'top'" [nzType]="'card'" nzSize="large">
+              <nz-tab nzTitle="详细信息">
+                  <div class="tabContent" nz-row [nzGutter]="{ xs: 8, sm: 16, md: 24, lg: 32, xl: 32, xxl: 32 }">
+                      <div nz-col nzXs="24" nzSm="24" nzMd="12" nzLg="12" nzXl="12">
+                        <table class="detailTable">
+                          <tbody>
+                            <tr class="detailTitle"> 
+                              <td>使用情况</td>
+                              <td></td>
+                            </tr>                               
+                            <tr>
+                                <td>使用方</td>
+                                <td>{{property.usedPeople}} </td>
+                            </tr>
+                            <tr>
+                              <td>使用类型</td>
+                              <td>{{property.useType}} </td>
+                          </tr>                              
+                          </tbody>
+                        </table>
+                      </div>
+                      <div nz-col nzXs="24" nzSm="24" nzMd="12" nzLg="12" nzXl="12">
+                        <table class="detailTable">
+                          <tbody>
+                            <tr class="detailTitle"> 
+                              <td>产权信息</td>
+                              <td></td>
+                            </tr>                               
+                            <tr>
+                                <td>房产证</td>
+                                <td>{{property.constructId}} </td>
+                            </tr>
+                            <tr>
+                              <td>办证时间</td>
+                              <td>{{property.constructTime}} </td>
+                            </tr>
+                            <tr>
+                              <td>房产面积</td>
+                              <td>{{property.constructArea}} 平方米</td>
+                            </tr>        
+                            <tr>
+                              <td>土地证</td>
+                              <td>{{property.landId}} </td>
+                          </tr>
+                          <tr>
+                            <td>办证时间</td>
+                            <td>{{property.landTime}} </td>
+                          </tr>
+                          <tr>
+                            <td>土地面积</td>
+                            <td>{{property.landArea}} 平方米</td>
+                          </tr>                                                            
+                          </tbody>
+                        </table>
+                      </div>   
 
-                            </div>                   
-                        </div> 
-                    </nz-tab>
-                    <nz-tab nzTitle="租用信息">
-                        租用信息
-                    </nz-tab>
-                    <nz-tab nzTitle="空间信息">
-                        空间信息
-                    </nz-tab>                                          
-                  </nz-tabset>
-              </div>                      
-            </div>                
+                      <div nz-col nzXs="24" nzSm="24" nzMd="12" nzLg="12" nzXl="12">
+                        <table class="detailTable">
+                          <tbody>
+                            <tr class="detailTitle"> 
+                              <td>图片附件</td>
+                              <td></td>
+                            </tr>                               
+                            <tr>
+                                <td>使用方</td>
+                                <td>{{property.usedPeople}} </td>
+                            </tr>
+                            <tr>
+                              <td>使用类型</td>
+                              <td>{{property.useType}} </td>
+                          </tr>                              
+                          </tbody>
+                        </table>
+                      </div>
+
+                      <div nz-col nzXs="24" nzSm="24" nzMd="12" nzLg="12" nzXl="12">
+                        <table class="detailTable">
+                          <tbody>
+                            <tr class="detailTitle"> 
+                              <td>文件附件</td>
+                              <td></td>
+                            </tr>                               
+                            <tr>
+                                <td>使用方</td>
+                                <td>{{property.usedPeople}} </td>
+                            </tr>
+                            <tr>
+                              <td>使用类型</td>
+                              <td>{{property.useType}} </td>
+                          </tr>                              
+                          </tbody>
+                        </table>
+                      </div>                      
+                      
+                  </div> 
+              </nz-tab>
+              <nz-tab nzTitle="租用信息">
+                  租用信息
+              </nz-tab>
+              <nz-tab nzTitle="空间信息" (nzSelect)="mapStepInitial()">
+                  <div class="tabContent" nz-row>
+                      <div nz-col [nzSpan]="24">
+                          <div id="map"></div>
+                      </div>          
+                  </div>                 
+
+              </nz-tab>                                          
+            </nz-tabset>            
           </nz-card>
           <ng-template #extraTemplate>
           </ng-template>

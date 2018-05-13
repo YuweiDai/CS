@@ -4,88 +4,96 @@
                 <nz-card nzTitle="新增资产" [nzExtra]="extraTemplate">
                     <div class="component-content">
                         <nz-steps [nzCurrent]="current">
-                            <nz-step nzTitle="基本信息" nzDescription="This is a description."></nz-step>
+                            <nz-step nzTitle="详细信息" nzDescription="This is a description."></nz-step>
                             <nz-step nzTitle="空间信息" nzDescription="This is a description."></nz-step>
                             <nz-step nzTitle="相关附件" nzDescription="This is a description."></nz-step>
                             <nz-step nzTitle="提交保存" nzDescription="This is a description."></nz-step>
                         </nz-steps>
                     </div>
-                    <div class="step" id="basicInfo" *ngIf="current===0">
+                    <div class="step" id="basicInfo" [hidden]="current!=0">
+                        <div class="m-b-md" nz-row [nzGutter]="{ xs: 8, sm: 16, md: 24, lg: 32, xl: 32, xxl: 32 }">
+                            <div nz-col nzXs="12" nzSm="12" nzMd="12" nzLg="12" nzXl="12">
+                                <nz-card id="propertyDetail" nzTitle="基本信息" [nzExtra]="extraTemplate" >
+                                    <form nz-form [formGroup]="basicInfoForm" (ngSubmit)="submitForm($event,basicInfoForm.value)">
+     
+                                        <nz-form-item>
+                                            <nz-form-label [nzSpan]="4" nzRequired>资产名称</nz-form-label>
+                                            <nz-form-control [nzSpan]="20" nzHasFeedback>
+                                                <input nz-input formControlName="propertyName" placeholder="输入资产名称...">
+                                                <nz-form-explain *ngIf="basicInfoForm.get('propertyName').dirty && basicInfoForm.get('propertyName').errors || basicInfoForm.get('propertyName').pending ">
+                                                    <ng-container *ngIf="basicInfoForm.get('propertyName').hasError('required')">
+                                                        请输入资产名称！
+                                                    </ng-container>
+                                                    <ng-container *ngIf="basicInfoForm.get('propertyName').hasError('duplicated')">
+                                                        资产名称已存在！
+                                                    </ng-container>
+                                                    <ng-container *ngIf="basicInfoForm.get('propertyName').pending">
+                                                        验证中...
+                                                    </ng-container>
+                                            </nz-form-explain>
+                                            </nz-form-control>
+                                        </nz-form-item>
 
-                        <form nz-form [formGroup]="validateForm" (ngSubmit)="submitForm($event,validateForm.value)">
-                                <div nz-row>
-                                        <div nz-col nzAlign="center" nzXs="24" nzSm="24" nzMd="12" nzLg="12" nzXl="12">
-                                                <nz-form-item>
-                                                    <nz-form-label [nzSpan]="8" nzRequired>Username</nz-form-label>
-                                                    <nz-form-control [nzSpan]="16" nzHasFeedback>
-                                                        <input nz-input formControlName="userName" placeholder="async validate try to write JasonWood">
-                                                        <nz-form-explain *ngIf="validateForm.get('userName').dirty && validateForm.get('userName').errors || validateForm.get('userName').pending ">
-                                                            <ng-container *ngIf="validateForm.get('userName').hasError('required')">
-                                                                Please input your username!
-                                                            </ng-container>
-                                                            <ng-container *ngIf="validateForm.get('userName').hasError('duplicated')">
-                                                                The username is redundant!
-                                                            </ng-container>
-                                                            <ng-container *ngIf="validateForm.get('userName').pending">
-                                                                Validating...
-                                                            </ng-container>
-                                                    </nz-form-explain>
-                                                    </nz-form-control>
-                                                </nz-form-item>
-                                                <nz-form-item>
-                                                    <nz-form-label [nzSpan]="8" nzRequired>E-mail</nz-form-label>
-                                                    <nz-form-control [nzSpan]="16" nzHasFeedback>
-                                                    <input nz-input formControlName="email" placeholder="email" type="email">
-                                                    <nz-form-explain *ngIf="validateForm.get('email').dirty&&validateForm.get('email').errors">
-                                                        <ng-container *ngIf="validateForm.get('email').hasError('email')">
-                                                        The input is not valid E-mail!
-                                                        </ng-container>
-                                                        <ng-container *ngIf="validateForm.get('email').hasError('required')">
-                                                        Please input your E-mail!
-                                                        </ng-container>
-                                                    </nz-form-explain>
-                                                    </nz-form-control>
-                                                </nz-form-item>
-                                                <nz-form-item>
-                                                    <nz-form-label [nzSpan]="8" nzRequired>Password</nz-form-label>
-                                                    <div>
-                                                    <nz-form-control [nzSpan]="16" nzHasFeedback>
-                                                        <input nz-input type="password" formControlName="password" (ngModelChange)="validateConfirmPassword()">
-                                                        <nz-form-explain *ngIf="validateForm.get('password').dirty&&validateForm.get('password').hasError('required')">Please input your password!</nz-form-explain>
-                                                    </nz-form-control>
-                                                    </div>
-                                                </nz-form-item>
-                                        </div>
-                                        <div nz-col nzAlign="center" nzXs="24" nzSm="24" nzMd="12" nzLg="12" nzXl="12">
-                                                <nz-form-item>
-                                                        <nz-form-label [nzSpan]="8" nzRequired>Confirm Password</nz-form-label>
-                                                        <nz-form-control [nzSpan]="16" nzHasFeedback>
-                                                        <input nz-input type="password" formControlName="confirm" placeholder="confirm your password">
-                                                        <nz-form-explain *ngIf="validateForm.get('confirm').dirty&&validateForm.get('confirm').errors">
-                                                            <ng-container *ngIf="validateForm.get('confirm').hasError('required')">
-                                                            Please confirm your password!
-                                                            </ng-container>
-                                                            <ng-container *ngIf="validateForm.get('confirm').hasError('confirm')">
-                                                            Password is inconsistent!
-                                                            </ng-container>
-                                                        </nz-form-explain>
-                                                        </nz-form-control>
-                                                    </nz-form-item>
-                                                    <nz-form-item>
-                                                        <nz-form-label [nzSpan]="8" nzRequired>Comment</nz-form-label>
-                                                        <nz-form-control [nzSpan]="16" >
-                                                        <textarea formControlName="comment" nz-input rows="2" placeholder="write any thing"></textarea>
-                                                        <nz-form-explain *ngIf="validateForm.get('comment').dirty&&validateForm.get('comment').hasError('required')">Please write something here!</nz-form-explain>
-                                                        </nz-form-control>
-                                                    </nz-form-item>
-                                        </div>
-                                </div>
-                        </form>                            
+                                        <nz-form-item>
+                                            <nz-form-label [nzSpan]="4" nzRequired>资产类型</nz-form-label>
+                                            <nz-form-control [nzSpan]="20" nzHasFeedback>
+                                                    <nz-select formControlName="pType"  [(ngModel)]="selectedOption" [nzPlaceHolder]="'choose option'" nzAllowClear>
+                                                            <nz-option
+                                                              nzLabel="d1"
+                                                              nzValue="1">
+                                                            </nz-option>
+                                                            <nz-option
+                                                              nzLabel="d2"
+                                                              nzValue="2">
+                                                            </nz-option>                                                            
+                                                          </nz-select>
+   
+                                                <nz-form-explain *ngIf="basicInfoForm.get('pType').dirty && basicInfoForm.get('pType').errors || basicInfoForm.get('pType').pending ">
+                                                    <ng-container *ngIf="basicInfoForm.get('pType').hasError('required')">
+                                                        请输入资产类型！
+                                                    </ng-container>
+                                                    <ng-container *ngIf="basicInfoForm.get('pType').pending">
+                                                        验证中...
+                                                    </ng-container>
+                                            </nz-form-explain>
+                                            </nz-form-control>
+                                        </nz-form-item>
+
+                                        <nz-form-item>
+                                            <nz-form-label [nzSpan]="4" nzRequired>地址</nz-form-label>
+                                            <nz-form-control [nzSpan]="20" nzHasFeedback>
+                                            <input nz-input formControlName="email" placeholder="email" type="email">
+                                            <nz-form-explain *ngIf="basicInfoForm.get('email').dirty&&basicInfoForm.get('email').errors">
+                                                <ng-container *ngIf="basicInfoForm.get('email').hasError('email')">
+                                                The input is not valid E-mail!
+                                                </ng-container>
+                                                <ng-container *ngIf="basicInfoForm.get('email').hasError('required')">
+                                                Please input your E-mail!
+                                                </ng-container>
+                                            </nz-form-explain>
+                                            </nz-form-control>
+                                        </nz-form-item>
+                                        <nz-form-item>
+                                            <nz-form-label [nzSpan]="4" nzRequired>Password</nz-form-label>
+                                            <div>
+                                            <nz-form-control [nzSpan]="20" nzHasFeedback>
+                                                <input nz-input type="password" formControlName="password" (ngModelChange)="validateConfirmPassword()">
+                                                <nz-form-explain *ngIf="basicInfoForm.get('password').dirty&&basicInfoForm.get('password').hasError('required')">Please input your password!</nz-form-explain>
+                                            </nz-form-control>
+                                            </div>
+                                        </nz-form-item>
+                            </form>   
+                                </nz-card>
+                                <ng-template #extraTemplate>
+                                </ng-template>    
+                            </div>           
+                        </div>   
+                                        
                     </div>
-                    <div class="step" id="geoInfo"  *ngIf="current===1">
+                    <div class="step" id="geoInfo"  [hidden]="current!=1">
                         <div id="map"></div>
                     </div>
-                    <div class="step" id="filesInfo" *ngIf="current===2">
+                    <div class="step" id="filesInfo" [hidden]="current!=2">
 
                             <div class="clearfix">
                                     <nz-upload
@@ -100,8 +108,8 @@
 
                     </div>
                     <div nz-row>
-                            <div nz-col nzAlign="center" [nzSpan]="8" [nzOffset]="16" class="text-right">              
-                                    <!-- [disabled]="!validateForm.valid"   -->
+                            <div nz-col nzAlign="center" [nzSpan]="4" [nzOffset]="16" class="text-right">              
+                                    <!-- [disabled]="!basicInfoForm.valid"   -->
                                 <button nz-button nzType="primary" (click)="pre()" *ngIf="current > 0">上一步</button>                                                                                        
                                 <button nz-button nzType="primary" (click)="next()" *ngIf="current < 3">下一步</button>    
                                 <button nz-button (click)="resetForm($event)" *ngIf="current != 3">重置</button>
