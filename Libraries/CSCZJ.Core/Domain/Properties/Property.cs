@@ -44,16 +44,6 @@ namespace CSCZJ.Core.Domain.Properties
         public string Address { get; set; }
 
         /// <summary>
-        /// 建筑面积
-        /// </summary>
-        public double ConstructArea { get; set; }
-
-        /// <summary>
-        /// 土地面积
-        /// </summary>
-        public double LandArea { get; set; }
-
-        /// <summary>
         /// 层数
         /// </summary>
         public int Floor { get; set; }
@@ -110,13 +100,6 @@ namespace CSCZJ.Core.Domain.Properties
         public int DisplayOrder { get; set; }
 
         /// <summary>
-        /// 错误
-        /// </summary>
-        public string Error { get; set; }
-
-        public string WKT { get; set; }
-
-        /// <summary>
         /// 资产所有方
         /// </summary>
         public virtual GovernmentUnit Government { get; set; }
@@ -127,9 +110,20 @@ namespace CSCZJ.Core.Domain.Properties
         public string EstateId { get; set; }
 
         /// <summary>
+        /// 不动产证发证时间
+        /// </summary>
+        public DateTime? EstateTime { get; set; }
+
+        /// <summary>
         /// 房产证
         /// </summary>
         public string ConstructId { get; set; }
+
+        /// <summary>
+        /// 建筑面积
+        /// </summary>
+        public double ConstructArea { get; set; }
+
         /// <summary>
         /// 房产证发证时间
         /// </summary>
@@ -139,6 +133,11 @@ namespace CSCZJ.Core.Domain.Properties
         /// 土地证号
         /// </summary>
         public string LandId { get; set;}
+
+        /// <summary>
+        /// 土地面积
+        /// </summary>
+        public double LandArea { get; set; }
 
         public DateTime LandTime { get; set; }
 
