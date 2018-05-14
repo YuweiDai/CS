@@ -12,6 +12,7 @@ import { Observer } from 'rxjs/Observer';
 import { NzMessageService, UploadFile } from 'ng-zorro-antd';
 
 import { MapService } from '../../../services/map/mapService';
+import { PropertyCreateModel } from '../../../viewModels/Properties/property';
 declare var L:any;
 
 @Component({
@@ -20,8 +21,9 @@ declare var L:any;
   styleUrls: ['./property-create.component.less']
 })
 export class PropertyCreateComponent implements OnInit {
-  current:number;
-  map:any;
+  private current:number;
+  private property=new PropertyCreateModel();
+  private map:any;
 
   defaultFileList = [
     {
@@ -76,15 +78,8 @@ export class PropertyCreateComponent implements OnInit {
     }, 1000);
   })
 
-  confirmValidator = (control: FormControl): { [s: string]: boolean } => {
-    if (!control.value) {
-      return { required: true };
-    } else if (control.value !== this.basicInfoForm.controls.password.value) {
-      return { confirm: true, error: true };
-    }
-  }
-
   constructor(private fb: FormBuilder,private mapService:MapService,) {
+   
     this.basicInfoForm = this.fb.group({
       pName: [ '', [ Validators.required ], [ this.propertyNameAsyncValidator ] ],      
       pType:['',[Validators.required]],
@@ -94,7 +89,9 @@ export class PropertyCreateComponent implements OnInit {
       pGetedDate:['',[Validators.required]],
       pGetModelId:['',[Validators.required]],
       pIsAdmission:['',[Validators.required]],
+
       //产权信息
+      pRegisterType:[''],
       pEstateId:[''],
       pEstateTime:[''],
       pConstructId:[''],
@@ -109,20 +106,21 @@ export class PropertyCreateComponent implements OnInit {
       pCurrentTypeId:['',[Validators.required]],
       pIsMortgage:['',[Validators.required]],                  
 
-      pDescription:['',[Validators.required]],
+      pDescription:['',],
       pLogo:['',[Validators.required]],
       pLocation:['',[Validators.required]],
-      pExtent:['',[Validators.required]],   
-
-      email   : [ '', [ Validators.email ] ],
-      password: [ '', [ Validators.required ] ],
-      confirm : [ '', [ this.confirmValidator ] ],
-      comment : [ '', [ Validators.required ] ],
+      pExtent:['',[Validators.required]]
     });
   }
 
   ngOnInit() {
     this.current=0;   
+  }
+
+  ngAfterViewInit() {
+
+    // this.property=new PropertyCreateModel();
+    console.log(this.property);
   }
 
   pre(): void {

@@ -1,124 +1,337 @@
 <div class="component-container">
-        <div nz-row>
-            <div nz-col nzSpan="24">
-                <nz-card nzTitle="新增资产" [nzExtra]="extraTemplate">
-                    <div class="component-content">
-                        <nz-steps [nzCurrent]="current">
-                            <nz-step nzTitle="详细信息" nzDescription="This is a description."></nz-step>
-                            <nz-step nzTitle="空间信息" nzDescription="This is a description."></nz-step>
-                            <nz-step nzTitle="相关附件" nzDescription="This is a description."></nz-step>
-                            <nz-step nzTitle="提交保存" nzDescription="This is a description."></nz-step>
-                        </nz-steps>
-                    </div>
-                    <div class="step" id="basicInfo" [hidden]="current!=0">
+    <div nz-row>
+        <div nz-col nzSpan="24">
+            <nz-card nzTitle="新增资产" [nzExtra]="extraTemplate">
+                <div class="component-content">
+                    <nz-steps [nzCurrent]="current">
+                        <nz-step nzTitle="详细信息" nzDescription="填写资产的基本信息、使用信息以及产权信息。"></nz-step>
+                        <nz-step nzTitle="空间信息" nzDescription="填写资产的空间位置信息。"></nz-step>
+                        <nz-step nzTitle="相关附件" nzDescription="填写资产照片以及文件信息。"></nz-step>
+                        <nz-step nzTitle="提交保存" nzDescription="提交入库。"></nz-step>
+                    </nz-steps>
+                </div>
+                <div class="step" id="basicInfo" [hidden]="current!=0">
+
+                    <form nz-form [formGroup]="basicInfoForm" (ngSubmit)="submitForm($event,basicInfoForm.value)">
                         <div class="m-b-md" nz-row [nzGutter]="{ xs: 8, sm: 16, md: 24, lg: 32, xl: 32, xxl: 32 }">
                             <div nz-col nzXs="12" nzSm="12" nzMd="12" nzLg="12" nzXl="12">
-                                <nz-card id="propertyDetail" nzTitle="基本信息" [nzExtra]="extraTemplate" >
-                                    <form nz-form [formGroup]="basicInfoForm" (ngSubmit)="submitForm($event,basicInfoForm.value)">
-     
-                                        <nz-form-item>
-                                            <nz-form-label [nzSpan]="4" nzRequired>资产名称</nz-form-label>
-                                            <nz-form-control [nzSpan]="20" nzHasFeedback>
-                                                <input nz-input formControlName="propertyName" placeholder="输入资产名称...">
-                                                <nz-form-explain *ngIf="basicInfoForm.get('propertyName').dirty && basicInfoForm.get('propertyName').errors || basicInfoForm.get('propertyName').pending ">
-                                                    <ng-container *ngIf="basicInfoForm.get('propertyName').hasError('required')">
-                                                        请输入资产名称！
-                                                    </ng-container>
-                                                    <ng-container *ngIf="basicInfoForm.get('propertyName').hasError('duplicated')">
-                                                        资产名称已存在！
-                                                    </ng-container>
-                                                    <ng-container *ngIf="basicInfoForm.get('propertyName').pending">
-                                                        验证中...
-                                                    </ng-container>
+                                <nz-card nzTitle="基本信息">
+                                    <nz-form-item>
+                                        <nz-form-label [nzSpan]="4" nzRequired>资产名称</nz-form-label>
+                                        <nz-form-control [nzSpan]="20" nzHasFeedback>
+                                            <input nz-input formControlName="pName" [(ngModel)]="property.name" placeholder="输入资产名称...">
+                                            <nz-form-explain *ngIf="basicInfoForm.get('pName').dirty && basicInfoForm.get('pName').errors || basicInfoForm.get('pName').pending ">
+                                                <ng-container *ngIf="basicInfoForm.get('pName').hasError('required')">
+                                                    请输入资产名称！
+                                                </ng-container>
+                                                <ng-container *ngIf="basicInfoForm.get('pName').hasError('duplicated')">
+                                                    资产名称已存在！
+                                                </ng-container>
+                                                <ng-container *ngIf="basicInfoForm.get('pName').pending">
+                                                    验证中...
+                                                </ng-container>
                                             </nz-form-explain>
+                                        </nz-form-control>
+                                    </nz-form-item>
+
+                                    <nz-form-item>
+                                        <nz-form-label [nzSpan]="4" nzRequired>资产类型</nz-form-label>
+                                        <nz-form-control [nzSpan]="20">
+                                            <nz-radio-group [(ngModel)]="property.typeId" formControlName="pType">
+                                                <label nz-radio nzValue="0">房产</label>
+                                                <label nz-radio nzValue="1">土地</label>
+                                            </nz-radio-group>
+                                            <nz-form-explain *ngIf="basicInfoForm.get('pType').dirty && basicInfoForm.get('pType').errors">
+                                                <ng-container *ngIf="basicInfoForm.get('pType').hasError('required')">
+                                                    请选择资产类型！
+                                                </ng-container>
+                                            </nz-form-explain>
+                                        </nz-form-control>
+                                    </nz-form-item>
+
+                                    <nz-form-item>
+                                        <nz-form-label [nzSpan]="4" nzRequired>地址</nz-form-label>
+                                        <nz-form-control [nzSpan]="20" nzHasFeedback>
+                                            <input nz-input formControlName="pAddress" [(ngModel)]="property.address" placeholder="输入资产地址..." type="text">
+                                            <nz-form-explain *ngIf="basicInfoForm.get('pAddress').dirty&&basicInfoForm.get('pAddress').errors">
+                                                <ng-container *ngIf="basicInfoForm.get('pAddress').hasError('required')">
+                                                    请输入资产地址！
+                                                </ng-container>
+                                            </nz-form-explain>
+                                        </nz-form-control>
+                                    </nz-form-item>
+
+                                    <nz-form-item>
+                                        <nz-form-label [nzSpan]="4">坐落四至</nz-form-label>
+                                        <nz-form-control [nzSpan]="20">
+                                            <input nz-input formControlName="pFourToStation" [(ngModel)]="property.fourToStation" placeholder="输入资产坐落四至..." type="text">
+                                        </nz-form-control>
+                                    </nz-form-item>
+
+                                    <nz-form-item>
+                                        <nz-form-label [nzSpan]="4" nzRequired>获取日期</nz-form-label>
+                                        <nz-form-control [nzSpan]="20" nzHasFeedback>
+                                            <input nz-input formControlName="pGetedDate" [(ngModel)]="property.getedDate" placeholder="请选择获取日期...">
+                                            <nz-form-explain *ngIf="basicInfoForm.get('pGetedDate').dirty && basicInfoForm.get('pGetedDate').errors || basicInfoForm.get('pGetedDate').pending ">
+                                                <ng-container *ngIf="basicInfoForm.get('pGetedDate').hasError('required')">
+                                                    请选择获取日期！
+                                                </ng-container>
+                                            </nz-form-explain>
+                                        </nz-form-control>
+                                    </nz-form-item>
+
+                                    <nz-form-item>
+                                        <nz-form-label [nzSpan]="4" nzRequired>获取类型</nz-form-label>
+                                        <nz-form-control [nzSpan]="20" nzHasFeedback>
+                                            <nz-select formControlName="pGetModelId" [(ngModel)]="property.getModelId" [nzPlaceHolder]="'请选择资产获取类型...'" nzAllowClear>
+                                                <nz-option nzLabel="自建" nzValue="0"></nz-option>
+                                                <nz-option nzLabel="购入" nzValue="1"></nz-option>
+                                                <nz-option nzLabel="调配" nzValue="2"></nz-option>
+                                                <nz-option nzLabel="划拨" nzValue="3"></nz-option>
+                                            </nz-select>
+
+                                            <nz-form-explain *ngIf="basicInfoForm.get('pGetModelId').dirty && basicInfoForm.get('pGetModelId').errors || basicInfoForm.get('pGetModelId').pending ">
+                                                <ng-container *ngIf="basicInfoForm.get('pGetModelId').hasError('required')">
+                                                    请选择资产获取类型！
+                                                </ng-container>
+                                            </nz-form-explain>
+                                        </nz-form-control>
+                                    </nz-form-item>
+
+                                    <nz-form-item *ngIf="property.typeId==0">
+                                        <nz-form-label [nzSpan]="4">房屋层数</nz-form-label>
+                                        <nz-form-control [nzSpan]="20">
+                                            <nz-input-number formControlName="pFloor" [(ngModel)]="property.floor" [nzMin]="1" [nzMax]="50" [nzStep]="1"></nz-input-number>
+                                            层
+                                        </nz-form-control>
+                                    </nz-form-item>
+
+                                    <nz-form-item *ngIf="property.typeId==0">
+                                            <nz-form-label [nzSpan]="4">建筑面积</nz-form-label>
+                                            <nz-form-control [nzSpan]="20">
+                                                <nz-input-number formControlName="pConstructArea" [(ngModel)]="property.constructArea" [nzMin]="1" [nzMax]="1000000000" [nzStep]="0.01"></nz-input-number>
+                                                平方米
                                             </nz-form-control>
                                         </nz-form-item>
 
                                         <nz-form-item>
-                                            <nz-form-label [nzSpan]="4" nzRequired>资产类型</nz-form-label>
-                                            <nz-form-control [nzSpan]="20" nzHasFeedback>
-                                                    <nz-select formControlName="pType"  [(ngModel)]="selectedOption" [nzPlaceHolder]="'choose option'" nzAllowClear>
-                                                            <nz-option
-                                                              nzLabel="d1"
-                                                              nzValue="1">
-                                                            </nz-option>
-                                                            <nz-option
-                                                              nzLabel="d2"
-                                                              nzValue="2">
-                                                            </nz-option>                                                            
-                                                          </nz-select>
-   
-                                                <nz-form-explain *ngIf="basicInfoForm.get('pType').dirty && basicInfoForm.get('pType').errors || basicInfoForm.get('pType').pending ">
-                                                    <ng-container *ngIf="basicInfoForm.get('pType').hasError('required')">
-                                                        请输入资产类型！
-                                                    </ng-container>
-                                                    <ng-container *ngIf="basicInfoForm.get('pType').pending">
-                                                        验证中...
-                                                    </ng-container>
-                                            </nz-form-explain>
-                                            </nz-form-control>
-                                        </nz-form-item>
+                                                <nz-form-label [nzSpan]="4" nzRequired>土地面积</nz-form-label>
+                                                <nz-form-control [nzSpan]="20">
+                                                    <nz-input-number formControlName="pLandId" [(ngModel)]="property.landArea" [nzMin]="1" [nzMax]="1000000000" [nzStep]="0.01"></nz-input-number>
+                                                    平方米
+                                                </nz-form-control>
+                                            </nz-form-item>
 
-                                        <nz-form-item>
-                                            <nz-form-label [nzSpan]="4" nzRequired>地址</nz-form-label>
-                                            <nz-form-control [nzSpan]="20" nzHasFeedback>
-                                            <input nz-input formControlName="email" placeholder="email" type="email">
-                                            <nz-form-explain *ngIf="basicInfoForm.get('email').dirty&&basicInfoForm.get('email').errors">
-                                                <ng-container *ngIf="basicInfoForm.get('email').hasError('email')">
-                                                The input is not valid E-mail!
-                                                </ng-container>
-                                                <ng-container *ngIf="basicInfoForm.get('email').hasError('required')">
-                                                Please input your E-mail!
-                                                </ng-container>
-                                            </nz-form-explain>
-                                            </nz-form-control>
-                                        </nz-form-item>
-                                        <nz-form-item>
-                                            <nz-form-label [nzSpan]="4" nzRequired>Password</nz-form-label>
-                                            <div>
-                                            <nz-form-control [nzSpan]="20" nzHasFeedback>
-                                                <input nz-input type="password" formControlName="password" (ngModelChange)="validateConfirmPassword()">
-                                                <nz-form-explain *ngIf="basicInfoForm.get('password').dirty&&basicInfoForm.get('password').hasError('required')">Please input your password!</nz-form-explain>
-                                            </nz-form-control>
-                                            </div>
-                                        </nz-form-item>
-                            </form>   
+                                    <nz-form-item>
+                                        <nz-form-label [nzSpan]="4">备注</nz-form-label>
+                                        <nz-form-control [nzSpan]="20">
+                                            <textarea formControlName="pDescription" [(ngModel)]="property.description" nz-input placeholder="输入资产备注说明信息..." [nzAutosize]="{ minRows: 2, maxRows: 6 }"></textarea>
+                                        </nz-form-control>
+                                    </nz-form-item>
                                 </nz-card>
-                                <ng-template #extraTemplate>
-                                </ng-template>    
-                            </div>           
-                        </div>   
-                                        
-                    </div>
-                    <div class="step" id="geoInfo"  [hidden]="current!=1">
-                        <div id="map"></div>
-                    </div>
-                    <div class="step" id="filesInfo" [hidden]="current!=2">
-
-                            <div class="clearfix">
-                                    <nz-upload
-                                      nzAction="https://jsonplaceholder.typicode.com/posts/"
-                                      nzListType="picture"
-                                      [(nzFileList)]="fileList1">
-                                      <button nz-button>
-                                        <i class="anticon anticon-upload"></i><span>Upload</span>
-                                      </button>
-                                    </nz-upload>
                             </div>
 
+                            <div nz-col nzXs="12" nzSm="12" nzMd="12" nzLg="12" nzXl="12">
+                                <nz-card nzTitle="使用信息">
+
+                                    <nz-form-item>
+                                        <nz-form-label [nzSpan]="4" nzRequired>使用现状</nz-form-label>
+                                        <nz-form-control [nzSpan]="20" nzHasFeedback>
+                                            <nz-select formControlName="pCurrentTypeId" [(ngModel)]="property.currentTypeId" [nzPlaceHolder]="'请选择资产使用现状...'" nzAllowClear>
+                                                <nz-option nzLabel="自用" nzValue="0"></nz-option>
+                                                <nz-option nzLabel="拆除" nzValue="1"></nz-option>
+                                                <nz-option nzLabel="出租" nzValue="2"></nz-option>
+                                                <nz-option nzLabel="出借" nzValue="3"></nz-option>
+                                                <nz-option nzLabel="调配使用" nzValue="4"></nz-option>
+                                                <nz-option nzLabel="闲置" nzValue="5"></nz-option>
+                                            </nz-select>
+
+                                            <nz-form-explain *ngIf="basicInfoForm.get('pCurrentTypeId').dirty && basicInfoForm.get('pCurrentTypeId').errors">
+                                                <ng-container *ngIf="basicInfoForm.get('pCurrentTypeId').hasError('required')">
+                                                    请选择资产使用现状！
+                                                </ng-container>
+                                            </nz-form-explain>
+                                        </nz-form-control>
+                                    </nz-form-item>
+
+                                    <nz-form-item>
+                                        <nz-form-label [nzSpan]="4" nzRequired>用途</nz-form-label>
+                                        <nz-form-control [nzSpan]="20" nzHasFeedback>
+                                            <nz-select formControlName="pUseTypeId" [(ngModel)]="property.useTypeId" [nzPlaceHolder]="'请选择资产使用现状...'" nzAllowClear>
+                                                <nz-option nzLabel="办公" nzValue="0"></nz-option>
+                                                <nz-option nzLabel="住宅" nzValue="1"></nz-option>
+                                                <nz-option nzLabel="业务" nzValue="2"></nz-option>
+                                                <nz-option nzLabel="工业厂房" nzValue="3"></nz-option>
+                                                <nz-option nzLabel="仓储" nzValue="4"></nz-option>
+                                                <nz-option nzLabel="其他" nzValue="99"></nz-option>
+                                            </nz-select>
+
+                                            <nz-form-explain *ngIf="basicInfoForm.get('pUseTypeId').dirty && basicInfoForm.get('pUseTypeId').errors">
+                                                <ng-container *ngIf="basicInfoForm.get('pUseTypeId').hasError('required')">
+                                                    请选择资产使用现状！
+                                                </ng-container>
+                                            </nz-form-explain>
+                                        </nz-form-control>
+                                    </nz-form-item>
+                                    <nz-form-item>
+                                        <nz-form-label [nzSpan]="4" nzRequired>抵押情况</nz-form-label>
+                                        <nz-form-control [nzSpan]="20">
+                                            <nz-radio-group [(ngModel)]="property.isMortgage" formControlName="pIsMortgage">
+                                                <label nz-radio nzValue="0">已抵押</label>
+                                                <label nz-radio nzValue="1">未抵押</label>
+                                            </nz-radio-group>
+                                        </nz-form-control>
+                                    </nz-form-item>
+                                    <nz-form-item>
+                                        <nz-form-label [nzSpan]="4" nzRequired>入账情况</nz-form-label>
+                                        <nz-form-control [nzSpan]="20">
+                                            <nz-radio-group [(ngModel)]="property.isAdmission" formControlName="pIsAdmission">
+                                                <label nz-radio nzValue="0">未入账</label>
+                                                <label nz-radio nzValue="1">已入账</label>
+                                            </nz-radio-group>
+                                        </nz-form-control>
+                                    </nz-form-item>
+                                </nz-card>
+                            </div>
+
+                            <div nz-col nzXs="12" nzSm="12" nzMd="12" nzLg="12" nzXl="12">
+                                <div class="m-t-md">
+                                    <nz-card nzTitle="产权信息">
+                                            <nz-form-item>
+                                                    <nz-form-label [nzSpan]="4" nzRequired>产权单位</nz-form-label>
+                                                    <nz-form-control [nzSpan]="20" nzHasFeedback>
+                                                        <nz-select formControlName="pGovernmentId" [(ngModel)]="property.governmentId" [nzPlaceHolder]="'请选择资产产权单位...'" nzAllowClear>
+                                                            <nz-option nzLabel="自用" nzValue="0"></nz-option>
+                                                            <nz-option nzLabel="拆除" nzValue="1"></nz-option>
+                                                            <nz-option nzLabel="出租" nzValue="2"></nz-option>
+                                                            <nz-option nzLabel="出借" nzValue="3"></nz-option>
+                                                            <nz-option nzLabel="调配使用" nzValue="4"></nz-option>
+                                                            <nz-option nzLabel="闲置" nzValue="5"></nz-option>
+                                                        </nz-select>
+            
+                                                        <nz-form-explain *ngIf="basicInfoForm.get('pGovernmentId').dirty && basicInfoForm.get('pGovernmentId').errors">
+                                                            <ng-container *ngIf="basicInfoForm.get('pGovernmentId').hasError('required')">
+                                                                请选择资产产权单位！
+                                                            </ng-container>
+                                                        </nz-form-explain>
+                                                    </nz-form-control>
+                                                </nz-form-item>
+
+                                        <nz-form-item>
+                                            <nz-form-label [nzSpan]="4" nzRequired>登记方式</nz-form-label>
+                                            <nz-form-control [nzSpan]="20">
+                                                <nz-radio-group [(ngModel)]="property.registerType" formControlName="pRegisterType">
+                                                    <label nz-radio nzValue="0">不动产证</label>
+                                                    <label nz-radio nzValue="1">房产土地证</label>
+                                                </nz-radio-group>
+                                            </nz-form-control>
+                                        </nz-form-item>
+
+
+                                        <nz-form-item *ngIf="property.registerType=='0'">
+                                            <nz-form-label [nzSpan]="4" nzRequired>不动产证</nz-form-label>
+                                            <nz-form-control [nzSpan]="20">
+                                                <input nz-input formControlName="pEstateId" [(ngModel)]="property.estateId" placeholder="输入不动产证号..." type="text">
+                                                <nz-form-explain *ngIf="basicInfoForm.get('pEstateId').dirty&&basicInfoForm.get('pEstateId').errors">
+                                                    <ng-container *ngIf="basicInfoForm.get('pEstateId').hasError('required')">
+                                                        请输入资产不动产证编号！
+                                                    </ng-container>
+                                                </nz-form-explain>
+                                            </nz-form-control>
+                                        </nz-form-item>
+
+                                        <nz-form-item *ngIf="property.registerType=='0'">
+                                            <nz-form-label [nzSpan]="4" nzRequired>上证日期</nz-form-label>
+                                            <nz-form-control [nzSpan]="20">
+                                                <input nz-input formControlName="pEstateTime" [(ngModel)]="property.estateTime" placeholder="输入不动产证上证日期..." type="text">
+                                                <nz-form-explain *ngIf="basicInfoForm.get('pEstateTime').dirty&&basicInfoForm.get('pEstateTime').errors">
+                                                    <ng-container *ngIf="basicInfoForm.get('pEstateTime').hasError('required')">
+                                                        请输入不动产证上证日期！
+                                                    </ng-container>
+                                                </nz-form-explain>
+                                            </nz-form-control>
+                                        </nz-form-item>
+
+                                        <nz-form-item *ngIf="property.registerType=='1'">
+                                            <nz-form-label [nzSpan]="4" nzRequired>房产证</nz-form-label>
+                                            <nz-form-control [nzSpan]="20">
+                                                <input nz-input formControlName="pConstructId" [(ngModel)]="property.constructId" placeholder="输入房产证号..." type="text">
+                                                <nz-form-explain *ngIf="basicInfoForm.get('pConstructId').dirty&&basicInfoForm.get('pConstructId').errors">
+                                                    <ng-container *ngIf="basicInfoForm.get('pConstructId').hasError('required')">
+                                                        请输入房产证编号！
+                                                    </ng-container>
+                                                </nz-form-explain>
+                                            </nz-form-control>
+                                        </nz-form-item>
+
+                                        <nz-form-item *ngIf="property.registerType=='1'">
+                                            <nz-form-label [nzSpan]="4" nzRequired>上证日期</nz-form-label>
+                                            <nz-form-control [nzSpan]="20">
+                                                <input nz-input formControlName="pConstructTime" [(ngModel)]="property.constructTime" placeholder="输入房产证上证日期..." type="text">
+                                                <nz-form-explain *ngIf="basicInfoForm.get('pConstructTime').dirty&&basicInfoForm.get('pConstructTime').errors">
+                                                    <ng-container *ngIf="basicInfoForm.get('pConstructTime').hasError('required')">
+                                                        请输入房产证上证日期！
+                                                    </ng-container>
+                                                </nz-form-explain>
+                                            </nz-form-control>
+                                        </nz-form-item>
+
+                                        <nz-form-item *ngIf="property.registerType=='1'">
+                                            <nz-form-label [nzSpan]="4" nzRequired>土地证</nz-form-label>
+                                            <nz-form-control [nzSpan]="20">
+                                                <input nz-input formControlName="pLandId" [(ngModel)]="property.landId" placeholder="输入土地证号..." type="text">
+                                                <nz-form-explain *ngIf="basicInfoForm.get('pLandId').dirty&&basicInfoForm.get('pLandId').errors">
+                                                    <ng-container *ngIf="basicInfoForm.get('pLandId').hasError('required')">
+                                                        请输入土地证编号！
+                                                    </ng-container>
+                                                </nz-form-explain>
+                                            </nz-form-control>
+                                        </nz-form-item>
+
+                                        <nz-form-item *ngIf="property.registerType=='1'">
+                                            <nz-form-label [nzSpan]="4" nzRequired>上证日期</nz-form-label>
+                                            <nz-form-control [nzSpan]="20">
+                                                <input nz-input formControlName="pLandTime" [(ngModel)]="property.landTime" placeholder="输入土地证上证日期..." type="text">
+                                                <nz-form-explain *ngIf="basicInfoForm.get('pLandTime').dirty&&basicInfoForm.get('pLandTime').errors">
+                                                    <ng-container *ngIf="basicInfoForm.get('pLandTime').hasError('required')">
+                                                        请输入土地证上证日期！
+                                                    </ng-container>
+                                                </nz-form-explain>
+                                            </nz-form-control>
+                                        </nz-form-item>
+                                    </nz-card>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="step" id="geoInfo" [hidden]="current!=1">
+                    <div id="map"></div>
+                </div>
+                <div class="step" id="filesInfo" [hidden]="current!=2">
+
+                    <div class="clearfix">
+                        <nz-upload nzAction="https://jsonplaceholder.typicode.com/posts/" nzListType="picture" [(nzFileList)]="fileList1">
+                            <button nz-button>
+                                <i class="anticon anticon-upload"></i>
+                                <span>Upload</span>
+                            </button>
+                        </nz-upload>
                     </div>
-                    <div nz-row>
-                            <div nz-col nzAlign="center" [nzSpan]="4" [nzOffset]="16" class="text-right">              
-                                    <!-- [disabled]="!basicInfoForm.valid"   -->
-                                <button nz-button nzType="primary" (click)="pre()" *ngIf="current > 0">上一步</button>                                                                                        
-                                <button nz-button nzType="primary" (click)="next()" *ngIf="current < 3">下一步</button>    
-                                <button nz-button (click)="resetForm($event)" *ngIf="current != 3">重置</button>
-                                <button nz-button nzType="danger" (click)="done()" *ngIf="current === 3">提交保存</button>                                        
-                            </div>                                                                           
-                        </div>                    
-                </nz-card>
-                <ng-template #extraTemplate>
-                </ng-template>
-            </div>
+
+                </div>
+                <div nz-row>
+                    <div nz-col nzAlign="center" [nzSpan]="4" [nzOffset]="16" class="text-right">
+                        <!-- [disabled]="!basicInfoForm.valid"   -->
+                        <button nz-button nzType="primary" (click)="pre()" *ngIf="current > 0">上一步</button>
+                        <button nz-button nzType="primary" (click)="next()" *ngIf="current < 3">下一步</button>
+                        <button nz-button (click)="resetForm($event)" *ngIf="current != 3">重置</button>
+                        <button nz-button nzType="danger" (click)="done()" *ngIf="current === 3">提交保存</button>
+                    </div>
+                </div>
+            </nz-card>
+            <ng-template #extraTemplate>
+            </ng-template>
         </div>
     </div>
+</div>

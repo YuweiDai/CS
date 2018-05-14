@@ -39,11 +39,12 @@ export class PropertyCreateModel
     name:string;
     typeId:number;
     address:string;
-    floor?:number;
+    floor:number;
     fourToStation?:string;
     getedDate:string;
     getModelId:number;
-    isAdmission:boolean;
+    isAdmission:string;
+    registerType:string;
     estateId:string;
     etateTime:string;
     constructId:string;
@@ -55,7 +56,7 @@ export class PropertyCreateModel
     governmentId:number;
     useTypeId:number;
     currentTypeId:number;
-    isMortgage:boolean;
+    isMortgage:string;
     description:string;
     logo:string;
     logoUrl:string;
@@ -66,6 +67,14 @@ export class PropertyCreateModel
     submit:boolean;
     pictures:PropertyPictureModel[];
     files:PropertyFileModel[];
+
+    constructor(){
+        
+        this.floor=0;
+        this.registerType="0";
+        this.constructArea=1;
+        this.landArea=1;
+    }
 }
 
 //资产图片模型
