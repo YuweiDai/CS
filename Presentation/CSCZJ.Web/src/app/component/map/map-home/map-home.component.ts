@@ -36,6 +36,16 @@ export class MapHomeComponent implements OnInit {
     allChecked = false;
     indeterminate = true;
     highSearchProperty = new HighSearchProperty;
+    showCollapse=true;
+    searchProperties:any[];
+
+    panels = [
+        {
+          active    : true,
+          name      : 'This is panel header 1',
+          disabled  : false
+        }
+      ];
    
     markers = new L.MarkerClusterGroup({
         spiderfyOnMaxZoom: false,
@@ -361,7 +371,13 @@ findThisOne(option):void{
 
         this.propertyService.getHighSearchProperties(this.highSearchProperty).subscribe(response=>{
 
-            console.log(response);
+            this.showCollapse = true;
+
+            this.searchProperties = response;
+
+            
+
+            this.panels[0].name="共查询到100条记录！";
         })
 
 

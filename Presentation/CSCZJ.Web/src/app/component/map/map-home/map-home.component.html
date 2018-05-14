@@ -71,3 +71,39 @@
     </ng-template>
   </nz-popover>
 </div>
+
+
+<!-- 高级搜索返回栏内容 -->
+<div  style="position: absolute;width: 350px;z-index: 10000;top:140px;left: 10px;" *ngIf="showCollapse">
+
+  <nz-collapse >
+    <nz-collapse-panel  *ngFor="let panel of panels" [nzHeader]="panel.name" [nzActive]="panel.active" [nzDisabled]="panel.disabled">
+    <!-- <div  *ngFor="let p of searchProperties" nz-col nzSpan="24">
+    <div  style="height: 80px;">
+      <div>  
+        <p style="font-size: 16px;color: red;">{{p.name}}</p>
+        <p style="color: blue">{{p.address}}</p>
+      </div>   
+      <img src="../../assets/js/MarkerClusterGroup/房屋.png" style="position: relative;left: 200px;bottom: 80px;width: 90px;"/>
+    </div>
+    <nz-divider></nz-divider>
+   </div> -->
+  <div nz-sider *ngFor="let p of searchProperties">
+    <nz-card style="width:300px;" [nzCover]="coverTemplate" >
+      <nz-card-meta nzTitle="{{p.name}}" nzDescription="{{p.address}}" [nzAvatar]="avatarTemplate"></nz-card-meta>
+    </nz-card>
+    <ng-template #avatarTemplate>
+      <nz-avatar nzSrc="https://zos.alipayobjects.com/rmsportal/ODTLcjxAfvqbxHnVXCYX.png"></nz-avatar>
+    </ng-template>
+    <ng-template #coverTemplate>
+      <img alt="example" src="https://gw.alipayobjects.com/zos/rmsportal/JiqGstEfoWAOHiTxclqi.png"/>
+    </ng-template>
+    <nz-divider></nz-divider>
+  </div>
+
+  
+   
+    </nz-collapse-panel>
+  </nz-collapse>
+
+</div>

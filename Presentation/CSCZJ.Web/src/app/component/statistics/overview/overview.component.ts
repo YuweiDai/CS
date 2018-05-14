@@ -9,6 +9,11 @@ import { NgxEchartsModule } from 'ngx-echarts';
 })
 export class OverviewComponent implements OnInit {
   chartOption:object;
+  Baroptions:object;
+  linkoption:object;
+  datamapvalue:object;
+  mapoption:object;
+
   constructor() { }
 
   ngOnInit() {
@@ -89,6 +94,245 @@ export class OverviewComponent implements OnInit {
         }
       ]
     }
+
+   this.Baroptions = {
+      tooltip: {
+        trigger: 'item',
+        formatter: "{a} <br/>{b}: {c} ({d}%)"
+      },
+      legend: {
+        orient: 'vertical',
+        x: 'left',
+        data: ['直达', '营销广告', '搜索引擎', '邮件营销', '联盟广告', '视频广告', '百度', '谷歌', '必应', '其他']
+      },
+      series: [
+        {
+          name: '访问来源',
+          type: 'pie',
+          selectedMode: 'single',
+          radius: [0, '30%'],
+  
+          label: {
+            normal: {
+              position: 'inner'
+            }
+          },
+          labelLine: {
+            normal: {
+              show: false
+            }
+          },
+          data: [
+            { value: 335, name: '直达', selected: true },
+            { value: 679, name: '营销广告' },
+            { value: 1548, name: '搜索引擎' }
+          ]
+        },
+        {
+          name: '访问来源',
+          type: 'pie',
+          radius: ['40%', '55%'],
+  
+          data: [
+            { value: 335, name: '直达' },
+            { value: 310, name: '邮件营销' },
+            { value: 234, name: '联盟广告' },
+            { value: 135, name: '视频广告' },
+            { value: 1048, name: '百度' },
+            { value: 251, name: '谷歌' },
+            { value: 147, name: '必应' },
+            { value: 102, name: '其他' }
+          ]
+        }
+      ]
+    }
+  
+  
+  
+   this.linkoption = {
+      title: {
+        text: '懒猫今日访问量'
+      },
+      color: ['#3398DB'],
+      //气泡提示框，常用于展现更详细的数据
+      tooltip: {
+        trigger: 'axis',
+        axisPointer: { // 坐标轴指示器，坐标轴触发有效
+          type: 'shadow' // 默认为直线，可选为：'line' | 'shadow'
+        }
+      },
+      toolbox: {
+        show: true,
+        feature: {
+          //显示缩放按钮
+          dataZoom: {
+            show: true
+          },
+          //显示折线和块状图之间的切换
+          magicType: {
+            show: true,
+            type: ['bar', 'line']
+          },
+          //显示是否还原
+          restore: {
+            show: true
+          },
+          //是否显示图片
+          saveAsImage: {
+            show: true
+          }
+        }
+      },
+      grid: {
+        left: '3%',
+        right: '4%',
+        bottom: '3%',
+        containLabel: true
+      },
+      xAxis: [{
+        type: 'category',
+        data: [21231,1212,21231,3213],
+        axisTick: {
+          alignWithLabel: true
+        },
+        axisLabel: {
+          interval: 0,
+          rotate: 20
+        },
+      }],
+      yAxis: [{
+        name: "懒猫今日访问量",
+        type: 'value'
+      }],
+      series: [{
+        name: '今日访问次数',
+        type: 'bar',
+        barWidth: '60%',
+        label: {
+          normal: {
+            show: true
+          }
+        },
+        data:[21231,1212,21231,3213]
+      }]
+    }
+  
+  
+   this.datamapvalue = [
+         {name: '海门', value: [121.15,31.89,9]},
+         {name: '鄂尔多斯', value: [109.781327,39.608266,12]},
+         {name: '招远', value: [120.38,37.35,12]},
+         {name: '舟山', value: [122.207216,29.985295,12]},
+         {name: '齐齐哈尔', value: [123.97,47.33,14]},
+         {name: '盐城', value: [120.13,33.38,15]},
+         {name: '赤峰', value: [118.87,42.28,16]},
+         {name: '青岛', value: [120.33,36.07,18]},
+         {name: '乳山', value: [121.52,36.89,18]},
+         {name: '金昌', value: [102.188043,38.520089,19]}
+     ];
+  
+  
+   this.mapoption = {
+      backgroundColor: '#404a59',
+      title: {
+        text: '全国主要城市空气质量',
+        subtext: 'data from PM25.in',
+        sublink: 'http://www.pm25.in',
+        left: 'center',
+        textStyle: {
+          color: '#fff'
+        }
+      },
+      tooltip: {
+        trigger: 'item'
+      },
+      legend: {
+        orient: 'vertical',
+        y: 'bottom',
+        x: 'right',
+        data: ['pm2.5'],
+        textStyle: {
+          color: '#fff'
+        }
+      },
+      geo: {
+        map: 'china',
+        label: {
+          emphasis: {
+            show: false
+          }
+        },
+        roam: true,
+        itemStyle: {
+          normal: {
+            areaColor: '#323c48',
+            borderColor: '#111'
+          },
+          emphasis: {
+            areaColor: '#2a333d'
+          }
+        }
+      },
+      series: [
+        {
+          name: 'pm2.5',
+          type: 'scatter',
+          coordinateSystem: 'geo',
+          data: this.datamapvalue,
+          symbolSize: function (val) {
+            return val[2] / 10;
+          },
+          label: {
+            normal: {
+              formatter: '{b}',
+              position: 'right',
+              show: false
+            },
+            emphasis: {
+              show: true
+            }
+          },
+          itemStyle: {
+            normal: {
+              color: '#ddb926'
+            }
+          }
+        },
+        {
+          name: 'Top 5',
+          type: 'effectScatter',
+          coordinateSystem: 'geo',
+          data: this.datamapvalue,
+          symbolSize: function (val) {
+            return val[2] / 10;
+          },
+          showEffectOn: 'render',
+          rippleEffect: {
+            brushType: 'stroke'
+          },
+          hoverAnimation: true,
+          label: {
+            normal: {
+              formatter: '{b}',
+              position: 'right',
+              show: true
+            }
+          },
+          itemStyle: {
+            normal: {
+              color: '#f4e925',
+              shadowBlur: 10,
+              shadowColor: '#333'
+            }
+          },
+          zlevel: 1
+        }
+      ]
+    }
+  
+
+
+
   }
 
 }

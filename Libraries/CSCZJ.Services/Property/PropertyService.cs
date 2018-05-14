@@ -992,13 +992,7 @@ namespace CSCZJ.Services.Properties
             #endregion
 
             if (regionList.Count != 0)  expression = expression.And(p => regionList.Contains((int)p.Region));
-            //if (regionList.Count != 0) {
-            //    if(regionList.Contains(0)) expression = expression.And(p => p.Region == Region.TMZ);
-            //    else if(regionList.Contains(1)) expression = expression.Or(p => p.Region == Region.ZSZ);
-            //    else if (regionList.Contains(2)) expression = expression.Or(p => p.Region == Region.HBZ);
-            //    else if (regionList.Contains(3)) expression = expression.Or(p => p.Region == Region.SBZ);
 
-            //}
             if (currentList.Count != 0) expression = expression.And(p => currentList.Contains((int)p.CurrentType));
 
             if (rightList.Count != 0) {
