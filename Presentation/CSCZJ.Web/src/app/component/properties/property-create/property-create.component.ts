@@ -86,12 +86,38 @@ export class PropertyCreateComponent implements OnInit {
 
   constructor(private fb: FormBuilder,private mapService:MapService,) {
     this.basicInfoForm = this.fb.group({
-      propertyName: [ '', [ Validators.required ], [ this.propertyNameAsyncValidator ] ],
+      pName: [ '', [ Validators.required ], [ this.propertyNameAsyncValidator ] ],      
+      pType:['',[Validators.required]],
+      pAddress:['',[Validators.required]],
+      pFloor:[''],
+      pFourToStation:[''],      
+      pGetedDate:['',[Validators.required]],
+      pGetModelId:['',[Validators.required]],
+      pIsAdmission:['',[Validators.required]],
+      //产权信息
+      pEstateId:[''],
+      pEstateTime:[''],
+      pConstructId:[''],
+      pConstructArea:[''],
+      pConstructTime:[''],
+      pLandId:[''],
+      pLandArea:[''],
+      pLandTime:[''],
+      
+      pGovernmentId:['',[Validators.required]],
+      pUseTypeId:['',[Validators.required]],
+      pCurrentTypeId:['',[Validators.required]],
+      pIsMortgage:['',[Validators.required]],                  
+
+      pDescription:['',[Validators.required]],
+      pLogo:['',[Validators.required]],
+      pLocation:['',[Validators.required]],
+      pExtent:['',[Validators.required]],   
+
       email   : [ '', [ Validators.email ] ],
       password: [ '', [ Validators.required ] ],
       confirm : [ '', [ this.confirmValidator ] ],
       comment : [ '', [ Validators.required ] ],
-      pType:['',[Validators.required]]
     });
   }
 

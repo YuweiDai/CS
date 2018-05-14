@@ -34,7 +34,59 @@ export class Property extends PropertyListItem {
 }
 
 //新建资产对象
-export class PropertyCreate 
+export class PropertyCreateModel
 {
+    name:string;
+    typeId:number;
+    address:string;
+    floor?:number;
+    fourToStation?:string;
+    getedDate:string;
+    getModelId:number;
+    isAdmission:boolean;
+    estateId:string;
+    etateTime:string;
+    constructId:string;
+    constructArea:number;
+    constructTime:string;
+    landId:string;
+    landArea:number;
+    landTime:string;
+    governmentId:number;
+    useTypeId:number;
+    currentTypeId:number;
+    isMortgage:boolean;
+    description:string;
+    logo:string;
+    logoUrl:string;
+    logoPictureId:number;
+    location:string;
+    extent:string;
+    usedPeople:string;
+    submit:boolean;
+    pictures:PropertyPictureModel[];
+    files:PropertyFileModel[];
+}
 
+//资产图片模型
+export class PropertyPictureModel
+{
+    pictureId:number;
+    propertyId:number;
+    displayOrder:number;
+    title:string;
+    href:string;
+    isLogo:boolean;
+}
+
+//资产文件模型
+export class PropertyFileModel
+{
+    fileId:number;
+    propertyId:number;
+    displayOrder:number;
+    title:string;
+    src:string;
+    percentage:number;
+    uploaded:boolean;
 }
