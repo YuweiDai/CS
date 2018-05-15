@@ -1,6 +1,7 @@
 /* You can add global styles to this file, and also import other style files */
 @import "../node_modules/ng-zorro-antd/src/ng-zorro-antd.less";
 @import 'http://at.alicdn.com/t/font_642111_4y2j274ykt162yb9.css';
+@import "~ng-pick-datetime/assets/style/picker.min.css";
 
 * {
   -webkit-box-sizing: border-box;
@@ -120,7 +121,10 @@ html, body {
   {
       text-align: right;
   }
-
+  .m-t-md
+  {
+    margin-top: 15px;
+  }
   .m-b-md
   {
     margin-bottom: 15px;
@@ -136,10 +140,10 @@ html, body {
   }  
 
   // userinfo 退出下来 强制修改top值
-  #cdk-overlay-2
-  {
-    top: 85px !important;
-  }
+  // #cdk-overlay-2
+  // {
+  //   top: 85px !important;
+  // }
 
 
   .ant-table-column-sorter

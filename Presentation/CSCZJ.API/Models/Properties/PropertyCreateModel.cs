@@ -48,7 +48,7 @@ namespace CSCZJ.API.Models.Properties
         /// <summary>
         /// 不动产证发证时间
         /// </summary>
-        public DateTime? EstateTime { get; set; }
+        public string EstateTime { get; set; }
 
         /// <summary>
         /// 房产证
@@ -63,7 +63,7 @@ namespace CSCZJ.API.Models.Properties
         /// <summary>
         /// 房产证发证时间
         /// </summary>
-        public DateTime ConstructTime { get; set; }
+        public string ConstructTime { get; set; }
 
         /// <summary>
         /// 土地证号
@@ -75,7 +75,7 @@ namespace CSCZJ.API.Models.Properties
         /// </summary>
         public double LandArea { get; set; }
 
-        public DateTime LandTime { get; set; }
+        public string LandTime { get; set; }
 
         public int GovernmentId { get; set; }
 
