@@ -36,9 +36,20 @@ export class MapHomeComponent implements OnInit {
     allChecked = false;
     indeterminate = true;
     highSearchProperty = new HighSearchProperty;
-    showCollapse=true;
+    showCollapse=false;
     searchProperties:any[];
-
+    perfectScrollbarConfig:{};
+    containerHeight=100;
+    visible: boolean;
+    house = L.icon({
+        iconUrl: '../../assets/js/MarkerClusterGroup/house.png',
+        iconAnchor: [12, 12],
+    });
+    land = L.icon({
+        iconUrl: '../../assets/js/MarkerClusterGroup/land.png',
+        iconAnchor: [12, 12],
+    });
+    
     panels = [
         {
           active    : true,
@@ -111,6 +122,8 @@ export class MapHomeComponent implements OnInit {
       
 
     constructor(private mapService: MapService, private layoutService: LayoutService,private propertyService:PropertyService) {
+        this.containerHeight=layoutService.getActualScreenSize().height;
+        this.containerHeight=layoutService.getContentHeight()-200; 
     }
 
 
@@ -211,25 +224,18 @@ findThisOne(option):void{
      this.markers.clearLayers();
      this.propertyService.getPropertyById(option.id).subscribe(property=>{
      var response = property;
-         var house = L.icon({
-                        iconUrl: '../../assets/js/MarkerClusterGroup/house.png',
-                        iconAnchor: [12, 12],
-                    });
-         var land = L.icon({
-                        iconUrl: '../../assets/js/MarkerClusterGroup/land.png',
-                        iconAnchor: [12, 12],
-                    });
+   
          var points = response.location.split(' ');
          if(response.propertyType=="房屋"){
             
             var m = new L.marker(new L.LatLng (points[2].substring(0,points[2].length-1),points[1].substring(1,points[1].length-1)),{
-                 icon:house
+                 icon:this.house
              }).bindTooltip(response.name,{permanent:true,direction:"top",offset:[0,-15]});                      
             this.markers.addLayer(m);
            }
            else{
             var m = new L.marker(new L.LatLng (points[2].substring(0,points[2].length-1),points[1].substring(1,points[1].length)),{
-                icon:land
+                icon:this.land
             }).bindTooltip(response.name,{permanent:true,direction:"top",offset:[0,-15]});   
           this.map.setView([points[2].substring(0,points[2].length-1),points[1].substring(1,points[1].length-1)],16);
            this.markers.addLayer(m);
@@ -239,7 +245,7 @@ findThisOne(option):void{
 
      })
 
-}
+};
 
 
     panTo(): any {
@@ -254,14 +260,7 @@ findThisOne(option):void{
     }
     //获取地图大数据
     getMapProperties(markers): void {
-        var house = L.icon({
-            iconUrl: '../../assets/js/MarkerClusterGroup/house.png',
-            iconAnchor: [12, 12],
-        });
-        var land = L.icon({
-            iconUrl: '../../assets/js/MarkerClusterGroup/land.png',
-            iconAnchor: [12, 12],
-        });
+    
         var ps = [];
       
         this.propertyService.getAllPropertiesInMap()
@@ -273,14 +272,14 @@ findThisOne(option):void{
                     this.properties.forEach(element => {
                    if(element.propertyType=="房屋"){
                     var m = new L.marker(new L.LatLng (element.x,element.y),{
-                         icon:house
+                         icon:this.house
                      },{propertyid:element.id}).bindTooltip(element.name,{permanent:true,direction:"top",offset:[0,-15]});                      
                      markers.addLayer(m);
                    }
 
                    else{
                     var m = new L.marker(new L.LatLng (element.x,element.y),{
-                        icon:land
+                        icon:this.land
                     }).bindTooltip(element.name,{permanent:true,direction:"top",offset:[0,-15]});                           
                     markers.addLayer(m);
 
@@ -290,7 +289,7 @@ findThisOne(option):void{
                 }
             });      
                        
-    }
+    };
 
     //高级搜索提交
     Submit(): void {
@@ -374,10 +373,27 @@ findThisOne(option):void{
             this.showCollapse = true;
 
             this.searchProperties = response;
+            this.markers.clearLayers();
 
-            
+           this.searchProperties.forEach(element => {
+           if(element.propertyType=="房屋"){
+            var m = new L.marker(new L.LatLng (element.x,element.y),{
+                 icon:this.house
+             },{propertyid:element.id}).bindTooltip(element.name,{permanent:true,direction:"top",offset:[0,-15]});                      
+            this.markers.addLayer(m);
+           }
 
-            this.panels[0].name="共查询到100条记录！";
+           else{
+            var m = new L.marker(new L.LatLng (element.x,element.y),{
+                icon:this.land
+            }).bindTooltip(element.name,{permanent:true,direction:"top",offset:[0,-15]});                           
+           this.markers.addLayer(m);
+
+           }
+                
+            });    
+
+            this.panels[0].name="共查询到"+this.searchProperties.length +"条记录！";
         })
 
 
@@ -385,7 +401,9 @@ findThisOne(option):void{
       }
     
     
-
+      Close() {
+        this.visible = false;
+      }
 
 
 }

@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
-
-import { NgxEchartsModule } from 'ngx-echarts';
+import { HttpClient } from '@angular/common/http';
+import { NgxEchartsModule,NgxEchartsService } from 'ngx-echarts';
+//import { NgxEchartsService } from '../../../../service/ngx-echarts.service';
 
 @Component({
   selector: 'app-overview',
@@ -9,23 +10,27 @@ import { NgxEchartsModule } from 'ngx-echarts';
 })
 export class OverviewComponent implements OnInit {
   chartOption:object;
-  Baroptions:object;
   linkoption:object;
-  datamapvalue:object;
-  mapoption:object;
+  linkoption1:object;
+  barOption:object;
+  mapOption:object;
+  mapLoaded = false;
 
-  constructor() { }
+  constructor(private http: HttpClient,private es: NgxEchartsService) { }
 
   ngOnInit() {
+    //加载叠域图
     this.chartOption = {
       title: {
-        text: '堆叠区域图'
+        text: '单位出租面积堆叠区域图',
+        x: 'center'
       },
       tooltip : {
         trigger: 'axis'
       },
       legend: {
-        data:['邮件营销','联盟广告','视频广告','直接访问','搜索引擎']
+        data:['公路管理局','道路运输管理所','人力资源和社会保障局','交通运输局','粮食收储公司'],
+        right:'5%'
       },
       toolbox: {
         feature: {
@@ -33,8 +38,8 @@ export class OverviewComponent implements OnInit {
         }
       },
       grid: {
-        left: '3%',
-        right: '4%',
+        left: '0%',
+        right: '0%',
         bottom: '3%',
         containLabel: true
       },
@@ -42,7 +47,7 @@ export class OverviewComponent implements OnInit {
         {
           type : 'category',
           boundaryGap : false,
-          data : ['周一','周二','周三','周四','周五','周六','周日']
+          data : ['一月','二月','三月','四月','五月','六月','七月','八月','九月','十月','十一月','十二月']
         }
       ],
       yAxis : [
@@ -52,35 +57,35 @@ export class OverviewComponent implements OnInit {
       ],
       series : [
         {
-          name:'邮件营销',
+          name:'公路管理局',
           type:'line',
           stack: '总量',
           areaStyle: {normal: {}},
-          data:[120, 132, 101, 134, 90, 230, 210]
+          data:[120, 132, 101, 134, 90, 230, 210,80,100,110,150,320]
         },
         {
-          name:'联盟广告',
+          name:'道路运输管理所',
           type:'line',
           stack: '总量',
           areaStyle: {normal: {}},
-          data:[220, 182, 191, 234, 290, 330, 310]
+          data:[220, 182, 191, 234, 290, 330, 310,500,200,100,120,130]
         },
         {
-          name:'视频广告',
+          name:'人力资源和社会保障局',
           type:'line',
           stack: '总量',
           areaStyle: {normal: {}},
-          data:[150, 232, 201, 154, 190, 330, 410]
+          data:[150, 232, 201, 154, 190, 330, 410,100,110,120,130,150]
         },
         {
-          name:'直接访问',
+          name:'交通运输局',
           type:'line',
           stack: '总量',
           areaStyle: {normal: {}},
-          data:[320, 332, 301, 334, 390, 330, 320]
+          data:[320, 332, 301, 334, 390, 330, 320,200,240,210,200,260]
         },
         {
-          name:'搜索引擎',
+          name:'粮食收储公司',
           type:'line',
           stack: '总量',
           label: {
@@ -90,68 +95,16 @@ export class OverviewComponent implements OnInit {
             }
           },
           areaStyle: {normal: {}},
-          data:[820, 932, 901, 934, 1290, 1330, 1320]
+          data:[820, 932, 901, 934, 1290, 1330, 1320,1000,1500,1200,1280,1520]
         }
       ]
-    }
-
-   this.Baroptions = {
-      tooltip: {
-        trigger: 'item',
-        formatter: "{a} <br/>{b}: {c} ({d}%)"
-      },
-      legend: {
-        orient: 'vertical',
-        x: 'left',
-        data: ['直达', '营销广告', '搜索引擎', '邮件营销', '联盟广告', '视频广告', '百度', '谷歌', '必应', '其他']
-      },
-      series: [
-        {
-          name: '访问来源',
-          type: 'pie',
-          selectedMode: 'single',
-          radius: [0, '30%'],
-  
-          label: {
-            normal: {
-              position: 'inner'
-            }
-          },
-          labelLine: {
-            normal: {
-              show: false
-            }
-          },
-          data: [
-            { value: 335, name: '直达', selected: true },
-            { value: 679, name: '营销广告' },
-            { value: 1548, name: '搜索引擎' }
-          ]
-        },
-        {
-          name: '访问来源',
-          type: 'pie',
-          radius: ['40%', '55%'],
-  
-          data: [
-            { value: 335, name: '直达' },
-            { value: 310, name: '邮件营销' },
-            { value: 234, name: '联盟广告' },
-            { value: 135, name: '视频广告' },
-            { value: 1048, name: '百度' },
-            { value: 251, name: '谷歌' },
-            { value: 147, name: '必应' },
-            { value: 102, name: '其他' }
-          ]
-        }
-      ]
-    }
-  
-  
-  
-   this.linkoption = {
+    };
+ 
+  //加载柱状图
+    this.linkoption = {
       title: {
-        text: '懒猫今日访问量'
+        text: '单位房产面积柱形图',
+        x: 'center'
       },
       color: ['#3398DB'],
       //气泡提示框，常用于展现更详细的数据
@@ -191,7 +144,7 @@ export class OverviewComponent implements OnInit {
       },
       xAxis: [{
         type: 'category',
-        data: [21231,1212,21231,3213],
+        data: ['交通运输局','公路管理局','运输管理所','人力社保社保局'],
         axisTick: {
           alignWithLabel: true
         },
@@ -201,13 +154,13 @@ export class OverviewComponent implements OnInit {
         },
       }],
       yAxis: [{
-        name: "懒猫今日访问量",
+        name: "房产总面积",
         type: 'value'
       }],
       series: [{
-        name: '今日访问次数',
+        name: '房产总面积',
         type: 'bar',
-        barWidth: '60%',
+        barWidth: '40%',
         label: {
           normal: {
             show: true
@@ -215,121 +168,182 @@ export class OverviewComponent implements OnInit {
         },
         data:[21231,1212,21231,3213]
       }]
-    }
+    };
   
-  
-   this.datamapvalue = [
-         {name: '海门', value: [121.15,31.89,9]},
-         {name: '鄂尔多斯', value: [109.781327,39.608266,12]},
-         {name: '招远', value: [120.38,37.35,12]},
-         {name: '舟山', value: [122.207216,29.985295,12]},
-         {name: '齐齐哈尔', value: [123.97,47.33,14]},
-         {name: '盐城', value: [120.13,33.38,15]},
-         {name: '赤峰', value: [118.87,42.28,16]},
-         {name: '青岛', value: [120.33,36.07,18]},
-         {name: '乳山', value: [121.52,36.89,18]},
-         {name: '金昌', value: [102.188043,38.520089,19]}
-     ];
-  
-  
-   this.mapoption = {
-      backgroundColor: '#404a59',
+  //加载柱状图1
+    this.linkoption1 = {
       title: {
-        text: '全国主要城市空气质量',
-        subtext: 'data from PM25.in',
-        sublink: 'http://www.pm25.in',
-        left: 'center',
-        textStyle: {
-          color: '#fff'
+        text: '单位土地面积柱形图',
+        x: 'center'
+      },
+      color: ['#30a0aa'],
+      //气泡提示框，常用于展现更详细的数据
+      tooltip: {
+        trigger: 'axis',
+        axisPointer: { // 坐标轴指示器，坐标轴触发有效
+          type: 'shadow' // 默认为直线，可选为：'line' | 'shadow'
         }
+      },
+      toolbox: {
+        show: true,
+        feature: {
+          //显示缩放按钮
+          dataZoom: {
+            show: true
+          },
+          //显示折线和块状图之间的切换
+          magicType: {
+            show: true,
+            type: ['bar', 'line']
+          },
+          //显示是否还原
+          restore: {
+            show: true
+          },
+          //是否显示图片
+          saveAsImage: {
+            show: true
+          }
+        }
+      },
+      grid: {
+        left: '3%',
+        right: '4%',
+        bottom: '3%',
+        containLabel: true
+      },
+      xAxis: [{
+        type: 'category',
+        data: ['交通运输局','公路管理局','运输管理所','人力社保社保局'],
+        axisTick: {
+          alignWithLabel: true
+        },
+        axisLabel: {
+          interval: 0,
+          rotate: 20
+        },
+      }],
+      yAxis: [{
+        name: "房产总面积",
+        type: 'value'
+      }],
+      series: [{
+        name: '房产总面积',
+        type: 'bar',
+        barWidth: '40%',
+        label: {
+          normal: {
+            show: true
+          }
+        },
+        data:[11000,25421,1500,5632]
+      }]
+    };
+   //加载饼状图
+    this.barOption = {
+      title: {
+        text: '使用现状饼状图',
+        subtext: '单位为资产数量',
+        x: 'center'
       },
       tooltip: {
-        trigger: 'item'
+        trigger: 'item',
+        formatter: '{a} <br/>{b} : {c} ({d}%)'
       },
       legend: {
-        orient: 'vertical',
+        x: 'center',
         y: 'bottom',
-        x: 'right',
-        data: ['pm2.5'],
-        textStyle: {
-          color: '#fff'
-        }
+        data: ['自用', '出租', '出借', '拆除', '调配使用', '闲置']
       },
-      geo: {
-        map: 'china',
-        label: {
-          emphasis: {
-            show: false
-          }
-        },
-        roam: true,
-        itemStyle: {
-          normal: {
-            areaColor: '#323c48',
-            borderColor: '#111'
-          },
-          emphasis: {
-            areaColor: '#2a333d'
-          }
-        }
-      },
+      calculable: true,
       series: [
         {
-          name: 'pm2.5',
-          type: 'scatter',
-          coordinateSystem: 'geo',
-          data: this.datamapvalue,
-          symbolSize: function (val) {
-            return val[2] / 10;
-          },
-          label: {
-            normal: {
-              formatter: '{b}',
-              position: 'right',
-              show: false
-            },
-            emphasis: {
-              show: true
-            }
-          },
-          itemStyle: {
-            normal: {
-              color: '#ddb926'
-            }
-          }
-        },
-        {
-          name: 'Top 5',
-          type: 'effectScatter',
-          coordinateSystem: 'geo',
-          data: this.datamapvalue,
-          symbolSize: function (val) {
-            return val[2] / 10;
-          },
-          showEffectOn: 'render',
-          rippleEffect: {
-            brushType: 'stroke'
-          },
-          hoverAnimation: true,
-          label: {
-            normal: {
-              formatter: '{b}',
-              position: 'right',
-              show: true
-            }
-          },
-          itemStyle: {
-            normal: {
-              color: '#f4e925',
-              shadowBlur: 10,
-              shadowColor: '#333'
-            }
-          },
-          zlevel: 1
+          name: '使用现状',
+          type: 'pie',
+          radius: [50, 110],
+          roseType: 'area',
+          data: [
+            { value: 350, name: '自用' },
+            { value: 250, name: '出租' },
+            { value: 150, name: '出借' },
+            { value: 50, name: '拆除' },
+            { value: 200, name: '调配使用' },
+            { value: 100, name: '闲置' }
+
+          ]
         }
       ]
-    }
-  
+    };
+    console.log(123);
+//加载地图图表
+this.http.get('../../../../assets/js/JS.json').subscribe(geoJson=>{
+
+  this.mapLoaded = true;
+  // register map:
+  this.es.registerMap('江山', geoJson);
+
+  this.mapOption={
+    title: {
+      text: '乡镇区域分布（建筑面积）',
+      x:'center' 
+    },
+    tooltip: {
+      trigger: 'item',
+      formatter: '{b}<br/>{c} (平方米)'
+    },
+    toolbox: {
+      show: true,
+      orient: 'vertical',
+      left: 'right',
+      top: 'center',
+      feature: {
+        dataView: { readOnly: false },
+        restore: {},
+        saveAsImage: {}
+      }
+    },
+    visualMap: {
+      min: 800,
+      max: 50000,
+      text: ['High', 'Low'],
+      realtime: false,
+      calculable: true,
+      inRange: {
+        color: ['lightskyblue', 'yellow', 'orangered']
+      }
+    },
+    series: [
+      {
+        name: '江山区域分布',
+        type: 'map',
+        mapType: '江山', // map type should be registered
+        itemStyle: {
+          normal: { label: { show: true } },
+          emphasis: { label: { show: true } }
+        },
+        data: [
+          { name: '贺村供电所', value: 20057.34 },
+          { name: '长台供电所', value: 15477.48 },
+          { name: '峡口供电所', value: 31686.1 },
+          { name: '城区供电所', value: 6992.6 },
+          { name: '须江供电所', value: 44045.49 }     
+        ],
+        nameMap: {
+          '贺村供电所': '贺村供电所',
+          '长台供电所': '长台供电所',
+          '峡口供电所': '峡口供电所',
+          '城区供电所': '城区供电所',
+          '须江供电所': '须江供电所'          
+        }
+      }
+    ]
+
+  }
+
+
+})
+
+
 
 
 
