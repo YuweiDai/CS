@@ -15,6 +15,7 @@ import { PropertyCreateModel } from '../../../viewModels/Properties/property';im
 
 import { MapService } from '../../../services/map/mapService';
 import { PropertyService } from '../../../services/propertyService';
+import { GovernmentService } from '../../../services/governmentService';
 
 declare var L:any;
 
@@ -98,7 +99,18 @@ export class PropertyCreateComponent implements OnInit {
   private current:number;
   private property=new PropertyCreateModel();
   private map:any;
-
+  private basicFormValidateConfig={
+    floorRequired:false,
+    constructAreaRequired:false,  
+    estateIdRequired:true,
+    estateTimeRequired:true,
+    constructIdRequired:false,
+    constructTimeRequired:false,
+    landIdRequired:false,
+    landTimeRequired:false,
+  };
+  private isGovernmentLoading=false;
+  optionList = [];
   defaultFileList = [
     {
       uid: -1,
@@ -143,8 +155,11 @@ export class PropertyCreateComponent implements OnInit {
 
 
 
-  constructor(private fb: FormBuilder,private mapService:MapService,private propertyService:PropertyService) {
+  constructor(private fb: FormBuilder,private mapService:MapService,
+    private propertyService:PropertyService,
+    private governmentService:GovernmentService) {
    
+
     this.basicInfoForm = this.fb.group({
       pName: [ '', [ Validators.required ], [ this.propertyNameAsyncValidator ] ],      
       pType:['',[Validators.required]],
@@ -180,75 +195,142 @@ export class PropertyCreateComponent implements OnInit {
 
 
   //#region 验证相关
-
-  //名称验证
-  // propertyNameAsyncValidator(control: FormControl):ValidationErrors{
-  //   console.log(this.propertyService);
-
-  //   // this.propertyService.nameValidate(control.value).subscribe(exsit=>{
-  //   //   if(exsit)return { error: true, duplicated: true };      
-  //   //   else return null;    
-  //   // });
-
-  //   return null;
-  // } 
-
-  propertyNameAsyncValidator(nameRe: RegExp): ValidatorFn {
-    var that=this;
-    return (control: FormControl): {[key: string]: any} => {
-      that.propertyService.nameValidate(control.value).subscribe(exsit=>{
-        console.log(exsit);
-        if(exsit)return { error: true, duplicated: true };      
-        else return null;    
-      });
-
-      return null;
-      // const forbidden = nameRe.test(control.value);
-      // return forbidden ? {'forbiddenName': {value: control.value}} : null;
-    };
-
-
-  }  
-
-//   propertyNameAsyncValidator = (control: FormControl) =>{ 
-//      var that=this;
-
-//     Observable.create(
- 
-//      (observer: Observer<ValidationErrors>) => {
-// console.log("123");
-//       // that.propertyService.nameValidate(control.value).subscribe(exsit=>{
-//       //   console.log(exsit);
-//       //   if(exsit)return { error: true, duplicated: true };      
-//       //   else return null;    
-//       // });
-//     setTimeout(() => {
-//       if (control.value === 'JasonWood') {
-//         observer.next({ error: true, duplicated: true });
-//       } else {
-//         observer.next(null);
-//       }
-//       observer.complete();
-//     }, 1000);
-//     }
-//   ) 
-// }
   
-  // Observable.create((observer: Observer<ValidationErrors>) => {
+  //名称验证
+  propertyNameAsyncValidator = (control: FormControl) =>{
+    var that=this;
+    return Observable.create((observer: Observer<ValidationErrors>) => {
 
+      that.propertyService.nameValidate(control.value).subscribe(response=>{
+        if (response) {
+          observer.next({ error: true, duplicated: true });
+        } else {
+          observer.next(null);
+        }
+        observer.complete();
+      });
+    })  
+  }
 
-  //   setTimeout(() => {
-  //     if (control.value === 'JasonWood') {
-  //       observer.next({ error: true, duplicated: true });
-  //     } else {
-  //       observer.next(null);
-  //     }
-  //     observer.complete();
-  //   }, 1000);
-  // })
+  //资产类别变化引起的表单验证切换
+  propertyTypeValidateSwicher():void{
+    if(this.property.typeId==0)
+    {
+      this.basicInfoForm.get('pFloor').setValidators(Validators.required);
+      this.basicInfoForm.get('pFloor').markAsDirty();
+      this.basicFormValidateConfig.floorRequired=true;
+      
+      this.basicInfoForm.get('pConstructArea').setValidators(Validators.required);
+      this.basicInfoForm.get('pConstructArea').markAsDirty();
+      this.basicFormValidateConfig.constructAreaRequired=true;
+
+      if(this.property.registerType=='1')
+      {
+        this.basicInfoForm.get('pConstructId').setValidators(Validators.required);
+        this.basicInfoForm.get('pConstructId').markAsDirty();
+        this.basicFormValidateConfig.constructIdRequired=true;
+        
+        this.basicInfoForm.get('pConstructTime').setValidators(Validators.required);
+        this.basicInfoForm.get('pConstructTime').markAsDirty();
+        this.basicFormValidateConfig.constructTimeRequired=true;
+      }    
+
+    } else {
+      this.basicInfoForm.get('pFloor').clearValidators();
+      this.basicInfoForm.get('pFloor').markAsPristine();
+      this.basicFormValidateConfig.floorRequired=false;
+
+      this.basicInfoForm.get('pConstructArea').clearValidators();
+      this.basicInfoForm.get('pConstructArea').markAsPristine();
+      this.basicFormValidateConfig.floorRequired=false;  
+      
+      if(this.property.registerType=='1')
+      {
+        this.basicInfoForm.get('pConstructId').clearValidators();
+        this.basicInfoForm.get('pConstructId').markAsPristine();
+        this.basicFormValidateConfig.constructIdRequired=false;
+        
+        this.basicInfoForm.get('pConstructTime').clearValidators();
+        this.basicInfoForm.get('pConstructTime').markAsPristine();
+        this.basicFormValidateConfig.constructTimeRequired=false;
+      }      
+    }    
+
+    this.basicInfoForm.get('pFloor').updateValueAndValidity();
+    this.basicInfoForm.get('pConstructArea').updateValueAndValidity();
+    this.basicInfoForm.get('pConstructId').updateValueAndValidity();
+    this.basicInfoForm.get('pConstructTime').updateValueAndValidity();    
+  }
+
+  //登记类型变化引起的表单验证切换
+  registerTypeValidateSwicher():void{
+    if(this.property.registerType=='1')
+    {
+      if(this.property.typeId==0)
+      {
+        this.basicInfoForm.get('pConstructId').setValidators(Validators.required);
+        this.basicInfoForm.get('pConstructId').markAsDirty();
+        this.basicFormValidateConfig.constructIdRequired=true;
+        
+        this.basicInfoForm.get('pConstructTime').setValidators(Validators.required);
+        this.basicInfoForm.get('pConstructTime').markAsDirty();
+        this.basicFormValidateConfig.constructTimeRequired=true;
+      }
+      else
+      {
+        this.basicInfoForm.get('pConstructId').clearValidators();
+        this.basicInfoForm.get('pConstructId').markAsPristine();
+        this.basicFormValidateConfig.constructIdRequired=false;
+        
+        this.basicInfoForm.get('pConstructTime').clearValidators();
+        this.basicInfoForm.get('pConstructTime').markAsPristine();
+        this.basicFormValidateConfig.constructTimeRequired=false;
+      }
+
+      this.basicInfoForm.get('pLandId').setValidators(Validators.required);
+      this.basicInfoForm.get('pLandId').markAsDirty();
+      this.basicFormValidateConfig.landIdRequired=true;
+      
+      this.basicInfoForm.get('pLandTime').setValidators(Validators.required);
+      this.basicInfoForm.get('pLandTime').markAsDirty();
+      this.basicFormValidateConfig.landTimeRequired=true;
+    }    
+    else
+    {
+      this.basicInfoForm.get('pConstructId').clearValidators();
+      this.basicInfoForm.get('pConstructId').markAsPristine();
+      this.basicFormValidateConfig.constructIdRequired=false;
+      
+      this.basicInfoForm.get('pConstructTime').clearValidators();
+      this.basicInfoForm.get('pConstructTime').markAsPristine();
+      this.basicFormValidateConfig.constructTimeRequired=false;
+
+      this.basicInfoForm.get('pLandId').clearValidators();
+      this.basicInfoForm.get('pLandId').markAsPristine();
+      this.basicFormValidateConfig.landIdRequired=false;
+      
+      this.basicInfoForm.get('pLandTime').clearValidators();
+      this.basicInfoForm.get('pLandTime').markAsPristine();
+      this.basicFormValidateConfig.landTimeRequired=false;      
+    }   
+
+    this.basicInfoForm.get('pConstructId').updateValueAndValidity();
+    this.basicInfoForm.get('pConstructTime').updateValueAndValidity();
+    this.basicInfoForm.get('pLandId').updateValueAndValidity();
+    this.basicInfoForm.get('pLandTime').updateValueAndValidity();    
+  }
+
   
   //#endregion
 
+  onSearch(value: string): void {
+    var that=this;
+    this.isGovernmentLoading = true; 
+    this.governmentService.autocompleteByName(value).subscribe(response=>{
+      console.log(response);
+      that.optionList =response.data;
+    });
+  }
 
   ngOnInit() {
     this.current=0;   

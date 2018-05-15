@@ -19,6 +19,7 @@ import { AccountListComponent } from './component/systemmanager/account-list/acc
 
 
 import { PropertyService } from "./services/propertyService";
+import { GovernmentService } from "./services/governmentService";
 import { MapService } from "./services/map/mapService";
 import { LogService } from "./services/logService";
 import { ConfigService } from "./services/configService";
@@ -60,7 +61,7 @@ const DEFAULT_PERFECT_SCROLLBAR_CONFIG: PerfectScrollbarConfigInterface = {
       provide: PERFECT_SCROLLBAR_CONFIG,
       useValue: DEFAULT_PERFECT_SCROLLBAR_CONFIG
     },
-    PropertyService,
+    PropertyService,GovernmentService,
     MapService,
     LogService,
     ConfigService,
