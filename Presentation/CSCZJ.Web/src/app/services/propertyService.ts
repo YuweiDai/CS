@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+
 import { HttpClient, HttpHeaders,HttpParams  } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { catchError, map, tap } from 'rxjs/operators';
@@ -31,12 +32,20 @@ export class PropertyService{
           this.apiUrl+=configService.getApiUrl()+"properties";
         }
 
+    nameValidate(name:string):Observable<boolean>{
+      const url = `${this.apiUrl}/Unique/${name}`;
+      return this.http.get<boolean>(url).pipe(
+        tap(_ => this.log(`fetched property id=${name}`)),
+        catchError(this.handleError<boolean>(`getProperty id=${name}`))
+      );    
+    }
+
     //获取单个资产
     getPropertyById(id:number):Observable<Property>{
       const url = `${this.apiUrl}/${id}`;
       return this.http.get<Property>(url).pipe(
-        tap(_ => this.log(`fetched hero id=${id}`)),
-        catchError(this.handleError<Property>(`getHero id=${id}`))
+        tap(_ => this.log(`fetched property id=${id}`)),
+        catchError(this.handleError<Property>(`getProperty id=${id}`))
       );    
     }
 
