@@ -71,16 +71,13 @@
                                     <nz-form-item>
                                         <nz-form-label [nzSpan]="4" nzRequired>获取日期</nz-form-label>
                                         <nz-form-control [nzSpan]="20" nzHasFeedback>
-                                               
-                                        <input formControlName="pGetedDate" [(ngModel)]="property.getedDate" placeholder="请选择获取日期..."
-                                                [owlDateTimeTrigger]="dtPicker1" [owlDateTime]="dtPicker1">
-                                        <owl-date-time  [pickerType]="'calendar'" #dtPicker1></owl-date-time>                                                                                    
+                                            <nz-date-picker formControlName="pGetedDate" [(ngModel)]="property.getedDate" [nzFormat]="'yyyy/MM/dd'"></nz-date-picker>                                                                                                                 
                                         <nz-form-explain *ngIf="basicInfoForm.get('pGetedDate').dirty && basicInfoForm.get('pGetedDate').errors || basicInfoForm.get('pGetedDate').pending ">
                                             <ng-container *ngIf="basicInfoForm.get('pGetedDate').hasError('required')">
                                                 请选择获取日期！
                                             </ng-container>
                                         </nz-form-explain>
-                                        </nz-form-control>
+                                        </nz-form-control>                                        
                                     </nz-form-item>
 
                                     <nz-form-item>
@@ -106,6 +103,11 @@
                                         <nz-form-control [nzSpan]="20">
                                             <nz-input-number formControlName="pFloor" [(ngModel)]="property.floor" [nzMin]="1" [nzMax]="50" [nzStep]="1"></nz-input-number>
                                             层
+                                            <nz-form-explain *ngIf="basicInfoForm.get('pFloor').dirty && basicInfoForm.get('pFloor').errors">
+                                                <ng-container *ngIf="basicInfoForm.get('pFloor').hasError('required')">
+                                                    请输入房屋层数！
+                                                </ng-container>
+                                            </nz-form-explain>                                            
                                         </nz-form-control>
                                     </nz-form-item>
 
@@ -114,14 +116,25 @@
                                             <nz-form-control [nzSpan]="20">
                                                 <nz-input-number formControlName="pConstructArea" [(ngModel)]="property.constructArea" [nzMin]="1" [nzMax]="1000000000" [nzStep]="0.01"></nz-input-number>
                                                 平方米
+                                                <nz-form-explain *ngIf="basicInfoForm.get('pConstructArea').dirty && basicInfoForm.get('pConstructArea').errors">
+                                                    <ng-container *ngIf="basicInfoForm.get('pConstructArea').hasError('required')">
+                                                        请输入建筑面积！
+                                                    </ng-container>
+                                                </nz-form-explain>                                                     
                                             </nz-form-control>
+                                        
                                         </nz-form-item>
 
                                         <nz-form-item>
                                                 <nz-form-label [nzSpan]="4" nzRequired>土地面积</nz-form-label>
                                                 <nz-form-control [nzSpan]="20">
-                                                    <nz-input-number formControlName="pLandId" [(ngModel)]="property.landArea" [nzMin]="1" [nzMax]="1000000000" [nzStep]="0.01"></nz-input-number>
+                                                    <nz-input-number formControlName="pLandArea" [(ngModel)]="property.landArea" [nzMin]="1" [nzMax]="1000000000" [nzStep]="0.01"></nz-input-number>
                                                     平方米
+                                                    <nz-form-explain *ngIf="basicInfoForm.get('pLandArea').dirty && basicInfoForm.get('pLandArea').errors">
+                                                        <ng-container *ngIf="basicInfoForm.get('pLandArea').hasError('required')">
+                                                            请输入土地面积！
+                                                        </ng-container>
+                                                    </nz-form-explain>                                                     
                                                 </nz-form-control>
                                             </nz-form-item>
 
@@ -183,7 +196,12 @@
                                                 <label nz-radio nzValue="0">已抵押</label>
                                                 <label nz-radio nzValue="1">未抵押</label>
                                             </nz-radio-group>
-                                        </nz-form-control>
+                                            <nz-form-explain *ngIf="basicInfoForm.get('pIsMortgage').dirty && basicInfoForm.get('pIsMortgage').errors">
+                                                <ng-container *ngIf="basicInfoForm.get('pIsMortgage').hasError('required')">
+                                                    请选择资产抵押情况！
+                                                </ng-container>
+                                            </nz-form-explain>                                               
+                                        </nz-form-control>                                     
                                     </nz-form-item>
                                     <nz-form-item>
                                         <nz-form-label [nzSpan]="4" nzRequired>入账情况</nz-form-label>
@@ -192,7 +210,12 @@
                                                 <label nz-radio nzValue="0">未入账</label>
                                                 <label nz-radio nzValue="1">已入账</label>
                                             </nz-radio-group>
-                                        </nz-form-control>
+                                            <nz-form-explain *ngIf="basicInfoForm.get('pIsAdmission').dirty && basicInfoForm.get('pIsAdmission').errors">
+                                                <ng-container *ngIf="basicInfoForm.get('pIsAdmission').hasError('required')">
+                                                    请选择资产入账情况！
+                                                </ng-container>
+                                            </nz-form-explain>                                                
+                                        </nz-form-control>                                       
                                     </nz-form-item>
                                 </nz-card>
                             </div>
@@ -246,10 +269,7 @@
                                         <nz-form-item *ngIf="property.registerType=='0'">
                                                 <nz-form-label [nzSpan]="4" [nzRequired]="basicFormValidateConfig.estateTimeRequired">上证日期</nz-form-label>
                                                 <nz-form-control [nzSpan]="20" nzHasFeedback>
-                                                       
-                                                <input formControlName="pEstateTime" [(ngModel)]="property.estateTime" placeholder="输入不动产证上证日期..."
-                                                        [owlDateTimeTrigger]="dtPicker2" [owlDateTime]="dtPicker2">
-                                                <owl-date-time  [pickerType]="'calendar'" #dtPicker2></owl-date-time>                                                                                    
+                                                    <nz-date-picker formControlName="pEstateTime" [(ngModel)]="property.estateTime" [nzFormat]="'yyyy/MM/dd'"></nz-date-picker>                                                                                                                                        
                                                 <nz-form-explain *ngIf="basicInfoForm.get('pEstateTime').dirty && basicInfoForm.get('pEstateTime').errors || basicInfoForm.get('pGetedDate').pending ">
                                                     <ng-container *ngIf="basicInfoForm.get('pEstateTime').hasError('required')">
                                                             请输入不动产证上证日期！
@@ -273,10 +293,9 @@
                                         <nz-form-item *ngIf="property.typeId==0 && property.registerType=='1'">
                                                 <nz-form-label [nzSpan]="4" [nzRequired]="basicFormValidateConfig.constructTimeRequired">上证日期</nz-form-label>
                                                 <nz-form-control [nzSpan]="20" nzHasFeedback>
-                                                       
-                                                <input formControlName="pConstructTime" [(ngModel)]="property.constructTime" placeholder="输入房产证上证日期..."
-                                                        [owlDateTimeTrigger]="dtPicker3" [owlDateTime]="dtPicker3">
-                                                <owl-date-time  [pickerType]="'calendar'" #dtPicker3></owl-date-time>                                                                                    
+
+                                                    <nz-date-picker formControlName="pConstructTime" [(ngModel)]="property.constructTime" [nzFormat]="'yyyy/MM/dd'"></nz-date-picker>                                                          
+                                                                                  
                                                 <nz-form-explain *ngIf="basicInfoForm.get('pConstructTime').dirty && basicInfoForm.get('pConstructTime').errors || basicInfoForm.get('pGetedDate').pending ">
                                                     <ng-container *ngIf="basicInfoForm.get('pConstructTime').hasError('required')">
                                                             请输入房产证上证日期！
@@ -299,10 +318,7 @@
                                         <nz-form-item *ngIf="property.registerType=='1'">
                                                 <nz-form-label [nzSpan]="4" [nzRequired]="basicFormValidateConfig.landTimeRequired">上证日期</nz-form-label>
                                                 <nz-form-control [nzSpan]="20" nzHasFeedback>
-                                                       
-                                                <input formControlName="pLandTime" [(ngModel)]="property.landTime" placeholder="输入土地证上证日期..."
-                                                        [owlDateTimeTrigger]="dtPicker4" [owlDateTime]="dtPicker4">
-                                                <owl-date-time  [pickerType]="'calendar'" #dtPicker4></owl-date-time>                                                                                    
+                                                    <nz-date-picker formControlName="pLandTime" [(ngModel)]="property.landTime" [nzFormat]="'yyyy/MM/dd'"></nz-date-picker>                                                                                                                                                                                                                            
                                                 <nz-form-explain *ngIf="basicInfoForm.get('pLandTime').dirty && basicInfoForm.get('pLandTime').errors || basicInfoForm.get('pGetedDate').pending ">
                                                     <ng-container *ngIf="basicInfoForm.get('pLandTime').hasError('required')">
                                                             请输入土地证上证日期！

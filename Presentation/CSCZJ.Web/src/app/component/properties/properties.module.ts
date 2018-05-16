@@ -16,7 +16,6 @@ import { UiTableComponent } from '../common/ui-table/ui-table.component';
 import { PropertyCenterRoutingModule } from './properties-routing.module';
 
 import { PerfectScrollbarModule ,PERFECT_SCROLLBAR_CONFIG,PerfectScrollbarConfigInterface} from 'ngx-perfect-scrollbar';
-import { OwlDateTimeModule, OwlNativeDateTimeModule } from 'ng-pick-datetime';
 
 const DEFAULT_PERFECT_SCROLLBAR_CONFIG: PerfectScrollbarConfigInterface = {
   suppressScrollX: true
@@ -31,10 +30,7 @@ const DEFAULT_PERFECT_SCROLLBAR_CONFIG: PerfectScrollbarConfigInterface = {
     HttpClientModule,
     NgZorroAntdModule,
     PropertyCenterRoutingModule,
-    PerfectScrollbarModule,
-    
-    OwlDateTimeModule,
-    OwlNativeDateTimeModule,
+    PerfectScrollbarModule,    
   ],
   declarations: [
     PropertyCenterComponent,
