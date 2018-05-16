@@ -205,7 +205,7 @@
                                                     <nz-form-control [nzSpan]="20" nzHasFeedback>
                                                             <nz-select formControlName="pGovernmentId" [(ngModel)]="property.governmentId" nzPlaceHolder="请选择资产产权单位..." nzAllowClear nzShowSearch [nzServerSearch]="true" (nzOnSearch)="onSearch($event)">
                                                             <ng-container *ngFor="let o of optionList">
-                                                                <nz-option *ngIf="!isGovernmentLoading" [nzValue]="o" [nzLabel]="o"></nz-option>
+                                                                <nz-option *ngIf="!isGovernmentLoading" [nzValue]="o.id" [nzLabel]="o.name"></nz-option>
                                                             </ng-container>
                                                             <nz-option *ngIf="isGovernmentLoading" nzDisabled nzCustomContent>
                                                                 <i class="anticon anticon-loading anticon-spin loading-icon"></i> 搜索数据...
@@ -222,7 +222,7 @@
 
                                         <nz-form-item>
                                             <nz-form-label [nzSpan]="4" nzRequired>登记方式</nz-form-label>
-                                            <nz-form-control [nzSpan]="20" nzHasFeedback>
+                                            <nz-form-control [nzSpan]="20">
                                                 <nz-radio-group [(ngModel)]="property.registerType" formControlName="pRegisterType" (ngModelChange)="registerTypeValidateSwicher()">
                                                     <label nz-radio nzValue="0">不动产证</label>
                                                     <label nz-radio nzValue="1">房产土地证</label>

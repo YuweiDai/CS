@@ -8,6 +8,7 @@ import { ConfigService } from "./configService";
 import { LogService } from "./logService";
 
 import { TableParams } from "../viewModels/common/TableOption";
+import { ListResponse } from "../viewModels/Response/ListResponse";
 
 import { GovernmentSelectList } from '../viewModels/Governments/government';
 
@@ -35,11 +36,11 @@ export class GovernmentService{
       );    
     }
 
-    autocompleteByName(name:string):Observable<GovernmentSelectList[]>{
+    autocompleteByName(name:string):Observable<ListResponse>{
       const url = `${this.apiUrl}/Autocomplete/${name}`;
-      return this.http.get<GovernmentSelectList[]>(url).pipe(
+      return this.http.get<ListResponse>(url).pipe(
         tap(_ => this.log(`fetched GovernmentSelectList`)),
-        catchError(this.handleError<GovernmentSelectList[]>(`GovernmentSelectList`))
+        catchError(this.handleError<ListResponse>(`GovernmentSelectList`))
       );    
     }
 

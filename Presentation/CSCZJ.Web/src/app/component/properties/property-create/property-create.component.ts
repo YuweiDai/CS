@@ -329,6 +329,8 @@ export class PropertyCreateComponent implements OnInit {
     this.governmentService.autocompleteByName(value).subscribe(response=>{
       console.log(response);
       that.optionList =response.data;
+      console.log(that.optionList);
+      that.isGovernmentLoading=false;
     });
   }
 
@@ -347,6 +349,8 @@ export class PropertyCreateComponent implements OnInit {
   next(): void {
     this.current += 1;
     this.changeContent();
+
+    console.log(this.property);
   }
 
   done(): void {
