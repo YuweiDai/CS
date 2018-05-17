@@ -9,7 +9,7 @@ import {
 import { Observable } from 'rxjs/Observable';
 import { Observer } from 'rxjs/Observer';
 
-import { NzMessageService, UploadFile } from 'ng-zorro-antd';
+import { NzMessageService, UploadFile, NzNotificationService } from 'ng-zorro-antd';
 
 import { format, compareAsc } from 'date-fns'
 
@@ -19,8 +19,9 @@ import { MapService } from '../../../services/map/mapService';
 import { PropertyService } from '../../../services/propertyService';
 import { GovernmentService } from '../../../services/governmentService';
 
-import { _wkt } from 'wicket-leaflet';
+
 declare var L: any;
+declare var Wkt: any;
 
 //汉化
 export class ChineseIntl {
@@ -89,14 +90,14 @@ export class ChineseIntl {
   selector: 'app-property-create',
   templateUrl: './property-create.component.html',
   styleUrls: ['./property-create.component.less'],
-  providers: [
-  ],
+  providers: [],
 })
 
 export class PropertyCreateComponent implements OnInit {
   private current: number;
   private property = new PropertyCreateModel();
 
+  private wkt: any;
   private map: any;
   private marker = null;
   private extent = null;
@@ -109,7 +110,7 @@ export class PropertyCreateComponent implements OnInit {
     //opacity: 1.0,
     //fillColor: '#AA0000',
     //fillOpacity: 0.2
-  };  
+  };
 
   private basicFormValidateConfig = {
     floorRequired: false,
@@ -143,6 +144,9 @@ export class PropertyCreateComponent implements OnInit {
   fileList2 = [...this.defaultFileList];
 
   basicInfoForm: FormGroup;
+  geoInfoForm: FormGroup;
+  fileInfoForm: FormGroup;
+
   submitForm = ($event, value) => {
     $event.preventDefault();
     for (const key in this.basicInfoForm.controls) {
@@ -160,8 +164,7 @@ export class PropertyCreateComponent implements OnInit {
     }
   }
 
-
-  constructor(private fb: FormBuilder, private mapService: MapService,
+  constructor(private notification: NzNotificationService, private fb: FormBuilder, private mapService: MapService,
     private propertyService: PropertyService,
     private governmentService: GovernmentService) {
 
@@ -192,11 +195,17 @@ export class PropertyCreateComponent implements OnInit {
       pCurrentTypeId: ['', [Validators.required]],
       pIsMortgage: ['', [Validators.required]],
 
-      pDescription: ['',],
-      // pLogo: ['', [Validators.required]],
-      // pLocation: ['', [Validators.required]],
-      // pExtent: ['', [Validators.required]]
+      pDescription: ['',]
     });
+
+    this.geoInfoForm = this.fb.group({
+      pLocation: ['', [Validators.required]],
+      pExtent: ['',]
+    });
+
+    this.fileInfoForm = this.fb.group({
+      pLogo: ['', [Validators.required]]
+    })
   }
 
   //#region 验证相关
@@ -334,8 +343,6 @@ export class PropertyCreateComponent implements OnInit {
 
   ngOnInit() {
     this.current = 0;
-
-    var w = new Wkt.Wkt();
   }
 
   ngAfterViewInit() {
@@ -348,6 +355,7 @@ export class PropertyCreateComponent implements OnInit {
 
   next(): void {
     var validation = false;
+    var title = "数据错误", content = "";
     switch (this.current) {
       case 0:
         validation = this.basicInfoForm.valid;
@@ -357,6 +365,8 @@ export class PropertyCreateComponent implements OnInit {
             this.basicInfoForm.controls[key].markAsDirty();
             this.basicInfoForm.controls[key].updateValueAndValidity();
           }
+
+          content = "基本信息填写不正确";
         }
         else {
           //预处理
@@ -367,14 +377,24 @@ export class PropertyCreateComponent implements OnInit {
         }
         break;
       case 1:
+        validation = this.geoInfoForm.valid;
+        if (!validation) {
+          for (const key in this.geoInfoForm.controls) {
+            this.geoInfoForm.controls[key].markAsDirty();
+            this.geoInfoForm.controls[key].updateValueAndValidity();
+          }
+          content = "空间信息填写不正确";
+        }
         break;
     }
+    this.current += 1;
+    this.changeContent();
+    if (validation) {
 
-    // if (validation) {
-      this.current += 1;
-      this.changeContent();
-    // }
-
+    }
+    else {
+      this.createNotification("error", title, content);
+    }
 
   }
 
@@ -397,13 +417,12 @@ export class PropertyCreateComponent implements OnInit {
 
   //当前激活表单验证，是否可以进行下一步
   formValiateCheck(): void {
-
   }
 
   mapStepInitial(): void {
     var that = this;
+    that.wkt = new Wkt.Wkt();
 
-  
     setTimeout(() => {
       var normal = that.mapService.getLayer("vector");
       var satellite = that.mapService.getLayer("img");
@@ -414,7 +433,6 @@ export class PropertyCreateComponent implements OnInit {
       });
 
       normal.addTo(that.map);
-
 
       var zoomControl = that.map.zoomControl;
 
@@ -439,7 +457,7 @@ export class PropertyCreateComponent implements OnInit {
           circle: false,
           rectangle: false,
           marker: true,
-          circlemarker:false
+          circlemarker: false
         },
         edit: {
           featureGroup: that.editableLayers, //REQUIRED!!
@@ -466,44 +484,217 @@ export class PropertyCreateComponent implements OnInit {
             that.editableLayers.removeLayer(that.marker);
             that.marker = layer;
             that.marker.addTo(that.editableLayers);
-            // that.property.location = _wkt.fromJson(geojson).write();
+            that.property.location = that.wkt.fromJson(geojson).write();
             break;
           case "polygon":
             that.editableLayers.removeLayer(that.extent);
             that.extent = layer;
             that.extent.addTo(that.editableLayers);
-            // that.property.extent = _wkt.fromJson(geojson).write();
+            that.property.extent = that.wkt.fromJson(geojson).write();
             break;
         }
+        console.log(that.property)
       });
 
       //要素删除事件
       that.map.on(L.Draw.Event.DELETED, function (e) {
-
-        // angular.forEach(e.layers._layers, function (layer) {
-
-        //     if (layer._leaflet_id == that.marker._leaflet_id)
-        //         $scope.property.location = "";
-        //     else if (layer._leaflet_id == extent._leaflet_id)
-        //         $scope.property.extent = "";
-
+        e.layers.eachLayer(function (layer) {
+          var geoJson = layer.toGeoJSON();
+          if (geoJson.geometry.type == "Point") that.property.location = "";
+          else that.property.extent = "";
+        });
       });
-    
 
-    //汉化
-    L.drawLocal.draw.handlers.polygon = {
-      tooltip: {
-        start: '点击开始绘制多边形',
-        cont: '点击继续绘制多边形',
-        end: '点击第一个闭合多边形'
-      }
-    };
-    L.drawLocal.draw.handlers.simpleshape = {
-      tooltip: {
-        end: '释放鼠标结束绘制'
-      }
-    };
-  }, 500);
-}
+      //汉化
+      // L.drawLocal.draw.toolbar.actions = {
+      //   title: '取消绘制',
+      //   text: '取消'
+      // };
+      // L.drawLocal.draw.toolbar.undo = {
+      //   title: '删除最后一个已绘制的点',
+      //   text: '删除最后一个点'
+      // };
+      // L.drawLocal.draw.toolbar.finish = {
+      // 	title: '完成绘制',
+      // 	text: '完成'
+      // };      
 
+      // L.drawLocal.draw.toolbar.buttons = {
+      //   polyline: '绘制线',
+      //   polygon: '绘制面',
+      //   rectangle: '绘制矩形',
+      //   circle: '绘制圆',
+      //   marker: '绘制点标记'
+      // };
+
+      // // L.drawLocal.draw.handlers.circle = {
+      // //   tooltip: {
+      // //     start: '点击拖动绘制圆'
+      // //   }
+      // // };
+
+      // L.drawLocal.draw.handlers.polygon = {
+      //   tooltip: {
+      //     start: '点击开始绘制',
+      //     cont: '点击继续绘制',
+      //     end: '点击第一个点闭合多边形'
+      //   }
+      // };
+      // L.drawLocal.draw.handlers.marker = {
+      //   tooltip: {
+      //     start: '点击地图绘制'
+      //   }
+      // };
+
+      // L.drawLocal.draw.handlers.polyline = {
+      //   error: '<strong>错误:</strong> 图形不能交叉',
+      //   tooltip: {
+      //     start: '点击开始绘制',
+      //     cont: '点击继续绘制',
+      //     end: '点击完成绘制'
+      //   }
+      // };
+      // L.drawLocal.draw.handlers.rectangle = {
+      //   tooltip: {
+      //     start: '点击拖动绘制矩形'
+      //   }
+      // };
+      // L.drawLocal.draw.handlers.rectangle = {
+      //   tooltip: {
+      //     start: '点击拖动绘制矩形'
+      //   }
+      // };
+      // L.drawLocal.draw.handlers.simpleshape = {
+      //   tooltip: {
+      //     end: '释放鼠标结束绘制'
+      //   }
+      // };
+      // L.drawLocal.edit.toolbar.actions = {
+      //   save: {
+      //     title: '保存修改',
+      //     text: '保存'
+      //   },
+      //   cancel: {
+      //     title: '取消编辑,放弃所有修改',
+      //     text: '取消'
+      //   }
+      // };
+      // L.drawLocal.edit.toolbar.buttons = {
+      //   edit: '编辑图形',
+      //   editDisabled: '当前没的图形可编辑',
+      //   remove: '删除图形',
+      //   removeDisabled: '当前没的图形可删除'
+      // };
+      // L.drawLocal.edit.handlers.edit = {
+      //   tooltip: {
+      //     text: '点取消放弃修改',
+      //     subtext: '拖动节点进行修改'
+      //   }
+      // };
+      // L.drawLocal.edit.handlers.edit = {
+      //   tooltip: {
+      //     text: '右击需要删除的图形'
+      //   }
+      // };
+
+
+      // var modifiedDraw = L.drawLocal.extend({
+      //   draw: {
+      //     toolbar: {
+      //       actions: {
+      //         title: '取消绘制',
+      //         text: '取消'
+      //       },
+      //       undo: {
+      //         title: '删除最后一个已绘制的点',
+      //         text: '删除最后一个点'
+      //       },
+      //       buttons: {
+      //         polyline: '绘制线',
+      //         polygon: '绘制面',
+      //         rectangle: '绘制矩形',
+      //         circle: '绘制圆',
+      //         marker: '绘制点标记'
+      //       }
+      //     },
+      //     handlers: {
+      //       circle: {
+      //         tooltip: {
+      //           start: '点击拖动绘制圆'
+      //         }
+      //       },
+      //       marker: {
+      //         tooltip: {
+      //           start: '点击地图绘制'
+      //         }
+      //       },
+      //       polygon: {
+      //         tooltip: {
+      //           start: '点击开始绘制',
+      //           cont: '点击继续绘制',
+      //           end: '双击完成绘制'
+      //         }
+      //       },
+      //       polyline: {
+      //         error: '<strong>错误:</strong> 图形不能交叉',
+      //         tooltip: {
+      //           start: '点击开始绘制',
+      //           cont: '点击继续绘制',
+      //           end: '点击完成绘制'
+      //         }
+      //       },
+      //       rectangle: {
+      //         tooltip: {
+      //           start: '点击拖动绘制矩形'
+      //         }
+      //       },
+      //       simpleshape: {
+      //         tooltip: {
+      //           end: '释放鼠标完成绘制'
+      //         }
+      //       }
+      //     }
+      //   },
+      //   edit: {
+      //     toolbar: {
+      //       actions: {
+      //         save: {
+      //           title: '保存修改',
+      //           text: '保存'
+      //         },
+      //         cancel: {
+      //           title: '取消编辑,放弃所有修改',
+      //           text: '取消'
+      //         }
+      //       },
+      //       buttons: {
+      //         edit: '编辑图形',
+      //         editDisabled: '当前没的图形可编辑',
+      //         remove: '删除图形',
+      //         removeDisabled: '当前没的图形可删除'
+      //       }
+      //     },
+      //     handlers: {
+      //       edit: {
+      //         tooltip: {
+      //           text: '点取消放弃修改',
+      //           subtext: '拖动节点进行修改'
+      //         }
+      //       },
+      //       remove: {
+      //         tooltip: {
+      //           text: '右击需要删除的图形'
+      //         }
+      //       }
+      //     }
+      //   }
+      // });
+
+      // drawControl.drawLocal=modifiedDraw;
+    }, 500);
+  }
+
+  createNotification(type: string, title: string, content: string): void {
+    this.notification.create(type, title, content, { nzDuration: 1000 });
+  }
 }
