@@ -19,7 +19,6 @@ import { MapService } from '../../../services/map/mapService';
 import { PropertyService } from '../../../services/propertyService';
 import { GovernmentService } from '../../../services/governmentService';
 
-import { _wkt } from 'wicket-leaflet';
 declare var L: any;
 
 //汉化
@@ -335,7 +334,6 @@ export class PropertyCreateComponent implements OnInit {
   ngOnInit() {
     this.current = 0;
 
-    var w = new Wkt.Wkt();
   }
 
   ngAfterViewInit() {

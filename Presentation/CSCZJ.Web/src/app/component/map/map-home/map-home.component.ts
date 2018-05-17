@@ -10,9 +10,9 @@ import {PropertyNameList} from "../../../viewModels/Properties/propertyName";
 import { ActivatedRoute } from '@angular/router';  
 import { DOCUMENT } from '@angular/platform-browser';  
 import {HighSearchProperty} from '../../../viewModels/Properties/highSearchModel';
+import * as HeatmapJS from 'heatmap.js';
 //import{ create } from '../../../../../node_modules/_@types_heatmap.js@2.0.35@@types/heatmap.js/index';
 declare var L:any;
-declare var h337: any;
 
 @Component({
     selector: 'app-map-home',
@@ -22,7 +22,7 @@ declare var h337: any;
     
 })
 export class MapHomeComponent implements OnInit {
-
+    
     map: any;
     mapHeight = 500;
     properties:any;
@@ -43,14 +43,9 @@ export class MapHomeComponent implements OnInit {
     containerHeight=100;
     visible: boolean;
     switchModel=true;
-    house = L.icon({
-        iconUrl: '../../assets/js/MarkerClusterGroup/house.png',
-        iconAnchor: [12, 12],
-    });
-    land = L.icon({
-        iconUrl: '../../assets/js/MarkerClusterGroup/land.png',
-        iconAnchor: [12, 12],
-    });
+    house:any;
+    land:any;
+    markers:any;  
 
     //热力图格式
     
@@ -68,11 +63,7 @@ export class MapHomeComponent implements OnInit {
         }
       ];
    
-    markers = new L.MarkerClusterGroup({
-        spiderfyOnMaxZoom: false,
-        showCoverageOnHover: false,
-        zoomToBoundsOnClick: false                
-    });  
+    
     propertyType = [
         { label: '房产', value: 'House', checked: false },
         { label: '土地', value: 'Land', checked: false }
@@ -179,6 +170,21 @@ export class MapHomeComponent implements OnInit {
 
             // mapService.setMapAttribute(map);
 
+            that.house = L.icon({
+                iconUrl: '../../assets/js/MarkerClusterGroup/house.png',
+                iconAnchor: [12, 12],
+            });
+
+           that.land = L.icon({
+                iconUrl: '../../assets/js/MarkerClusterGroup/land.png',
+                iconAnchor: [12, 12],
+            });
+
+            that.markers = new L.MarkerClusterGroup({
+                spiderfyOnMaxZoom: false,
+                showCoverageOnHover: false,
+                zoomToBoundsOnClick: false                
+            });  
 
            var cfg = {
                // container: window.document.getElementById('container'),
@@ -194,7 +200,7 @@ export class MapHomeComponent implements OnInit {
             that.getMapProperties(that.markers);
             that.map.addLayer(that.markers);     
 
-            that.heatmapLayer = new h337.HeatmapOverlay(cfg);
+           // that.heatmapLayer = new HeatmapOverlay(cfg);
           //  that.heatmapLayer =h337.create(cfg);           
             console.log(this.heatmapLayer);
 
