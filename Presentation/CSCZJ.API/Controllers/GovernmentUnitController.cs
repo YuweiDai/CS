@@ -14,7 +14,7 @@ using System.Linq;
 namespace CSCZJ.API.Controllers
 {
     [RoutePrefix("Systemmanage/Governments")]
-    public class GovernmentUnitController : BaseAdminApiController
+    public class GovernmentUnitController : ApiController
     {
         private readonly IGovernmentService _governmentService;
         private readonly IAccountUserService _accountUserService;
