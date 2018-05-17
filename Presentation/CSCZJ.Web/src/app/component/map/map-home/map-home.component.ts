@@ -10,8 +10,9 @@ import {PropertyNameList} from "../../../viewModels/Properties/propertyName";
 import { ActivatedRoute } from '@angular/router';  
 import { DOCUMENT } from '@angular/platform-browser';  
 import {HighSearchProperty} from '../../../viewModels/Properties/highSearchModel';
-
+//import{ create } from '../../../../../node_modules/_@types_heatmap.js@2.0.35@@types/heatmap.js/index';
 declare var L:any;
+declare var h337: any;
 
 @Component({
     selector: 'app-map-home',
@@ -41,6 +42,7 @@ export class MapHomeComponent implements OnInit {
     perfectScrollbarConfig:{};
     containerHeight=100;
     visible: boolean;
+    switchModel=true;
     house = L.icon({
         iconUrl: '../../assets/js/MarkerClusterGroup/house.png',
         iconAnchor: [12, 12],
@@ -49,6 +51,14 @@ export class MapHomeComponent implements OnInit {
         iconUrl: '../../assets/js/MarkerClusterGroup/land.png',
         iconAnchor: [12, 12],
     });
+
+    //热力图格式
+    
+      heatMapData={
+          max:5700,
+          data:[]
+      }
+      heatmapLayer :any;
     
     panels = [
         {
@@ -165,15 +175,28 @@ export class MapHomeComponent implements OnInit {
 
             zoomControl.setPosition("bottomright");
 
-            // iconLayersControl.addTo(map);
+             //iconLayersControl.addTo(that.map);
 
             // mapService.setMapAttribute(map);
 
 
-          
+           var cfg = {
+               // container: window.document.getElementById('container'),
+               "radius": 4,
+               "maxOpacity": .6,
+               "scaleRadius": true,
+               "useLocalExtrema": true,
+               latField: 'lat',
+               lngField: 'lng',
+               valueField: 'count'
+              };
 
             that.getMapProperties(that.markers);
             that.map.addLayer(that.markers);     
+
+            that.heatmapLayer = new h337.HeatmapOverlay(cfg);
+          //  that.heatmapLayer =h337.create(cfg);           
+            console.log(this.heatmapLayer);
 
             //点击获取单个资产信息
            that.markers.on('click', function (a) {
@@ -214,6 +237,8 @@ export class MapHomeComponent implements OnInit {
           });           
 
         }, 500);
+
+
              
     }
 
@@ -284,8 +309,12 @@ findThisOne(option):void{
                     markers.addLayer(m);
 
                    }
-                        
+
+                   var heatPoint = {lat:element.x,lng:element.y,count:element.constructArea};
+                   this.heatMapData.data.push(heatPoint);                        
                     });    
+
+               
                 }
             });      
                        
@@ -396,7 +425,7 @@ findThisOne(option):void{
             this.panels[0].name="共查询到"+this.searchProperties.length +"条记录！";
         })
 
-
+        this.visible = false;
       
       }
     
@@ -404,6 +433,23 @@ findThisOne(option):void{
       Close() {
         this.visible = false;
       }
+
+      Switch(){
+        this.switchModel=!this.switchModel;
+
+        if(this.switchModel==false){
+            this.markers.clearLayers();
+            this.heatmapLayer.setData(this.heatMapData);
+            console.log(this.heatmapLayer);
+           // this.map.addLayer(this.heatmapLayer);
+           // this.heatmapLayer = new HeatmapOverlay(this.cfg);
+          //  this.heatmapLayer.setData(this.heatMapData);
+
+        }
+        console.log(this.switchModel);
+      }
+
+
 
 
 }

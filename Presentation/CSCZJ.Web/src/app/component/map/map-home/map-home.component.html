@@ -1,7 +1,10 @@
-<div class="mapContainer">
+<div class="mapContainer" >
   <div id="map" [ngStyle]="{'height.px': mapHeight}"></div>
   <!-- <button (click)="panTO()" style="position: absolute;bottom: 10px;left: 10px;"> click</button>
   <button (click)="showLngLat()" style="position: absolute;bottom: 10px;left: 10px;"> click2</button> -->
+  <div id="container" style="position:absolute;">
+    <canvas id="heatMap"></canvas>
+  </div>
 
 </div>
 
@@ -41,7 +44,7 @@
 </div>
 
 <!-- 高级搜索 -->
-<div style="position: absolute;left: 500px;top:90px;z-index: 10000;" >
+<div style="position: absolute;left: 380px;top:95px;z-index: 10000;" >
   <nz-popover [nzTitle]="'高级搜索'" [nzPlacement]="'bottomLeft'"  [nzTrigger]="'click'" [(nzVisible)]="visible">
     <button nz-button nz-popover [nzType]="'primary'">高级搜索</button>
     <ng-template #nzTemplate>
@@ -107,3 +110,10 @@
   </nz-collapse>
 
 </div>
+
+<!-- 聚合图热力图切换 -->
+<div style="position: absolute;width: 350px;z-index: 10000;top:100px;right:-260px;">
+  <nz-switch [ngModel]="switchModel" nzCheckedChildren="聚合图" nzUnCheckedChildren="热力图" (click)='Switch()'></nz-switch>
+   
+</div>
+
