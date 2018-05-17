@@ -1,11 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import {
-  FormBuilder,
-  FormControl,
-  FormGroup,
-  ValidationErrors,
-  Validators, ValidatorFn
-} from '@angular/forms';
+import {FormBuilder,FormControl,FormGroup,ValidationErrors,Validators, ValidatorFn} from '@angular/forms';
 import { Observable } from 'rxjs/Observable';
 import { Observer } from 'rxjs/Observer';
 
@@ -18,73 +12,11 @@ import { PropertyCreateModel } from '../../../viewModels/Properties/property';
 import { MapService } from '../../../services/map/mapService';
 import { PropertyService } from '../../../services/propertyService';
 import { GovernmentService } from '../../../services/governmentService';
+import { ConfigService } from '../../../services/configService';
 
 
 declare var L: any;
 declare var Wkt: any;
-
-//汉化
-export class ChineseIntl {
-  /** A label for the up second button (used by screen readers).  */
-  upSecondLabel = 'ajouter une seconde';
-
-  /** A label for the down second button (used by screen readers).  */
-  downSecondLabel = 'moins une seconde';
-
-  /** A label for the up minute button (used by screen readers).  */
-  upMinuteLabel = 'ajouter une minute';
-
-  /** A label for the down minute button (used by screen readers).  */
-  downMinuteLabel = 'moins une minute';
-
-  /** A label for the up hour button (used by screen readers).  */
-  upHourLabel = 'ajouter une heure';
-
-  /** A label for the down hour button (used by screen readers).  */
-  downHourLabel = 'moins une heure';
-
-  /** A label for the previous month button (used by screen readers). */
-  prevMonthLabel = 'le mois précédent';
-
-  /** A label for the next month button (used by screen readers). */
-  nextMonthLabel = 'le mois prochain';
-
-  /** A label for the previous year button (used by screen readers). */
-  prevYearLabel = 'année précédente';
-
-  /** A label for the next year button (used by screen readers). */
-  nextYearLabel = 'l\'année prochaine';
-
-  /** A label for the previous multi-year button (used by screen readers). */
-  prevMultiYearLabel = 'Previous 21 years';
-
-  /** A label for the next multi-year button (used by screen readers). */
-  nextMultiYearLabel = 'Next 21 years';
-
-  /** A label for the 'switch to month view' button (used by screen readers). */
-  switchToMonthViewLabel = 'Change to month view';
-
-  /** A label for the 'switch to year view' button (used by screen readers). */
-  switchToMultiYearViewLabel = 'Choose month and year';
-
-  /** A label for the cancel button */
-  cancelBtnLabel = '取消';
-
-  /** A label for the set button */
-  setBtnLabel = '确定';
-
-  /** A label for the range 'from' in picker info */
-  rangeFromLabel = 'From';
-
-  /** A label for the range 'to' in picker info */
-  rangeToLabel = 'To';
-
-  /** A label for the hour12 button (AM) */
-  hour12AMLabel = 'AM';
-
-  /** A label for the hour12 button (PM) */
-  hour12PMLabel = 'PM';
-}
 
 @Component({
   selector: 'app-property-create',
@@ -123,29 +55,22 @@ export class PropertyCreateComponent implements OnInit {
     landTimeRequired: false,
   };
   private isGovernmentLoading = false;
-  optionList = [];
-  defaultFileList = [
-    {
-      uid: -1,
-      name: 'xxx.png',
-      status: 'done',
-      url: 'https://zos.alipayobjects.com/rmsportal/jkjgkEfvpUPVyRjUImniVslZfWPnJuuZ.png',
-      thumbUrl: 'https://zos.alipayobjects.com/rmsportal/jkjgkEfvpUPVyRjUImniVslZfWPnJuuZ.png'
-    },
-    {
-      uid: -2,
-      name: 'yyy.png',
-      status: 'done',
-      url: 'https://zos.alipayobjects.com/rmsportal/jkjgkEfvpUPVyRjUImniVslZfWPnJuuZ.png',
-      thumbUrl: 'https://zos.alipayobjects.com/rmsportal/jkjgkEfvpUPVyRjUImniVslZfWPnJuuZ.png'
-    }
-  ];
-
-  fileList2 = [...this.defaultFileList];
+  private optionList = [];
 
   basicInfoForm: FormGroup;
   geoInfoForm: FormGroup;
   fileInfoForm: FormGroup;
+
+  private pictureUploadUrl:string;
+  private picureUploading=false;
+  private fileUploadUrl:string;
+  private fileUploading=false;
+  private previewImage = '';
+  private previewVisible = false;
+  private pictureList=[];
+  private fileList=[];
+
+  private submit=false;
 
   submitForm = ($event, value) => {
     $event.preventDefault();
@@ -164,9 +89,8 @@ export class PropertyCreateComponent implements OnInit {
     }
   }
 
-  constructor(private notification: NzNotificationService, private fb: FormBuilder, private mapService: MapService,
-    private propertyService: PropertyService,
-    private governmentService: GovernmentService) {
+  constructor(private msg: NzMessageService,private notification: NzNotificationService, private fb: FormBuilder, private mapService: MapService,
+    private configService:ConfigService,private propertyService: PropertyService,private governmentService: GovernmentService) {
 
 
     this.basicInfoForm = this.fb.group({
@@ -343,6 +267,8 @@ export class PropertyCreateComponent implements OnInit {
 
   ngOnInit() {
     this.current = 0;
+    this.pictureUploadUrl=this.configService.getApiUrl()+"Media/Pictures/Upload";
+    this.fileUploadUrl=this.configService.getApiUrl()+"Media/Files/Upload";
   }
 
   ngAfterViewInit() {
@@ -386,6 +312,16 @@ export class PropertyCreateComponent implements OnInit {
           content = "空间信息填写不正确";
         }
         break;
+      case 2:
+        validation = this.fileInfoForm.valid;
+        if (!validation) {
+          for (const key in this.fileInfoForm.controls) {
+            this.fileInfoForm.controls[key].markAsDirty();
+            this.fileInfoForm.controls[key].updateValueAndValidity();
+          }
+          content = "请上传制定的资产现场照片！";
+        }
+        break;
     }
     this.current += 1;
     this.changeContent();
@@ -415,9 +351,6 @@ export class PropertyCreateComponent implements OnInit {
     }
   }
 
-  //当前激活表单验证，是否可以进行下一步
-  formValiateCheck(): void {
-  }
 
   mapStepInitial(): void {
     var that = this;
@@ -692,6 +625,77 @@ export class PropertyCreateComponent implements OnInit {
 
       // drawControl.drawLocal=modifiedDraw;
     }, 500);
+  }
+
+  //现场照片上传前
+  beforeAvatarUpload = (file: File) => {
+    const isJPG = (file.type === 'image/jpeg'||file.type === 'image/png'||file.type === 'image/bmp');
+    if (!isJPG) {
+      this.msg.error('只能上传jpg格式的图片!');
+    }
+    const isLt2M = file.size / 1024 / 1024 < 2;
+    if (!isLt2M) {
+      this.msg.error('图片大小不能超过2MB!');
+    }
+    return isJPG && isLt2M;
+  }
+
+  private getBase64(img: File, callback: (img: {}) => void): void {
+    const reader = new FileReader();
+    reader.addEventListener('load', () => callback(reader.result));
+    reader.readAsDataURL(img);
+  }
+  handleAvatarChange(info: { file: UploadFile }): void {
+    if (info.file.status === 'uploading') {
+      this.picureUploading = true;
+      return;
+    }
+    if (info.file.status === 'done') {
+      if(info.type=="success")
+      {
+
+        this.property.logoPictureId=info.file.response[0].id;
+        this.property.logoUrl =info.file.response[0].url;
+        console.log(info);
+        // Get this url from response in real world.
+        this.getBase64(info.file.originFileObj, (img: string) => {
+          this.picureUploading = false;
+          this.property.logo = img;        
+        });        
+      }
+
+    }
+  }
+  handleAvatarPreview = (file: UploadFile) => {
+    this.previewImage = file.url || file.thumbUrl;
+    this.previewVisible = true;
+  }  
+  handleAvatarRemove=(file: UploadFile) => {
+    this.property.logoPictureId=0;
+    this.property.logoUrl ="";
+    this.property.logo="";
+
+    return true;
+  }  
+  handleFilesChange(info: any): void {
+    var that=this;
+    const fileList = info.fileList;
+    // 2. read from response and show file link
+    if (info.file.response) {
+      info.file.url = info.file.response.url;
+    }
+    // 3. filter successfully uploaded files according to response from server
+    // this.fileList = fileList.filter(item => {
+    //   that.createNotification("error","文件上传失败","错误原因");
+    //   if (item.response) {
+    //     return item.response.status === 'success';
+    //   }
+    //   else
+    //   {
+    //     that.createNotification("error","文件上传失败","错误原因");
+    //     return true;
+    //   }
+    // });
   }
 
   createNotification(type: string, title: string, content: string): void {

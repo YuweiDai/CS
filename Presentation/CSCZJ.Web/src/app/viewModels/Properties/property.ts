@@ -78,6 +78,9 @@ export class PropertyCreateModel
         this.registerType="0";
         this.constructArea=1;
         this.landArea=1;
+        this.logo="";
+        this.logoUrl="";
+        this.logoPictureId=0;
     }
 }
 

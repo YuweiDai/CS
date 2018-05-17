@@ -11,7 +11,6 @@
                     </nz-steps>
                 </div>
                 <div class="step" id="basicInfo" [hidden]="current!=0">
-
                     <form nz-form [formGroup]="basicInfoForm">
                         <div class="m-b-md" nz-row [nzGutter]="{ xs: 8, sm: 16, md: 24, lg: 32, xl: 32, xxl: 32 }">
                             <div nz-col nzXs="12" nzSm="12" nzMd="12" nzLg="12" nzXl="12">
@@ -350,36 +349,83 @@
                     <div id="map"></div>
                 </div>
                 <div class="step" id="filesInfo" [hidden]="current!=2">
+                    <form nz-form [formGroup]="fileInfoForm">
+                        <div class="m-b-md" nz-row [nzGutter]="{ xs: 8, sm: 16, md: 24, lg: 32, xl: 32, xxl: 32 }">
+                            <div nz-col nzXs="12" nzSm="12" nzMd="12" nzLg="12" nzXl="12">
+                                <nz-card nzTitle="图片附件">
 
-                    <div class="clearfix">
-                        <nz-upload nzAction="https://jsonplaceholder.typicode.com/posts/" nzListType="picture" [(nzFileList)]="fileList1">
-                            <button nz-button>
-                                <i class="anticon anticon-upload"></i>
-                                <span>Upload</span>
-                            </button>
-                        </nz-upload>
+                                    <div class="clearfix">
+                                        <nz-upload class="avatar-uploader" [nzAction]="pictureUploadUrl" nzName="avatar" nzListType="picture-card" [nzShowButton]="property.logoPictureId<=0"
+                                            [nzPreview]="handleAvatarPreview" [nzRemove]="handleAvatarRemove" [nzBeforeUpload]="beforeAvatarUpload"
+                                            (nzChange)="handleAvatarChange($event)">
+                                            <ng-container>
+                                                <i class="anticon anticon-plus"></i>
+                                                <div class="ant-upload-text"> 上传资产现场照片</div>
+                                            </ng-container>
+                                        </nz-upload>
+
+                                        <nz-form-item>
+                                            <nz-form-control [nzSpan]="24">
+                                                <input nz-input formControlName="pLogo" [(ngModel)]="property.logo" type="hidden">
+                                                <nz-form-explain *ngIf="fileInfoForm.get('pLogo').dirty&&fileInfoForm.get('pLogo').errors">
+                                                    <ng-container *ngIf="fileInfoForm.get('pLogo').hasError('required')">
+                                                        请上传资产现场照片！
+                                                    </ng-container>
+                                                </nz-form-explain>
+                                            </nz-form-control>
+                                        </nz-form-item>
+                                    </div>
+                                    <div class="clearfix m-t-md">
+                                        <nz-upload [nzAction]="pictureUploadUrl" nzListType="picture-card" [(nzFileList)]="pictureList" [nzPreview]="handleAvatarPreview">
+                                            <i class="anticon anticon-plus"></i>
+                                            <div class="ant-upload-text"> 上传其他图片附件</div>
+                                        </nz-upload>
+                                    </div>
+                                    <nz-modal [nzVisible]="previewVisible" [nzContent]="modalContent" [nzFooter]="null" (nzOnCancel)="previewVisible=false">
+                                        <ng-template #modalContent>
+                                            <img [src]="previewImage" [ngStyle]="{ 'width': '100%' }" />
+                                        </ng-template>
+                                    </nz-modal>
+                                </nz-card>
+                            </div>
+
+                            <div nz-col nzXs="12" nzSm="12" nzMd="12" nzLg="12" nzXl="12">
+                                <nz-card nzTitle="文件附件">
+                                    <nz-upload [nzAction]="fileUploadUrl" [nzFileList]="fileList" nzMultiple (nzChange)="handleFilesChange($event)">
+                                        <button nz-button>
+                                            <i class="anticon anticon-upload"></i>
+                                            <span> 上传文件</span>
+                                        </button>
+                                    </nz-upload>
+
+                                </nz-card>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="step" id="subMitAll" [hidden]="current!=3">
+                    <div class="m-b-md" nz-row [nzGutter]="{ xs: 8, sm: 16, md: 24, lg: 32, xl: 32, xxl: 32 }">
+                        <div nz-col [nzSpan]="24">
+
+                            <nz-spin nzTip='Loading...' [nzSpinning]="submit">
+                                <h1 class="text-center">是否提交名为<strong>{{property.name}}</strong>的资产入库？</h1>
+                                <div class="text-center">
+                                    <button nz-button nzSize="large" (click)="pre()" nzType="primary">
+                                        <i class="anticon anticon-left-circle"></i> 返回</button>
+                                    <button nz-button nzSize="large" (click)="done()" nzType="danger">
+                                        <i class="anticon anticon-check-circle"></i> 提交保存</button>
+                                </div>
+                            </nz-spin>
+
+                        </div>
                     </div>
-                    <nz-upload class="avatar-uploader"
-                    nzAction="https://jsonplaceholder.typicode.com/posts/"
-                    nzName="avatar"
-                    nzListType="picture-card"
-                    [nzShowUploadList]="false"
-                    [nzBeforeUpload]="beforeUpload"
-                    (nzChange)="handleChange($event)">
-                    <ng-container *ngIf="!avatarUrl">
-                      <i class="anticon anticon-plus"></i>
-                      <div class="ant-upload-text">Upload</div>
-                    </ng-container>
-                    <img *ngIf="avatarUrl" [src]="avatarUrl" class="avatar">
-                  </nz-upload>
+
                 </div>
                 <div nz-row>
                     <div nz-col nzAlign="center" [nzSpan]="24" class="text-right">
                         <!-- [disabled]="!basicInfoForm.valid"   -->
-                        <button nz-button nzType="primary" (click)="pre()" *ngIf="current > 0">上一步</button>
+                        <button nz-button nzType="primary" (click)="pre()" *ngIf="current > 0 && current<3">上一步</button>
                         <button nz-button nzType="primary" (click)="next()" *ngIf="current < 3">下一步</button>
-                        <button nz-button (click)="resetForm($event)" *ngIf="current != 3">重置</button>
-                        <button nz-button nzType="danger" (click)="done()" *ngIf="current === 3">提交保存</button>
                     </div>
                 </div>
             </nz-card>
