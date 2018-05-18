@@ -9,7 +9,7 @@
 </div>
 
 <!-- 资产详细信息 -->
-<div nz-sider style="position: absolute;width: 350px;z-index: 10000;top:140px;height: 300px;left: 10px;" *ngIf="basicInfo">
+<div nz-sider style="position: absolute;width: 350px;z-index: 10000;top:140px;height: 300px;left: 10px;" *ngIf="basicInfo" class="detailContent">
   <div nz-col nzSpan="24">        
     <nz-card nzTitle="资产详情列表" [nzExtra]="extraTemplate">
       <div nz-row [nzGutter]="{ xs: 8, sm: 16, md: 24, lg: 32, xl: 32, xxl: 32 }">
@@ -28,6 +28,7 @@
     <ng-template #extraTemplate>
     </ng-template>
 </div>
+<a  (click)='closeDetail()' style="position: absolute;right: 5px;" >返回</a>
 </div>
 
 <!-- 搜索栏 -->

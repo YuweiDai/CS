@@ -10,9 +10,12 @@ import {PropertyNameList} from "../../../viewModels/Properties/propertyName";
 import { ActivatedRoute } from '@angular/router';  
 import { DOCUMENT } from '@angular/platform-browser';  
 import {HighSearchProperty} from '../../../viewModels/Properties/highSearchModel';
+//import * as HeatmapJS from 'heatmap.js';
 //import{ create } from '../../../../../node_modules/_@types_heatmap.js@2.0.35@@types/heatmap.js/index';
 declare var L:any;
-declare var h337: any;
+declare var HeatmapOverlay: any;
+declare var Control:any;
+declare var IconLayers:any;
 
 @Component({
     selector: 'app-map-home',
@@ -22,7 +25,7 @@ declare var h337: any;
     
 })
 export class MapHomeComponent implements OnInit {
-
+    
     map: any;
     mapHeight = 500;
     properties:any;
@@ -43,22 +46,28 @@ export class MapHomeComponent implements OnInit {
     containerHeight=100;
     visible: boolean;
     switchModel=true;
-    house = L.icon({
-        iconUrl: '../../assets/js/MarkerClusterGroup/house.png',
-        iconAnchor: [12, 12],
-    });
-    land = L.icon({
-        iconUrl: '../../assets/js/MarkerClusterGroup/land.png',
-        iconAnchor: [12, 12],
-    });
+    house:any;
+    land:any;
+    markers:any;  
 
     //热力图格式
-    
+    heatLayer = new L.LayerGroup();
       heatMapData={
           max:5700,
           data:[]
       }
-      heatmapLayer :any;
+      cfg = {
+        // container: window.document.getElementById('container'),
+        "radius": 30,
+        "maxOpacity": .8,
+        "scaleRadius": false,
+        "useLocalExtrema": true,
+        latField: 'lat',
+        lngField: 'lon',
+        valueField: 'count'
+       };
+      heatmapLayer =new HeatmapOverlay(this.cfg);
+      
     
     panels = [
         {
@@ -68,11 +77,7 @@ export class MapHomeComponent implements OnInit {
         }
       ];
    
-    markers = new L.MarkerClusterGroup({
-        spiderfyOnMaxZoom: false,
-        showCoverageOnHover: false,
-        zoomToBoundsOnClick: false                
-    });  
+    
     propertyType = [
         { label: '房产', value: 'House', checked: false },
         { label: '土地', value: 'Land', checked: false }
@@ -153,53 +158,58 @@ export class MapHomeComponent implements OnInit {
             normal.addTo(that.map);
 
            
-            // var iconLayersControl = new L.Control.IconLayers(
-            //     [
-            //         {
-            //             title: '矢量', // use any string
-            //             layer: normal, // any ILayer
-            //             icon: 'img/dx.png' // 80x80 icon
-            //         },
-            //         {
-            //             title: '影像',
-            //             layer: satellite,
-            //             icon: 'img/yx.png'
-            //         }
-            //     ], {
-            //         position: 'bottomleft',
-            //         maxLayersInRow: 5
-            //     }
-            // );
+            var iconLayersControl = new L.Control.IconLayers(
+                [
+                    {
+                        title: '矢量', // use any string
+                        layer: normal, // any ILayer
+                        icon: '../../assets/images/iconLayers/sl.png' // 80x80 icon
+                    },
+                    {
+                        title: '影像',
+                        layer: satellite,
+                        icon: '../../assets/images/iconLayers/yx.png'
+                    }
+                ], {
+                    position: 'bottomleft'
+                   // maxLayersInRow: 5
+                }
+            );
 
             var zoomControl = that.map.zoomControl;
 
             zoomControl.setPosition("bottomright");
 
-             //iconLayersControl.addTo(that.map);
+             iconLayersControl.addTo(that.map);
 
             // mapService.setMapAttribute(map);
 
+            that.house = L.icon({
+                iconUrl: '../../assets/js/MarkerClusterGroup/house.png',
+                iconAnchor: [16, 16],
+            });
 
-           var cfg = {
-               // container: window.document.getElementById('container'),
-               "radius": 4,
-               "maxOpacity": .6,
-               "scaleRadius": true,
-               "useLocalExtrema": true,
-               latField: 'lat',
-               lngField: 'lng',
-               valueField: 'count'
-              };
+           that.land = L.icon({
+                iconUrl: '../../assets/js/MarkerClusterGroup/land.png',
+                iconAnchor: [16, 16],
+            });
+
+            that.markers = new L.MarkerClusterGroup({
+                spiderfyOnMaxZoom: false,
+                showCoverageOnHover: false,
+                zoomToBoundsOnClick: false                
+            });  
+
+          
 
             that.getMapProperties(that.markers);
             that.map.addLayer(that.markers);     
-
-            that.heatmapLayer = new h337.HeatmapOverlay(cfg);
-          //  that.heatmapLayer =h337.create(cfg);           
-            console.log(this.heatmapLayer);
+     
+            //that.map.addLayer(this.heatmapLayer);
 
             //点击获取单个资产信息
            that.markers.on('click', function (a) {
+               that.showCollapse = false;
                 that.properties.forEach(element => {
                   if(a.latlng.lat==element.x&&a.latlng.lng==element.y){
                      
@@ -263,7 +273,7 @@ findThisOne(option):void{
                 icon:this.land
             }).bindTooltip(response.name,{permanent:true,direction:"top",offset:[0,-15]});   
           this.map.setView([points[2].substring(0,points[2].length-1),points[1].substring(1,points[1].length-1)],16);
-           this.markers.addLayer(m);
+          this.markers.addLayer(m);
      
 
          }
@@ -309,8 +319,10 @@ findThisOne(option):void{
                     markers.addLayer(m);
 
                    }
+                   
 
-                   var heatPoint = {lat:element.x,lng:element.y,count:element.constructArea};
+                   var heatPoint = {lat:element.x,lon:element.y,count:parseInt(element.constructArea)+1};
+                  // var heatPoint = {LatLng:L.latLng(parseFloat(element.x) ,parseFloat(element.y)), count:100};
                    this.heatMapData.data.push(heatPoint);                        
                     });    
 
@@ -320,8 +332,16 @@ findThisOne(option):void{
                        
     };
 
+
+    //关闭资产详细列表
+    closeDetail():void{
+
+        this.basicInfo = null;
+    }
+
     //高级搜索提交
     Submit(): void {
+        this.basicInfo = null;
        // this.highSearchProperty=highSearchProperty;
         console.log(this.highSearchProperty);
         this.highSearchProperty.House=false;
@@ -438,15 +458,18 @@ findThisOne(option):void{
         this.switchModel=!this.switchModel;
 
         if(this.switchModel==false){
-            this.markers.clearLayers();
-            this.heatmapLayer.setData(this.heatMapData);
-            console.log(this.heatmapLayer);
-           // this.map.addLayer(this.heatmapLayer);
-           // this.heatmapLayer = new HeatmapOverlay(this.cfg);
-          //  this.heatmapLayer.setData(this.heatMapData);
 
+            this.heatLayer.addLayer(this.heatmapLayer);
+            this.map.addLayer(this.heatLayer);
+           // this.markers.clearLayers();
+            this.map.removeLayer(this.markers);
+            this.heatmapLayer.setData(this.heatMapData);
         }
-        console.log(this.switchModel);
+        else{
+           this.heatLayer.clearLayers();
+           this.map.addLayer(this.markers);
+        }
+
       }
 
 

@@ -156,6 +156,23 @@ namespace CSCZJ.API.Controllers
         [Route("SetLocation")]
         public IHttpActionResult Test()
         {
+
+            var properties = _propertyService.GetAllProperties();
+
+            foreach (var p in properties) {
+                if (p.Extent != null) {
+
+                    string extent = p.Extent.AsText();
+
+                    extent = extent.Replace("MULTIPOLYGON (((", "POLYGON ((");
+                    extent = extent.Replace(")))","))");
+
+                    p.Extent = DbGeography.FromText(extent);
+                    _propertyService.UpdateProperty(p);
+
+                }
+
+            }
             //var properties = _propertyService.GetAllProperties();
             //foreach (var property in properties)
             //{
