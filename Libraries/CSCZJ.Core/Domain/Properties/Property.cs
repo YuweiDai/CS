@@ -127,7 +127,7 @@ namespace CSCZJ.Core.Domain.Properties
         /// <summary>
         /// 房产证发证时间
         /// </summary>
-        public DateTime ConstructTime { get; set; }
+        public DateTime? ConstructTime { get; set; }
 
         /// <summary>
         /// 土地证号
@@ -139,7 +139,7 @@ namespace CSCZJ.Core.Domain.Properties
         /// </summary>
         public double LandArea { get; set; }
 
-        public DateTime LandTime { get; set; }
+        public DateTime? LandTime { get; set; }
 
         /// <summary>
         /// 使用现状

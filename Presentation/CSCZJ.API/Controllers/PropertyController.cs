@@ -132,7 +132,7 @@ namespace CSCZJ.API.Controllers
 
             if (string.IsNullOrEmpty(propertyCreateModel.Logo) && string.IsNullOrEmpty(propertyCreateModel.LogoUrl) ||
                 propertyCreateModel.Logo == "data:image/png;base64,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")
-                return "请上传资产封面照片";
+                return "请上传资产现场照片";
 
             return "";
         }
@@ -157,7 +157,54 @@ namespace CSCZJ.API.Controllers
                 {
                 }
             }
+            else property.GetedDate = null;
+            if (!string.IsNullOrEmpty(propertyCreateModel.EstateTime))
+            {
+                try
+                {
+                    property.EstateTime = Convert.ToDateTime(propertyCreateModel.EstateTime);
+                }
+                catch
+                {
+                }
+            }
+            else property.EstateTime = null;
+            if (!string.IsNullOrEmpty(propertyCreateModel.ConstructTime))
+            {
+                try
+                {
+                    property.ConstructTime = Convert.ToDateTime(propertyCreateModel.ConstructTime);
+                }
+                catch
+                {
+                }
+            }
+            else property.ConstructTime = null;
+            if (!string.IsNullOrEmpty(propertyCreateModel.LandTime))
+            {
+                try
+                {
+                    property.LandTime = Convert.ToDateTime(propertyCreateModel.LandTime);
+                }
+                catch
+                {
+                }
+            }
+            else property.LandTime = null;
             #endregion
+
+            if(propertyCreateModel.RegisterEstate)
+            {
+                property.ConstructId = "";
+                property.ConstructTime = null;
+                property.LandId = "";
+                property.LandTime = null;
+            }
+            else
+            {
+                property.EstateId = "";
+                property.EstateTime = null;
+            }
 
             //产权单位处理
             if (propertyCreateModel.GovernmentId == 0) property.Government = _workContext.CurrentAccountUser.Government;
@@ -170,10 +217,20 @@ namespace CSCZJ.API.Controllers
 
             if (!string.IsNullOrEmpty(propertyCreateModel.Location)) property.Location = DbGeography.FromText(propertyCreateModel.Location);
             else throw new Exception("空间位置不能为空");
-            if (!string.IsNullOrEmpty(propertyCreateModel.Extent)) property.Extent = DbGeography.FromText(propertyCreateModel.Extent);
 
-            var location = DbGeography.FromText(propertyCreateModel.Location);
-            property.Region = _propertyService.GetPropertyRegion(location);
+            //本地电脑未装SQL 会出现的BUG
+            try
+            {
+                if (!string.IsNullOrEmpty(propertyCreateModel.Extent)) property.Extent = DbGeography.FromText(propertyCreateModel.Extent);
+            }
+            catch
+            {
+
+            }
+       
+            property.Region = Region.TMZ;
+
+            if (propertyCreateModel.PropertyTypeId == 2) propertyCreateModel.Floor = 0;
 
          //   property.HasConstructID = !string.IsNullOrEmpty(property.EstateId) || !string.IsNullOrEmpty(property.ConstructId);  //是否拥有房产证
         //    property.HasLandID = !string.IsNullOrEmpty(property.EstateId) || !string.IsNullOrEmpty(property.LandId);  //是否土地证
@@ -547,6 +604,7 @@ namespace CSCZJ.API.Controllers
             }
         }
 
+        #region 图片处理
         [NonAction]
         protected virtual void SavePropertyPictures(Property property, IEnumerable<PropertyPictureModel> propertyPictures)
         {
@@ -566,7 +624,12 @@ namespace CSCZJ.API.Controllers
 
             foreach (var newPropertyPictureModel in propertyPictures)
             {
-                var propertyPicture = newPropertyPictureModel.ToEntity();
+                var propertyPicture = new PropertyPicture
+                {
+                    PictureId = newPropertyPictureModel.PictureId,
+                    IsLogo = false,
+                    DisplayOrder = 0
+                };
 
                 if (newPropertyPictureModel.Id == 0) property.Pictures.Add(propertyPicture);
             }
@@ -579,7 +642,6 @@ namespace CSCZJ.API.Controllers
             }
         }
 
-        #region 图片处理
         [NonAction]
         protected virtual void SavePropertyFiles(Property property, IEnumerable<PropertyFileModel> propertyFiles)
         {
@@ -597,8 +659,11 @@ namespace CSCZJ.API.Controllers
 
             foreach (var newPropertyFileModel in propertyFiles)
             {
-                var propertyFile = newPropertyFileModel.ToEntity();
-
+                var propertyFile = new PropertyFile
+                {
+                    FileId = newPropertyFileModel.FileId,
+                    DisplayOrder = 0
+                };
                 if (newPropertyFileModel.Id == 0) property.Files.Add(propertyFile);
             }
 
@@ -1579,13 +1644,14 @@ namespace CSCZJ.API.Controllers
           
             _propertyService.InsertProperty(property);
 
+            
             //activity log
             _accountUserActivityService.InsertActivity("AddNewproperty", "增加 名为 {0} 的资产", property.Name);
 
-            #region 封面照片处理
-            //保存图片
-            var base64 = HttpUtility.HtmlDecode(propertyCreateModel.Logo.Trim());
-            var picture = _pictureService.InsertPicture(base64);
+            #region 现场照片处理
+
+            var picture = _pictureService.GetPictureById(propertyCreateModel.LogoPictureId);
+            if (picture == null) return BadRequest("未上传资产现场照片");
 
             //关联
             var logoPicture = new PropertyPicture
@@ -1598,7 +1664,7 @@ namespace CSCZJ.API.Controllers
 
             _propertyService.InsertPropertyPicture(logoPicture);
             //activity log
-            _accountUserActivityService.InsertActivity("AddPropertyLogo", "增加 资产名为 {0} 的封面照片", property.Name);
+            _accountUserActivityService.InsertActivity("AddPropertyLogo", "增加 资产名为 {0} 的现场照片", property.Name);
             #endregion
 
             #region 附件处理
@@ -1618,7 +1684,7 @@ namespace CSCZJ.API.Controllers
                 Title = property.Name,
                 State = propertyCreateModel.Submit ? PropertyApproveState.DepartmentApprove : PropertyApproveState.Start,
                 ProcessDate = DateTime.Now,
-                SuggestGovernmentId = _workContext.CurrentAccountUser.Government.Id
+                SuggestGovernmentId =  0//_workContext.CurrentAccountUser.Government.Id
             };
 
             //如果当前用户是主管部门，则跳过主管部门审核环节
@@ -1636,9 +1702,9 @@ namespace CSCZJ.API.Controllers
 
             SwitchPropertyLockState(true, property);
 
+            //_propertyService.UpdateProperty(property);
             return Ok(property.ToModel());
         }
-
 
         /// <summary>
         /// 更新资产
@@ -1757,7 +1823,7 @@ namespace CSCZJ.API.Controllers
                 property = propertyCreateModel.ToEntity(property);
                 PrepareProperty(property, propertyCreateModel);
 
-                #region 封面照片处理
+                #region 现场照片处理
                 var logoPropertyPicture = property.Pictures.Where(p => p.IsLogo).SingleOrDefault();
                 if (logoPropertyPicture == null)
                 {

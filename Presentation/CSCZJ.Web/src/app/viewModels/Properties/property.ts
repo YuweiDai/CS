@@ -35,27 +35,24 @@ export class Property extends PropertyListItem {
 
 //新建资产对象
 export class PropertyCreateModel
-{
+{    
     name:string;
     typeId:number;
     address:string;
     floor:number;
     fourToStation?:string;
-    getedDate:Date;
-    getedDateStr:string;    
-    getModelId:number;
+    getedDate:string;   
+    getModeId:number;
     isAdmission:string;
-    registerType:string;
+    registerEstate:string;
     estateId:string;
-    estateTime:Date;    
-    estateTimeStr:string;
+    estateTime:string;
     constructId:string;
     constructArea:number;
-    constructTime:Date;
-    constructTimeStr:string;
+    constructTime:string;
     landId:string;
     landArea:number;
-    landTime:Date;
+    landTime:string;
     landTimeStr:string;
     governmentId:number;
     useTypeId:number;
@@ -71,16 +68,60 @@ export class PropertyCreateModel
     submit:boolean;
     pictures:PropertyPictureModel[];
     files:PropertyFileModel[];
+    currentUse_Self:number
+    currentUse_Rent:number
+    currentUse_Lend:number
+    currentUse_Idle:number
+    owner_self:number
+    owner_children:number
+    price:number
+    propertyNature:string
+    landNature:string
+    lifeTime:number 
 
     constructor(){
-        
+        this.name="";
+        this.typeId=0;
+        this.address="";
         this.floor=0;
-        this.registerType="0";
-        this.constructArea=1;
-        this.landArea=1;
+        this.fourToStation="";
+        this.getedDate="";   
+        this.getModeId=0;
+        this.isAdmission="";
+        this.registerEstate="true";
+        this.estateId="";
+        this.estateTime="";
+        this.constructId="";
+        this.constructArea=0;
+        this.constructTime="";
+        this.landId="";
+        this.landArea=0;
+        this.landTime="";
+        this.landTimeStr="";
+        this.governmentId=0;
+        this.useTypeId=0;
+        this.currentTypeId=0;
+        this.isMortgage="";
+        this.description="";
         this.logo="";
         this.logoUrl="";
         this.logoPictureId=0;
+        this.location="";
+        this.extent="";
+        this.usedPeople="";
+        this.submit=false;
+        this.pictures=[];
+        this.files=[];
+        this.currentUse_Self=0;
+        this.currentUse_Rent=0;
+        this.currentUse_Lend=0;
+        this.currentUse_Idle=0;
+        this.owner_self=0;
+        this.owner_children=0;
+        this.price=0;
+        this.propertyNature="";
+        this.landNature="";
+        this.lifeTime=0;        
     }
 }
 

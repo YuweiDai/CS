@@ -191,6 +191,8 @@ namespace CSCZJ.API.Models.Properties
 
         public string LandTime { get; set; }
 
+        public string EstateTime { get; set; }
+
         /// <summary>
         /// 使用现状
         /// </summary>
