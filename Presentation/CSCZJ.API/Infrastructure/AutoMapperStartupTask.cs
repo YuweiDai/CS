@@ -89,8 +89,9 @@ namespace CSCZJ.Web.Api.Infrastructure
            .ForMember(dest => dest.Extent, mo => mo.MapFrom(src => src.Extent == null ? "" : src.Extent.AsText()))
               .ForMember(dest => dest.PropertyType, mo => mo.MapFrom(src => src.PropertyType.ToDescription()))
               .ForMember(dest => dest.GetMode, mo => mo.MapFrom(src => src.GetMode.ToDescription()))
-              .ForMember(dest => dest.ConstructTime, mo => mo.MapFrom(src => src.ConstructTime.ToString("yyyy-MM-dd")))
-              .ForMember(dest => dest.LandTime, mo => mo.MapFrom(src => src.LandTime.ToString("yyyy-MM-dd")))
+              .ForMember(dest => dest.ConstructTime, mo => mo.MapFrom(src => src.ConstructTime.HasValue ? src.ConstructTime.Value.ToString("yyyy-MM-dd") : "未知"))
+              .ForMember(dest => dest.LandTime, mo => mo.MapFrom(src => src.LandTime.HasValue ? src.LandTime.Value.ToString("yyyy-MM-dd") : "未知"))
+              .ForMember(dest => dest.EstateTime, mo => mo.MapFrom(src => src.LandTime.HasValue ? src.LandTime.Value.ToString("yyyy-MM-dd") : "未知"))
               .ForMember(dest => dest.CurrentType, mo => mo.MapFrom(src => src.CurrentType.ToDescription()))
               .ForMember(dest => dest.UseType, mo => mo.MapFrom(src => src.UseType.ToDescription()));
 
@@ -106,7 +107,7 @@ namespace CSCZJ.Web.Api.Infrastructure
             Mapper.CreateMap<CopyProperty, PropertyCreateModel>()
                      .ForMember(dest => dest.Id, mo => mo.MapFrom(src=>src.Property_Id))
                      .ForMember(dest => dest.GovernmentId, mo => mo.MapFrom(src => src.Government_Id))
-           .ForMember(dest => dest.Estate, mo => mo.MapFrom(src => !string.IsNullOrEmpty(src.EstateId)))
+           .ForMember(dest => dest.RegisterEstate, mo => mo.MapFrom(src => !string.IsNullOrEmpty(src.EstateId)))
            .ForMember(dest => dest.GetedDate, mo => mo.MapFrom(src => src.GetedDate.HasValue ? src.GetedDate.Value.ToString("MM/dd/yyyy") : DateTime.MinValue.ToString("MM/dd/yyyy")))
               .ForMember(dest => dest.PropertyTypeId, mo => mo.MapFrom(src => src.PropertyType))
            .ForMember(dest => dest.Location, mo => mo.MapFrom(src => src.Location == null ? "" : src.Location))
@@ -117,8 +118,9 @@ namespace CSCZJ.Web.Api.Infrastructure
               .ForMember(dest => dest.PropertyType, mo => mo.MapFrom(src => src.PropertyType.ToDescription()))
               .ForMember(dest => dest.GetMode, mo => mo.MapFrom(src => src.GetMode.ToDescription()))
               .ForMember(dest => dest.GetedDate, mo => mo.MapFrom(src => src.GetedDate.HasValue ? src.GetedDate.Value.ToString("yyyy-MM-dd") : "未知"))
-              .ForMember(dest => dest.ConstructTime, mo => mo.MapFrom(src => src.ConstructTime.ToString("yyyy-MM-dd")))
-              .ForMember(dest => dest.LandTime, mo => mo.MapFrom(src => src.LandTime.ToString("yyyy-MM-dd")))
+              .ForMember(dest => dest.ConstructTime, mo => mo.MapFrom(src => src.ConstructTime.HasValue ? src.ConstructTime.Value.ToString("yyyy-MM-dd") : "未知"))
+              .ForMember(dest => dest.LandTime, mo => mo.MapFrom(src => src.LandTime.HasValue ? src.LandTime.Value.ToString("yyyy-MM-dd") : "未知"))
+
               .ForMember(dest => dest.CurrentType, mo => mo.MapFrom(src => src.CurrentType.ToDescription()))
               .ForMember(dest => dest.UseType, mo => mo.MapFrom(src => src.UseType.ToDescription()));
 
@@ -172,7 +174,7 @@ namespace CSCZJ.Web.Api.Infrastructure
 
             Mapper.CreateMap<Property, PropertyCreateModel>()
            .ForMember(dest => dest.Owner_self, mo => mo.MapFrom(src=>src.Government.Id==0))
-           .ForMember(dest => dest.Estate, mo => mo.MapFrom(src => !string.IsNullOrEmpty(src.EstateId)))
+           .ForMember(dest => dest.RegisterEstate, mo => mo.MapFrom(src => !string.IsNullOrEmpty(src.EstateId)))
            .ForMember(dest => dest.GetedDate, mo => mo.MapFrom(src=>src.GetedDate.HasValue?src.GetedDate.Value.ToString("MM/dd/yyyy"):DateTime.MinValue.ToString("MM/dd/yyyy")))
               .ForMember(dest => dest.PropertyTypeId, mo => mo.MapFrom(src => src.PropertyType))           
            .ForMember(dest => dest.Location, mo => mo.MapFrom(src => src.Location == null ? "" : src.Location.AsText()))

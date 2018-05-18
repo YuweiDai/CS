@@ -107,8 +107,21 @@ export class MapService{
             
             layerGroup=L.layerGroup([country,countryAnno,province,provinceAnno,city,cityAnno]);
         }
-        return layerGroup;
-        
-    } 
+        return layerGroup;        
+    }
 
+    // geoJsonToWKT(geojson:object):string{
+
+    //     if(geojson==null||geojson==undefined) return "";
+
+    //     //convert the json-input to WKT
+    //     var wkt_str = 'LINESTRING(';
+    //     geojson.coordinates.forEach(function(p,i){
+    //     //	console.log(p)
+    //         if(i<geojson.coordinates.length-1)wkt_str =  wkt_str + p[0] + ' ' + p[1] + ', ';
+    //         else wkt_str =  wkt_str + p[0] + ' ' + p[1] + ')';
+    //     });
+
+    //     return wkt_str;
+    // }
 }

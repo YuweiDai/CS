@@ -11,7 +11,7 @@ import { TableParams } from "../viewModels/common/TableOption";
 
 import { ListResponse } from '../viewModels/Response/ListResponse'
 import { MapListResponse } from '../viewModels/Response/MapListResponse';
-import { Property } from '../viewModels/Properties/property';
+import { Property ,PropertyCreateModel } from '../viewModels/Properties/property';
 import {property_map} from '../viewModels/Properties/property_map';
 import {PropertyNameList} from '../viewModels/Properties/propertyName';
 import{HighSearchProperty} from '../viewModels/Properties/highSearchModel';
@@ -38,6 +38,14 @@ export class PropertyService{
         tap(_ => this.log(`fetched property id=${name}`)),
         catchError(this.handleError<boolean>(`getProperty id=${name}`))
       );    
+    }
+
+    createProperty(propertyCreateModel:PropertyCreateModel):Observable<Property>{
+      const url = `${this.apiUrl}/create`;
+      return this.http.post<Property>(url,propertyCreateModel,httpOptions).pipe(
+        tap((property: Property) => this.log(`added property w/ id=${property.id}`)),
+        catchError(this.handleError<Property>(`addProperty `))
+      );     
     }
 
     //获取单个资产

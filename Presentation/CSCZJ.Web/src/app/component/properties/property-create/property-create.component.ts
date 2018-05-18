@@ -1,101 +1,36 @@
 import { Component, OnInit } from '@angular/core';
-import {
-  FormBuilder,
-  FormControl,
-  FormGroup,
-  ValidationErrors,
-  Validators, ValidatorFn
-} from '@angular/forms';
+import { FormBuilder, FormControl, FormGroup, ValidationErrors, Validators, ValidatorFn } from '@angular/forms';
 import { Observable } from 'rxjs/Observable';
 import { Observer } from 'rxjs/Observer';
 
-import { NzMessageService, UploadFile } from 'ng-zorro-antd';
+import { NzMessageService, UploadFile, NzNotificationService } from 'ng-zorro-antd';
 
 import { format, compareAsc } from 'date-fns'
 
-import { PropertyCreateModel } from '../../../viewModels/Properties/property';
+import { PropertyCreateModel, PropertyPictureModel, PropertyFileModel } from '../../../viewModels/Properties/property';
 
 import { MapService } from '../../../services/map/mapService';
 import { PropertyService } from '../../../services/propertyService';
 import { GovernmentService } from '../../../services/governmentService';
+import { ConfigService } from '../../../services/configService';
+
 
 declare var L: any;
-
-//汉化
-export class ChineseIntl {
-  /** A label for the up second button (used by screen readers).  */
-  upSecondLabel = 'ajouter une seconde';
-
-  /** A label for the down second button (used by screen readers).  */
-  downSecondLabel = 'moins une seconde';
-
-  /** A label for the up minute button (used by screen readers).  */
-  upMinuteLabel = 'ajouter une minute';
-
-  /** A label for the down minute button (used by screen readers).  */
-  downMinuteLabel = 'moins une minute';
-
-  /** A label for the up hour button (used by screen readers).  */
-  upHourLabel = 'ajouter une heure';
-
-  /** A label for the down hour button (used by screen readers).  */
-  downHourLabel = 'moins une heure';
-
-  /** A label for the previous month button (used by screen readers). */
-  prevMonthLabel = 'le mois précédent';
-
-  /** A label for the next month button (used by screen readers). */
-  nextMonthLabel = 'le mois prochain';
-
-  /** A label for the previous year button (used by screen readers). */
-  prevYearLabel = 'année précédente';
-
-  /** A label for the next year button (used by screen readers). */
-  nextYearLabel = 'l\'année prochaine';
-
-  /** A label for the previous multi-year button (used by screen readers). */
-  prevMultiYearLabel = 'Previous 21 years';
-
-  /** A label for the next multi-year button (used by screen readers). */
-  nextMultiYearLabel = 'Next 21 years';
-
-  /** A label for the 'switch to month view' button (used by screen readers). */
-  switchToMonthViewLabel = 'Change to month view';
-
-  /** A label for the 'switch to year view' button (used by screen readers). */
-  switchToMultiYearViewLabel = 'Choose month and year';
-
-  /** A label for the cancel button */
-  cancelBtnLabel = '取消';
-
-  /** A label for the set button */
-  setBtnLabel = '确定';
-
-  /** A label for the range 'from' in picker info */
-  rangeFromLabel = 'From';
-
-  /** A label for the range 'to' in picker info */
-  rangeToLabel = 'To';
-
-  /** A label for the hour12 button (AM) */
-  hour12AMLabel = 'AM';
-
-  /** A label for the hour12 button (PM) */
-  hour12PMLabel = 'PM';
-}
+declare var Wkt: any;
 
 @Component({
   selector: 'app-property-create',
   templateUrl: './property-create.component.html',
   styleUrls: ['./property-create.component.less'],
-  providers: [
-  ],
+  providers: [],
 })
 
 export class PropertyCreateComponent implements OnInit {
   private current: number;
+  private stepStatus: string;
   private property = new PropertyCreateModel();
 
+  private wkt: any;
   private map: any;
   private marker = null;
   private extent = null;
@@ -108,7 +43,7 @@ export class PropertyCreateComponent implements OnInit {
     //opacity: 1.0,
     //fillColor: '#AA0000',
     //fillOpacity: 0.2
-  };  
+  };
 
   private basicFormValidateConfig = {
     floorRequired: false,
@@ -121,48 +56,26 @@ export class PropertyCreateComponent implements OnInit {
     landTimeRequired: false,
   };
   private isGovernmentLoading = false;
-  optionList = [];
-  defaultFileList = [
-    {
-      uid: -1,
-      name: 'xxx.png',
-      status: 'done',
-      url: 'https://zos.alipayobjects.com/rmsportal/jkjgkEfvpUPVyRjUImniVslZfWPnJuuZ.png',
-      thumbUrl: 'https://zos.alipayobjects.com/rmsportal/jkjgkEfvpUPVyRjUImniVslZfWPnJuuZ.png'
-    },
-    {
-      uid: -2,
-      name: 'yyy.png',
-      status: 'done',
-      url: 'https://zos.alipayobjects.com/rmsportal/jkjgkEfvpUPVyRjUImniVslZfWPnJuuZ.png',
-      thumbUrl: 'https://zos.alipayobjects.com/rmsportal/jkjgkEfvpUPVyRjUImniVslZfWPnJuuZ.png'
-    }
-  ];
-
-  fileList2 = [...this.defaultFileList];
+  private optionList = [];
 
   basicInfoForm: FormGroup;
-  submitForm = ($event, value) => {
-    $event.preventDefault();
-    for (const key in this.basicInfoForm.controls) {
-      this.basicInfoForm.controls[key].markAsDirty();
-      this.basicInfoForm.controls[key].updateValueAndValidity();
-    }
-  }
+  geoInfoForm: FormGroup;
+  fileInfoForm: FormGroup;
 
-  resetForm(e: MouseEvent): void {
-    e.preventDefault();
-    this.basicInfoForm.reset();
-    for (const key in this.basicInfoForm.controls) {
-      this.basicInfoForm.controls[key].markAsPristine();
-      this.basicInfoForm.controls[key].updateValueAndValidity();
-    }
-  }
+  private pictureUploadUrl: string;
+  private picureUploading = false;
+  private fileUploadUrl: string;
+  private fileUploading = false;
+  private previewImage = '';
+  private previewVisible = false;
+  private pictureList = [];
+  private fileList = [];
+
+  private isSubmit = false;
 
 
-  constructor(private fb: FormBuilder, private mapService: MapService,
-    private propertyService: PropertyService,
-    private governmentService: GovernmentService) {
+  constructor(private modalService: NzModalService,private msg: NzMessageService, private notification: NzNotificationService, private fb: FormBuilder, private mapService: MapService,
+    private configService: ConfigService, private propertyService: PropertyService, private governmentService: GovernmentService) {
 
 
     this.basicInfoForm = this.fb.group({
@@ -172,7 +85,7 @@ export class PropertyCreateComponent implements OnInit {
       pFloor: [''],
       pFourToStation: [''],
       pGetedDate: ['', [Validators.required]],
-      pGetModelId: ['', [Validators.required]],
+      pGetModeId: ['', [Validators.required]],
       pIsAdmission: ['', [Validators.required]],
 
       //产权信息
@@ -191,11 +104,17 @@ export class PropertyCreateComponent implements OnInit {
       pCurrentTypeId: ['', [Validators.required]],
       pIsMortgage: ['', [Validators.required]],
 
-      pDescription: ['',],
-      // pLogo: ['', [Validators.required]],
-      // pLocation: ['', [Validators.required]],
-      // pExtent: ['', [Validators.required]]
+      pDescription: ['',]
     });
+
+    this.geoInfoForm = this.fb.group({
+      pLocation: ['', [Validators.required]],
+      pExtent: ['',]
+    });
+
+    this.fileInfoForm = this.fb.group({
+      pLogo: ['', [Validators.required]]
+    })
   }
 
   //#region 验证相关
@@ -227,7 +146,7 @@ export class PropertyCreateComponent implements OnInit {
       this.basicInfoForm.get('pConstructArea').markAsDirty();
       this.basicFormValidateConfig.constructAreaRequired = true;
 
-      if (this.property.registerType == '1') {
+      if (this.property.registerEstate == 'false') {
         this.basicInfoForm.get('pConstructId').setValidators(Validators.required);
         this.basicInfoForm.get('pConstructId').markAsDirty();
         this.basicFormValidateConfig.constructIdRequired = true;
@@ -246,7 +165,7 @@ export class PropertyCreateComponent implements OnInit {
       this.basicInfoForm.get('pConstructArea').markAsPristine();
       this.basicFormValidateConfig.floorRequired = false;
 
-      if (this.property.registerType == '1') {
+      if (this.property.registerEstate == 'false') {
         this.basicInfoForm.get('pConstructId').clearValidators();
         this.basicInfoForm.get('pConstructId').markAsPristine();
         this.basicFormValidateConfig.constructIdRequired = false;
@@ -265,7 +184,7 @@ export class PropertyCreateComponent implements OnInit {
 
   //登记类型变化引起的表单验证切换
   registerTypeValidateSwicher(): void {
-    if (this.property.registerType == '1') {
+    if (this.property.registerEstate == 'false') {
       if (this.property.typeId == 0) {
         this.basicInfoForm.get('pConstructId').setValidators(Validators.required);
         this.basicInfoForm.get('pConstructId').markAsDirty();
@@ -292,6 +211,14 @@ export class PropertyCreateComponent implements OnInit {
       this.basicInfoForm.get('pLandTime').setValidators(Validators.required);
       this.basicInfoForm.get('pLandTime').markAsDirty();
       this.basicFormValidateConfig.landTimeRequired = true;
+
+      this.basicInfoForm.get('pEstateId').clearValidators();
+      this.basicInfoForm.get('pEstateId').markAsPristine();
+      this.basicFormValidateConfig.estateIdRequired = false;
+
+      this.basicInfoForm.get('pEstateTime').clearValidators(Validators.required);
+      this.basicInfoForm.get('pEstateTime').markAsPristine();
+      this.basicFormValidateConfig.estateTimeRequired = false;      
     }
     else {
       this.basicInfoForm.get('pConstructId').clearValidators();
@@ -309,6 +236,14 @@ export class PropertyCreateComponent implements OnInit {
       this.basicInfoForm.get('pLandTime').clearValidators();
       this.basicInfoForm.get('pLandTime').markAsPristine();
       this.basicFormValidateConfig.landTimeRequired = false;
+
+      this.basicInfoForm.get('pEstateId').setValidators(Validators.required);
+      this.basicInfoForm.get('pEstateId').markAsDirty();
+      this.basicFormValidateConfig.estateIdRequired = true;
+
+      this.basicInfoForm.get('pEstateTime').setValidators(Validators.required);
+      this.basicInfoForm.get('pEstateTime').markAsDirty();
+      this.basicFormValidateConfig.estateTimeRequired = true;        
     }
 
     this.basicInfoForm.get('pConstructId').updateValueAndValidity();
@@ -333,7 +268,9 @@ export class PropertyCreateComponent implements OnInit {
 
   ngOnInit() {
     this.current = 0;
-
+    this.stepStatus = "process";//waitprocessfinisherror
+    this.pictureUploadUrl = this.configService.getApiUrl() + "Media/Pictures/Upload";
+    this.fileUploadUrl = this.configService.getApiUrl() + "Media/Files/Upload";
   }
 
   ngAfterViewInit() {
@@ -345,7 +282,22 @@ export class PropertyCreateComponent implements OnInit {
   }
 
   next(): void {
+    this.modalService.confirm({
+      nzTitle: '提示',
+      nzContent: '数据入库成功',
+      nzOkText: '查看资产',
+      nzCancelText: '返回列表',
+      // nzOnOk:function{
+      //   console.log("123");
+      // },
+      // nzOnCancel:function{
+      //   console.log("456");
+      // },
+
+    });
+
     var validation = false;
+    var title = "数据错误", content = "";
     switch (this.current) {
       case 0:
         validation = this.basicInfoForm.valid;
@@ -354,32 +306,127 @@ export class PropertyCreateComponent implements OnInit {
           for (const key in this.basicInfoForm.controls) {
             this.basicInfoForm.controls[key].markAsDirty();
             this.basicInfoForm.controls[key].updateValueAndValidity();
+            console.log(key);
+            console.log(this.basicInfoForm.controls[key].status);
+            console.log("___________");
           }
+
+          content = "基本信息填写不正确";
         }
         else {
           //预处理
-          this.property.getedDateStr = format(this.property.getedDate, 'YYYY/MM/DD');
-          if (this.property.registerType == "0" && this.property.estateTime != undefined) this.property.estateTimeStr = format(this.property.estateTime, 'YYYY/MM/DD');
-          if (this.property.registerType == "1" && this.property.constructTime != undefined) this.property.constructTimeStr = format(this.property.constructTime, 'YYYY/MM/DD');
-          if (this.property.registerType == "1" && this.property.landTime != undefined) this.property.landTimeStr = format(this.property.landTime, 'YYYY/MM/DD');
+          this.property.getedDate = format(this.property.getedDate, 'YYYY/MM/DD');
+
+          if (this.property.registerEstate == "true")
+          {
+            this.property.constructId = "";
+            this.property.constructTime = "";
+            this.property.landId = "";
+            this.property.landTime = "";           
+            if(this.property.estateTime != undefined) this.property.estateTime = format(this.property.estateTime, 'YYYY/MM/DD'); 
+          }
+          else
+          {
+            this.property.estateId = "";
+            this.property.estateTime = "";    
+
+            if (this.property.constructTime != undefined) this.property.constructTime = format(this.property.constructTime, 'YYYY/MM/DD');
+            if (this.property.landTime != undefined) this.property.landTime = format(this.property.landTime, 'YYYY/MM/DD');                
+          }
         }
         break;
       case 1:
+        validation = this.geoInfoForm.valid;
+        if (!validation) {
+          for (const key in this.geoInfoForm.controls) {
+            this.geoInfoForm.controls[key].markAsDirty();
+            this.geoInfoForm.controls[key].updateValueAndValidity();
+          }
+          content = "空间信息填写不正确";
+        }
+        break;
+      case 2:
+        validation = this.fileInfoForm.valid;
+        if (!validation) {
+          for (const key in this.fileInfoForm.controls) {
+            this.fileInfoForm.controls[key].markAsDirty();
+            this.fileInfoForm.controls[key].updateValueAndValidity();
+          }
+          content = "请上传制定的资产现场照片！";
+        }
+        else {
+          //同步照片信息
+          this.property.pictures = [];
+          this.pictureList.forEach(element => {
+            var ppm = new PropertyPictureModel();
+            ppm.pictureId = element.response[0].id;      
+            this.property.pictures.push(ppm);
+          });
+          //同步文件信息
+          this.property.files = [];
+          this.fileList.forEach(element => {
+            var pfm = new PropertyFileModel();
+            pfm.fileId = element.response[0].id;
+            this.property.files.push(pfm);
+          });
+        }
+        break;
+      case 3:
+
         break;
     }
 
-    // if (validation) {
+    if (validation) {
+      this.stepStatus = "process";
       this.current += 1;
       this.changeContent();
-    // }
-
+    }
+    else {
+      this.createNotification("error", title, content, 2000);
+      this.stepStatus = "error";
+    }
 
   }
 
-  done(): void {
-    console.log('done');
-  }
+  done(submit: boolean): void {
+    var that = this;
+    that.isSubmit = true;
+    that.property.submit = submit;
+    this.propertyService.createProperty(this.property).subscribe((response:any) => {
+      if(response.code)
+      {
+        that.createNotification("error","数据入库失败","错误原因："+response.message,0);
+        that.isSubmit = false;        
+      }
+      else
+      {
+        this.modalService.confirm({
+          nzTitle: '提示',
+          nzContent: '数据入库成功',
+          nzOkText: '查看资产',
+          nzCancelText: '返回列表',
+          nzOnOk:function{
+            console.log("123");
+          },
+          nzOnCancel:function{
+            console.log("456");
+          },
 
+        });
+
+        //弹出返回列表 or 查看详情
+        that.createNotification("error","数据入库失败","错误原因："+response.message,0);        
+      }
+
+    });
+  }
+  submitForm = ($event, value) => {
+    $event.preventDefault();
+    for (const key in this.basicInfoForm.controls) {
+      this.basicInfoForm.controls[key].markAsDirty();
+      this.basicInfoForm.controls[key].updateValueAndValidity();
+    }
+  }
   //切换输入内容
   changeContent(): void {
     switch (this.current) {
@@ -388,20 +435,18 @@ export class PropertyCreateComponent implements OnInit {
       case 1:
         if (this.map == null || this.map == undefined) this.mapStepInitial();
         break;
+      case 3:
+        break;
       default:
         break;
     }
   }
 
-  //当前激活表单验证，是否可以进行下一步
-  formValiateCheck(): void {
-
-  }
 
   mapStepInitial(): void {
     var that = this;
+    that.wkt = new Wkt.Wkt();
 
-  
     setTimeout(() => {
       var normal = that.mapService.getLayer("vector");
       var satellite = that.mapService.getLayer("img");
@@ -412,7 +457,6 @@ export class PropertyCreateComponent implements OnInit {
       });
 
       normal.addTo(that.map);
-
 
       var zoomControl = that.map.zoomControl;
 
@@ -437,7 +481,7 @@ export class PropertyCreateComponent implements OnInit {
           circle: false,
           rectangle: false,
           marker: true,
-          circlemarker:false
+          circlemarker: false
         },
         edit: {
           featureGroup: that.editableLayers, //REQUIRED!!
@@ -464,44 +508,300 @@ export class PropertyCreateComponent implements OnInit {
             that.editableLayers.removeLayer(that.marker);
             that.marker = layer;
             that.marker.addTo(that.editableLayers);
-            // that.property.location = _wkt.fromJson(geojson).write();
+            that.property.location = that.wkt.fromJson(geojson).write();
             break;
           case "polygon":
             that.editableLayers.removeLayer(that.extent);
             that.extent = layer;
             that.extent.addTo(that.editableLayers);
-            // that.property.extent = _wkt.fromJson(geojson).write();
+            that.property.extent = that.wkt.fromJson(geojson).write();
             break;
         }
+        console.log(that.property)
       });
 
       //要素删除事件
       that.map.on(L.Draw.Event.DELETED, function (e) {
-
-        // angular.forEach(e.layers._layers, function (layer) {
-
-        //     if (layer._leaflet_id == that.marker._leaflet_id)
-        //         $scope.property.location = "";
-        //     else if (layer._leaflet_id == extent._leaflet_id)
-        //         $scope.property.extent = "";
-
+        e.layers.eachLayer(function (layer) {
+          var geoJson = layer.toGeoJSON();
+          if (geoJson.geometry.type == "Point") that.property.location = "";
+          else that.property.extent = "";
+        });
       });
-    
 
-    //汉化
-    L.drawLocal.draw.handlers.polygon = {
-      tooltip: {
-        start: '点击开始绘制多边形',
-        cont: '点击继续绘制多边形',
-        end: '点击第一个闭合多边形'
-      }
-    };
-    L.drawLocal.draw.handlers.simpleshape = {
-      tooltip: {
-        end: '释放鼠标结束绘制'
-      }
-    };
-  }, 500);
-}
+      //汉化
+      // L.drawLocal.draw.toolbar.actions = {
+      //   title: '取消绘制',
+      //   text: '取消'
+      // };
+      // L.drawLocal.draw.toolbar.undo = {
+      //   title: '删除最后一个已绘制的点',
+      //   text: '删除最后一个点'
+      // };
+      // L.drawLocal.draw.toolbar.finish = {
+      // 	title: '完成绘制',
+      // 	text: '完成'
+      // };      
 
+      // L.drawLocal.draw.toolbar.buttons = {
+      //   polyline: '绘制线',
+      //   polygon: '绘制面',
+      //   rectangle: '绘制矩形',
+      //   circle: '绘制圆',
+      //   marker: '绘制点标记'
+      // };
+
+      // // L.drawLocal.draw.handlers.circle = {
+      // //   tooltip: {
+      // //     start: '点击拖动绘制圆'
+      // //   }
+      // // };
+
+      // L.drawLocal.draw.handlers.polygon = {
+      //   tooltip: {
+      //     start: '点击开始绘制',
+      //     cont: '点击继续绘制',
+      //     end: '点击第一个点闭合多边形'
+      //   }
+      // };
+      // L.drawLocal.draw.handlers.marker = {
+      //   tooltip: {
+      //     start: '点击地图绘制'
+      //   }
+      // };
+
+      // L.drawLocal.draw.handlers.polyline = {
+      //   error: '<strong>错误:</strong> 图形不能交叉',
+      //   tooltip: {
+      //     start: '点击开始绘制',
+      //     cont: '点击继续绘制',
+      //     end: '点击完成绘制'
+      //   }
+      // };
+      // L.drawLocal.draw.handlers.rectangle = {
+      //   tooltip: {
+      //     start: '点击拖动绘制矩形'
+      //   }
+      // };
+      // L.drawLocal.draw.handlers.rectangle = {
+      //   tooltip: {
+      //     start: '点击拖动绘制矩形'
+      //   }
+      // };
+      // L.drawLocal.draw.handlers.simpleshape = {
+      //   tooltip: {
+      //     end: '释放鼠标结束绘制'
+      //   }
+      // };
+      // L.drawLocal.edit.toolbar.actions = {
+      //   save: {
+      //     title: '保存修改',
+      //     text: '保存'
+      //   },
+      //   cancel: {
+      //     title: '取消编辑,放弃所有修改',
+      //     text: '取消'
+      //   }
+      // };
+      // L.drawLocal.edit.toolbar.buttons = {
+      //   edit: '编辑图形',
+      //   editDisabled: '当前没的图形可编辑',
+      //   remove: '删除图形',
+      //   removeDisabled: '当前没的图形可删除'
+      // };
+      // L.drawLocal.edit.handlers.edit = {
+      //   tooltip: {
+      //     text: '点取消放弃修改',
+      //     subtext: '拖动节点进行修改'
+      //   }
+      // };
+      // L.drawLocal.edit.handlers.edit = {
+      //   tooltip: {
+      //     text: '右击需要删除的图形'
+      //   }
+      // };
+
+
+      // var modifiedDraw = L.drawLocal.extend({
+      //   draw: {
+      //     toolbar: {
+      //       actions: {
+      //         title: '取消绘制',
+      //         text: '取消'
+      //       },
+      //       undo: {
+      //         title: '删除最后一个已绘制的点',
+      //         text: '删除最后一个点'
+      //       },
+      //       buttons: {
+      //         polyline: '绘制线',
+      //         polygon: '绘制面',
+      //         rectangle: '绘制矩形',
+      //         circle: '绘制圆',
+      //         marker: '绘制点标记'
+      //       }
+      //     },
+      //     handlers: {
+      //       circle: {
+      //         tooltip: {
+      //           start: '点击拖动绘制圆'
+      //         }
+      //       },
+      //       marker: {
+      //         tooltip: {
+      //           start: '点击地图绘制'
+      //         }
+      //       },
+      //       polygon: {
+      //         tooltip: {
+      //           start: '点击开始绘制',
+      //           cont: '点击继续绘制',
+      //           end: '双击完成绘制'
+      //         }
+      //       },
+      //       polyline: {
+      //         error: '<strong>错误:</strong> 图形不能交叉',
+      //         tooltip: {
+      //           start: '点击开始绘制',
+      //           cont: '点击继续绘制',
+      //           end: '点击完成绘制'
+      //         }
+      //       },
+      //       rectangle: {
+      //         tooltip: {
+      //           start: '点击拖动绘制矩形'
+      //         }
+      //       },
+      //       simpleshape: {
+      //         tooltip: {
+      //           end: '释放鼠标完成绘制'
+      //         }
+      //       }
+      //     }
+      //   },
+      //   edit: {
+      //     toolbar: {
+      //       actions: {
+      //         save: {
+      //           title: '保存修改',
+      //           text: '保存'
+      //         },
+      //         cancel: {
+      //           title: '取消编辑,放弃所有修改',
+      //           text: '取消'
+      //         }
+      //       },
+      //       buttons: {
+      //         edit: '编辑图形',
+      //         editDisabled: '当前没的图形可编辑',
+      //         remove: '删除图形',
+      //         removeDisabled: '当前没的图形可删除'
+      //       }
+      //     },
+      //     handlers: {
+      //       edit: {
+      //         tooltip: {
+      //           text: '点取消放弃修改',
+      //           subtext: '拖动节点进行修改'
+      //         }
+      //       },
+      //       remove: {
+      //         tooltip: {
+      //           text: '右击需要删除的图形'
+      //         }
+      //       }
+      //     }
+      //   }
+      // });
+
+      // drawControl.drawLocal=modifiedDraw;
+    }, 500);
+  }
+
+  //现场照片上传前
+  beforeAvatarUpload = (file: File) => {
+    console.log(file);
+    const isJPG = (file.type === 'image/jpeg' || file.type === 'image/png' || file.type === 'image/bmp');
+    if (!isJPG) {
+      this.createNotification("error", "图片格式错误", '文件《' + file.name + '》不是图片格式数据!', 2000);
+      return false;
+    }
+    const isLt2M = file.size / 1024 / 1024 < 2;
+    if (!isLt2M) {
+      this.createNotification("error", "图片大小错误", '图片《' + file.name + '》大小已经超过2MB!', 2000);
+      return false;
+    }
+    return isJPG && isLt2M;
+  }
+
+  handleAvatarChange(info: any): void {
+    if (info.file.status === 'uploading') {
+      this.picureUploading = true;
+      return;
+    }
+    if (info.file.status === 'done') {
+      if (info.type == "success") {
+
+        this.property.logoPictureId = info.file.response[0].id;
+        this.property.logoUrl = info.file.response[0].url;
+        this.picureUploading = false;
+
+        // Get this url from response in real world.
+        // this.getBase64(file, (img: string) => {
+        //   this.picureUploading = false;
+        //   this.property.logo = img;        
+        // });        
+      }
+    }
+  }
+  // private getBase64(img: File, callback: (img: {}) => void): void {
+  //   const reader = new FileReader();
+  //   reader.addEventListener('load', () => callback(reader.result));
+  //   reader.readAsDataURL(img);
+  // }
+  handleAvatarPreview = (file: UploadFile) => {
+    this.previewImage = file.url || file.thumbUrl;
+    this.previewVisible = true;
+  }
+  handleAvatarRemove = (file: UploadFile) => {
+    this.property.logoPictureId = 0;
+    this.property.logoUrl = "";
+    this.property.logo = "";
+
+    return true;
+  }
+  handlePicturesChange(info: any): void {
+    var that = this;
+    const pictureList = info.fileList;
+
+    if (info.file.status === 'uploading') {
+      this.picureUploading = true;
+      return;
+    }
+    if (info.file.status === 'done') {
+      this.picureUploading = false;
+    }
+
+  }
+  handleFilesChange(info: any): void {
+    var that = this;
+    const fileList = info.fileList;
+    console.log(fileList);
+    if (info.file.status === 'uploading') {
+      that.fileUploading = true;
+      return;
+    }
+    if (info.file.status === 'done') {
+      that.fileUploading = false;
+      if (info.file.response) {
+        info.file.url = info.file.response[0].url;
+      }
+    }
+
+
+  }
+
+  createNotification(type: string, title: string, content: string, time: number): void {
+    this.notification.create(type, title, content, { nzDuration: time });
+  }
 }
