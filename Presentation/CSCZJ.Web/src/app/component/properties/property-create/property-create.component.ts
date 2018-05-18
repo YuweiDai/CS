@@ -3,7 +3,7 @@ import { FormBuilder, FormControl, FormGroup, ValidationErrors, Validators, Vali
 import { Observable } from 'rxjs/Observable';
 import { Observer } from 'rxjs/Observer';
 
-import { NzMessageService, UploadFile, NzNotificationService } from 'ng-zorro-antd';
+import { NzMessageService, UploadFile, NzNotificationService,NzModalService } from 'ng-zorro-antd';
 
 import { format, compareAsc } from 'date-fns'
 
@@ -216,7 +216,7 @@ export class PropertyCreateComponent implements OnInit {
       this.basicInfoForm.get('pEstateId').markAsPristine();
       this.basicFormValidateConfig.estateIdRequired = false;
 
-      this.basicInfoForm.get('pEstateTime').clearValidators(Validators.required);
+      this.basicInfoForm.get('pEstateTime').clearValidators();
       this.basicInfoForm.get('pEstateTime').markAsPristine();
       this.basicFormValidateConfig.estateTimeRequired = false;      
     }
@@ -404,14 +404,7 @@ export class PropertyCreateComponent implements OnInit {
           nzTitle: '提示',
           nzContent: '数据入库成功',
           nzOkText: '查看资产',
-          nzCancelText: '返回列表',
-          nzOnOk:function{
-            console.log("123");
-          },
-          nzOnCancel:function{
-            console.log("456");
-          },
-
+          nzCancelText: '返回列表'
         });
 
         //弹出返回列表 or 查看详情
