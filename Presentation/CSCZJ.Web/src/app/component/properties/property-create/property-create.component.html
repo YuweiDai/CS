@@ -1,8 +1,7 @@
 <div class="component-container">
     <div nz-row>
         <div nz-col nzSpan="24">
-                {{property  | json}}
-            <nz-card nzTitle="新增资产" [nzExtra]="extraTemplate">
+            <nz-card [nzTitle]="title" [nzExtra]="extraTemplate">
                 <div class="component-content">
                     <nz-steps [nzCurrent]="current" [nzStatus]="stepStatus">
                         <nz-step nzTitle="详细信息" nzDescription="填写资产的基本信息、使用信息以及产权信息。"></nz-step>
@@ -37,7 +36,7 @@
                                     <nz-form-item>
                                         <nz-form-label [nzSpan]="4" nzRequired>资产类型</nz-form-label>
                                         <nz-form-control [nzSpan]="20">
-                                            <nz-radio-group [(ngModel)]="property.typeId" formControlName="pType" (ngModelChange)="propertyTypeValidateSwicher()">
+                                            <nz-radio-group [(ngModel)]="property.propertyTypeId" formControlName="pType" (ngModelChange)="propertyTypeValidateSwicher()">
                                                 <label nz-radio nzValue="0">房产</label>
                                                 <label nz-radio nzValue="1">土地</label>
                                             </nz-radio-group>
@@ -98,7 +97,7 @@
                                         </nz-form-control>
                                     </nz-form-item>
 
-                                    <nz-form-item *ngIf="property.typeId==0">
+                                    <nz-form-item *ngIf="property.propertyTypeId==0">
                                         <nz-form-label [nzSpan]="4" [nzRequired]="basicFormValidateConfig.floorRequired">房屋层数</nz-form-label>
                                         <nz-form-control [nzSpan]="20">
                                             <nz-input-number formControlName="pFloor" [(ngModel)]="property.floor" [nzMin]="1" [nzMax]="50" [nzStep]="1"></nz-input-number>
@@ -111,7 +110,7 @@
                                         </nz-form-control>
                                     </nz-form-item>
 
-                                    <nz-form-item *ngIf="property.typeId==0">
+                                    <nz-form-item *ngIf="property.propertyTypeId==0">
                                         <nz-form-label [nzSpan]="4" [nzRequired]="basicFormValidateConfig.constructAreaRequired">建筑面积</nz-form-label>
                                         <nz-form-control [nzSpan]="20">
                                             <nz-input-number formControlName="pConstructArea" [(ngModel)]="property.constructArea" [nzMin]="1" [nzMax]="1000000000" [nzStep]="0.01"></nz-input-number>
@@ -279,7 +278,7 @@
                                             </nz-form-control>
                                         </nz-form-item>
 
-                                        <nz-form-item *ngIf="property.typeId==0 && property.registerEstate=='false'">
+                                        <nz-form-item *ngIf="property.propertyTypeId==0 && property.registerEstate=='false'">
                                             <nz-form-label [nzSpan]="4" [nzRequired]="basicFormValidateConfig.constructIdRequired">房产证</nz-form-label>
                                             <nz-form-control [nzSpan]="20" nzHasFeedback>
                                                 <input nz-input formControlName="pConstructId" [(ngModel)]="property.constructId" placeholder="输入房产证号..." type="text">
@@ -291,7 +290,7 @@
                                             </nz-form-control>
                                         </nz-form-item>
 
-                                        <nz-form-item *ngIf="property.typeId==0 && property.registerEstate=='false'">
+                                        <nz-form-item *ngIf="property.propertyTypeId==0 && property.registerEstate=='false'">
                                             <nz-form-label [nzSpan]="4" [nzRequired]="basicFormValidateConfig.constructTimeRequired">上证日期</nz-form-label>
                                             <nz-form-control [nzSpan]="20" nzHasFeedback>
 
@@ -357,7 +356,7 @@
 
                                     <div class="clearfix">
                                         <nz-upload class="avatar-uploader" [nzAction]="pictureUploadUrl" nzName="avatar" nzListType="picture-card" [nzShowButton]="property.logoPictureId<=0"
-                                            [nzPreview]="handleAvatarPreview" [nzRemove]="handleAvatarRemove" [nzBeforeUpload]="beforeAvatarUpload"
+                                            [nzPreview]="handleAvatarPreview" [nzRemove]="handleAvatarRemove" [nzBeforeUpload]="beforeAvatarUpload" [(nzFileList)]="avatarList" 
                                             (nzChange)="handleAvatarChange($event)">
                                             <ng-container>
                                                 <i class="anticon anticon-plus"></i>

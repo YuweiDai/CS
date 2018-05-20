@@ -91,7 +91,7 @@ namespace CSCZJ.Web.Api.Infrastructure
               .ForMember(dest => dest.GetMode, mo => mo.MapFrom(src => src.GetMode.ToDescription()))
               .ForMember(dest => dest.ConstructTime, mo => mo.MapFrom(src => src.ConstructTime.HasValue ? src.ConstructTime.Value.ToString("yyyy-MM-dd") : "未知"))
               .ForMember(dest => dest.LandTime, mo => mo.MapFrom(src => src.LandTime.HasValue ? src.LandTime.Value.ToString("yyyy-MM-dd") : "未知"))
-              .ForMember(dest => dest.EstateTime, mo => mo.MapFrom(src => src.LandTime.HasValue ? src.LandTime.Value.ToString("yyyy-MM-dd") : "未知"))
+              .ForMember(dest => dest.EstateTime, mo => mo.MapFrom(src => src.EstateTime.HasValue ? src.EstateTime.Value.ToString("yyyy-MM-dd") : "未知"))
               .ForMember(dest => dest.CurrentType, mo => mo.MapFrom(src => src.CurrentType.ToDescription()))
               .ForMember(dest => dest.UseType, mo => mo.MapFrom(src => src.UseType.ToDescription()));
 
@@ -173,6 +173,8 @@ namespace CSCZJ.Web.Api.Infrastructure
 
 
             Mapper.CreateMap<Property, PropertyCreateModel>()
+            .ForMember(dest => dest.RegisterEstate, mo => mo.MapFrom(src => src.EstateTime.HasValue))
+            .ForMember(dest => dest.GovernmentName, mo => mo.MapFrom(src => src.Government.Name))
            .ForMember(dest => dest.Owner_self, mo => mo.MapFrom(src=>src.Government.Id==0))
            .ForMember(dest => dest.RegisterEstate, mo => mo.MapFrom(src => !string.IsNullOrEmpty(src.EstateId)))
            .ForMember(dest => dest.GetedDate, mo => mo.MapFrom(src=>src.GetedDate.HasValue?src.GetedDate.Value.ToString("MM/dd/yyyy"):DateTime.MinValue.ToString("MM/dd/yyyy")))

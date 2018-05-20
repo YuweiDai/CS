@@ -23,7 +23,11 @@ const propertyCenterRoutes: Routes = [
           {
               path: ':id',
               component: PropertyDetailComponent
-          }   
+          },
+          {
+            path: 'edit/:id',
+            component: PropertyCreateComponent
+        }             
       ]
     }
   ];

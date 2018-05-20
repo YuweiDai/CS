@@ -49,10 +49,19 @@ export class PropertyService{
     }
 
     //获取单个资产
+    getUpdatedPropertyById(id:number):Observable<PropertyCreateModel>{
+      const url = `${this.apiUrl}/Update/${id}`;
+      return this.http.get<PropertyCreateModel>(url).pipe(
+        tap(_ => this.log(`get Update property id=${id}`)),
+        catchError(this.handleError<PropertyCreateModel>(`getUpdateProperty id=${id}`))
+      );    
+    }
+
+    //获取单个资产
     getPropertyById(id:number):Observable<Property>{
       const url = `${this.apiUrl}/${id}`;
       return this.http.get<Property>(url).pipe(
-        tap(_ => this.log(`fetched property id=${id}`)),
+        tap(_ => this.log(`get property id=${id}`)),
         catchError(this.handleError<Property>(`getProperty id=${id}`))
       );    
     }

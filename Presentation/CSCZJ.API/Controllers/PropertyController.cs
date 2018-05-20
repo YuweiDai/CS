@@ -1241,13 +1241,13 @@ namespace CSCZJ.API.Controllers
         [Route("Update/{propertyId:int}")]
         public IHttpActionResult GetUpdatedProperty(int propertyId)
         {
-            var currentUser = _workContext.CurrentAccountUser;
+            //var currentUser = _workContext.CurrentAccountUser;
 
             var property = _propertyService.GetPropertyById(propertyId);
             if (property == null || property.Deleted)
                 return NotFound();
 
-            if (!PropertyCanEditDelete(property) && !PropertyCanChange(property)) return NotFound();// "资产无法编辑或变更！");
+            //if (!PropertyCanEditDelete(property) && !PropertyCanChange(property)) return NotFound();// "资产无法编辑或变更！");
 
             var propertyCreatModel = new PropertyCreateModel();
 
@@ -1256,7 +1256,7 @@ namespace CSCZJ.API.Controllers
                 var copyproperty = _copyPropertyService.GetCopyPropertyById(edit.CopyProperty_Id);
                 propertyCreatModel = copyproperty.ToCreateModel();
 
-                propertyCreatModel.Owner_self = propertyCreatModel.GovernmentId == currentUser.Government.Id;
+               // propertyCreatModel.Owner_self = propertyCreatModel.GovernmentId == currentUser.Government.Id;
                 propertyCreatModel.Owner_children = propertyCreatModel.Owner_self;
 
                 #region 新数据库对象
@@ -1314,7 +1314,7 @@ namespace CSCZJ.API.Controllers
                 //    return NotFound();
 
                 propertyCreatModel = property.ToCreateModel();
-                propertyCreatModel.Owner_self = propertyCreatModel.GovernmentId == currentUser.Government.Id;
+               // propertyCreatModel.Owner_self = propertyCreatModel.GovernmentId == currentUser.Government.Id;
                 propertyCreatModel.Owner_children = propertyCreatModel.Owner_self;
                 propertyCreatModel.LogoUrl = string.IsNullOrEmpty(GetLogoUrl(property)) ? null : GetLogoUrl(property);
                 var propertyLogoPicture = GetLogoPicture(property);
@@ -1688,7 +1688,7 @@ namespace CSCZJ.API.Controllers
             };
 
             //如果当前用户是主管部门，则跳过主管部门审核环节
-            if (propertyCreateModel.Submit && _workContext.CurrentAccountUser.Government.ParentGovernmentId == 0)
+            if (propertyCreateModel.Submit )//&& _workContext.CurrentAccountUser.Government.ParentGovernmentId == 0)
             {
                 propertyNewRecord.State = PropertyApproveState.AdminApprove;
                 propertyNewRecord.DSuggestion = "同意";

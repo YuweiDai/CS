@@ -2,8 +2,9 @@ import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup, ValidationErrors, Validators, ValidatorFn } from '@angular/forms';
 import { Observable } from 'rxjs/Observable';
 import { Observer } from 'rxjs/Observer';
+import { Router, ActivatedRoute, ParamMap } from '@angular/router';
 
-import { NzMessageService, UploadFile, NzNotificationService,NzModalService } from 'ng-zorro-antd';
+import { NzMessageService, UploadFile, NzNotificationService, NzModalService } from 'ng-zorro-antd';
 
 import { format, compareAsc } from 'date-fns'
 
@@ -26,9 +27,12 @@ declare var Wkt: any;
 })
 
 export class PropertyCreateComponent implements OnInit {
+  private id: number;
+  private title: string;
   private current: number;
   private stepStatus: string;
   private property = new PropertyCreateModel();
+  private orginalPropertyName: string;
 
   private wkt: any;
   private map: any;
@@ -68,14 +72,16 @@ export class PropertyCreateComponent implements OnInit {
   private fileUploading = false;
   private previewImage = '';
   private previewVisible = false;
+  private avatarList=[];
   private pictureList = [];
   private fileList = [];
 
   private isSubmit = false;
 
 
-  constructor(private modalService: NzModalService,private msg: NzMessageService, private notification: NzNotificationService, private fb: FormBuilder, private mapService: MapService,
-    private configService: ConfigService, private propertyService: PropertyService, private governmentService: GovernmentService) {
+  constructor(private modalService: NzModalService, private msg: NzMessageService, private notification: NzNotificationService,
+    private router: Router, private route: ActivatedRoute, private fb: FormBuilder,
+    private mapService: MapService, private configService: ConfigService, private propertyService: PropertyService, private governmentService: GovernmentService) {
 
 
     this.basicInfoForm = this.fb.group({
@@ -125,10 +131,14 @@ export class PropertyCreateComponent implements OnInit {
     return Observable.create((observer: Observer<ValidationErrors>) => {
 
       that.propertyService.nameValidate(control.value).subscribe(response => {
-        if (response) {
-          observer.next({ error: true, duplicated: true });
-        } else {
-          observer.next(null);
+
+        if (this.id > 0 && control.value == this.orginalPropertyName) observer.next(null);
+        else {
+          if (response) {
+            observer.next({ error: true, duplicated: true });
+          } else {
+            observer.next(null);
+          }
         }
         observer.complete();
       });
@@ -137,7 +147,7 @@ export class PropertyCreateComponent implements OnInit {
 
   //资产类别变化引起的表单验证切换
   propertyTypeValidateSwicher(): void {
-    if (this.property.typeId == 0) {
+    if (this.property.propertyTypeId == "0") {
       this.basicInfoForm.get('pFloor').setValidators(Validators.required);
       this.basicInfoForm.get('pFloor').markAsDirty();
       this.basicFormValidateConfig.floorRequired = true;
@@ -185,7 +195,7 @@ export class PropertyCreateComponent implements OnInit {
   //登记类型变化引起的表单验证切换
   registerTypeValidateSwicher(): void {
     if (this.property.registerEstate == 'false') {
-      if (this.property.typeId == 0) {
+      if (this.property.propertyTypeId == "0") {
         this.basicInfoForm.get('pConstructId').setValidators(Validators.required);
         this.basicInfoForm.get('pConstructId').markAsDirty();
         this.basicFormValidateConfig.constructIdRequired = true;
@@ -218,7 +228,7 @@ export class PropertyCreateComponent implements OnInit {
 
       this.basicInfoForm.get('pEstateTime').clearValidators();
       this.basicInfoForm.get('pEstateTime').markAsPristine();
-      this.basicFormValidateConfig.estateTimeRequired = false;      
+      this.basicFormValidateConfig.estateTimeRequired = false;
     }
     else {
       this.basicInfoForm.get('pConstructId').clearValidators();
@@ -243,7 +253,7 @@ export class PropertyCreateComponent implements OnInit {
 
       this.basicInfoForm.get('pEstateTime').setValidators(Validators.required);
       this.basicInfoForm.get('pEstateTime').markAsDirty();
-      this.basicFormValidateConfig.estateTimeRequired = true;        
+      this.basicFormValidateConfig.estateTimeRequired = true;
     }
 
     this.basicInfoForm.get('pConstructId').updateValueAndValidity();
@@ -267,10 +277,74 @@ export class PropertyCreateComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.current = 0;
-    this.stepStatus = "process";//waitprocessfinisherror
-    this.pictureUploadUrl = this.configService.getApiUrl() + "Media/Pictures/Upload";
-    this.fileUploadUrl = this.configService.getApiUrl() + "Media/Files/Upload";
+    var that = this;
+    that.current = 0;
+    that.stepStatus = "process";//waitprocessfinisherror
+    that.pictureUploadUrl = that.configService.getApiUrl() + "Media/Pictures/Upload";
+    that.fileUploadUrl = that.configService.getApiUrl() + "Media/Files/Upload";
+
+
+    let routeConfig = that.route.routeConfig;
+    if (routeConfig.path.indexOf("create") > -1) {
+      //说明是新增
+      that.title = "新增资产";
+    }
+    else {
+      let id = parseInt(that.route.snapshot.paramMap.get('id'));
+      if (id != undefined && id != null) {
+        //说明是编辑页面
+        that.propertyService.getUpdatedPropertyById(id).subscribe(response => {
+          if (response == undefined || response == null || response.Code) that.router.navigate(['/properties']);
+          that.property = response;
+
+          that.id = that.property.id;
+          that.orginalPropertyName = that.property.name;
+          that.title = "资产变更";
+
+          that.property.isAdmission = that.property.isAdmission.toString();
+          that.property.isMortgage = that.property.isMortgage.toString();
+          that.property.registerEstate = that.property.registerEstate.toString();
+          that.property.propertyTypeId = that.property.propertyTypeId.toString();
+          that.property.getModeId = that.property.getModeId.toString();
+          that.property.useTypeId = that.property.useTypeId.toString();
+          that.property.currentTypeId = that.property.currentTypeId.toString();
+          that.property.governmentId = that.property.governmentId.toString();
+
+          that.optionList.push({
+            name: that.property.governmentName,
+            id: that.property.governmentId
+          });
+
+          that.avatarList.push({
+            uid: -1,
+            name: "logo",
+            status: 'done',
+            url: that.property.logoUrl
+          });
+
+          that.property.pictures.forEach(element => {
+            that.pictureList.push({
+              uid: -1,
+              name: element.title,
+              status: 'done',
+              url: element.href
+            });
+          });
+
+console.log(that.pictureList);
+
+          that.property.files.forEach(element => {
+            that.fileList.push({
+              uid: -1,
+              name: element.title,
+              status: 'done',
+              url: element.src
+            })
+          });
+
+        });
+      }
+    }
   }
 
   ngAfterViewInit() {
@@ -282,20 +356,6 @@ export class PropertyCreateComponent implements OnInit {
   }
 
   next(): void {
-    this.modalService.confirm({
-      nzTitle: '提示',
-      nzContent: '数据入库成功',
-      nzOkText: '查看资产',
-      nzCancelText: '返回列表',
-      // nzOnOk:function{
-      //   console.log("123");
-      // },
-      // nzOnCancel:function{
-      //   console.log("456");
-      // },
-
-    });
-
     var validation = false;
     var title = "数据错误", content = "";
     switch (this.current) {
@@ -317,21 +377,19 @@ export class PropertyCreateComponent implements OnInit {
           //预处理
           this.property.getedDate = format(this.property.getedDate, 'YYYY/MM/DD');
 
-          if (this.property.registerEstate == "true")
-          {
+          if (this.property.registerEstate == "true") {
             this.property.constructId = "";
             this.property.constructTime = "";
             this.property.landId = "";
-            this.property.landTime = "";           
-            if(this.property.estateTime != undefined) this.property.estateTime = format(this.property.estateTime, 'YYYY/MM/DD'); 
+            this.property.landTime = "";
+            if (this.property.estateTime != undefined) this.property.estateTime = format(this.property.estateTime, 'YYYY/MM/DD');
           }
-          else
-          {
+          else {
             this.property.estateId = "";
-            this.property.estateTime = "";    
+            this.property.estateTime = "";
 
             if (this.property.constructTime != undefined) this.property.constructTime = format(this.property.constructTime, 'YYYY/MM/DD');
-            if (this.property.landTime != undefined) this.property.landTime = format(this.property.landTime, 'YYYY/MM/DD');                
+            if (this.property.landTime != undefined) this.property.landTime = format(this.property.landTime, 'YYYY/MM/DD');
           }
         }
         break;
@@ -359,7 +417,7 @@ export class PropertyCreateComponent implements OnInit {
           this.property.pictures = [];
           this.pictureList.forEach(element => {
             var ppm = new PropertyPictureModel();
-            ppm.pictureId = element.response[0].id;      
+            ppm.pictureId = element.response[0].id;
             this.property.pictures.push(ppm);
           });
           //同步文件信息
@@ -372,7 +430,6 @@ export class PropertyCreateComponent implements OnInit {
         }
         break;
       case 3:
-
         break;
     }
 
@@ -392,34 +449,32 @@ export class PropertyCreateComponent implements OnInit {
     var that = this;
     that.isSubmit = true;
     that.property.submit = submit;
-    this.propertyService.createProperty(this.property).subscribe((response:any) => {
-      if(response.code)
-      {
-        that.createNotification("error","数据入库失败","错误原因："+response.message,0);
-        that.isSubmit = false;        
+    this.propertyService.createProperty(this.property).subscribe((response: any) => {
+      if (response.Code) {
+        that.createNotification("error", "数据入库失败", "错误原因：" + response.message, 0);
+        that.isSubmit = false;
       }
-      else
-      {
-        this.modalService.confirm({
-          nzTitle: '提示',
-          nzContent: '数据入库成功',
-          nzOkText: '查看资产',
-          nzCancelText: '返回列表'
-        });
-
-        //弹出返回列表 or 查看详情
-        that.createNotification("error","数据入库失败","错误原因："+response.message,0);        
+      else {
+        var id = response.id;
+        if (id) {
+          this.modalService.confirm({
+            nzTitle: '提示',
+            nzContent: '数据入库成功',
+            nzOkText: '查看资产',
+            nzCancelText: '返回列表',
+            nzOnOk: function () {
+              that.router.navigate(['../properties/' + id]);
+            },
+            nzOnCancel: function () {
+              that.router.navigate(['/properties']);
+            }
+          });
+        }
       }
 
     });
   }
-  submitForm = ($event, value) => {
-    $event.preventDefault();
-    for (const key in this.basicInfoForm.controls) {
-      this.basicInfoForm.controls[key].markAsDirty();
-      this.basicInfoForm.controls[key].updateValueAndValidity();
-    }
-  }
+
   //切换输入内容
   changeContent(): void {
     switch (this.current) {
@@ -435,7 +490,6 @@ export class PropertyCreateComponent implements OnInit {
     }
   }
 
-
   mapStepInitial(): void {
     var that = this;
     that.wkt = new Wkt.Wkt();
@@ -449,7 +503,30 @@ export class PropertyCreateComponent implements OnInit {
         zoom: 14
       });
 
-      normal.addTo(that.map);
+      satellite.addTo(this.map);
+      var baseLayers = {
+        "矢量": normal,
+        "卫星": satellite
+      };
+      //L.control.layers(baseLayers).addTo(that.map);
+
+      if (that.id > 0) {
+        that.wkt.read(that.property.location);
+
+        that.marker = L.marker([that.wkt.components[0].y, that.wkt.components[0].x]);// that.wkt.toObject(mapOverlayOption);
+
+        that.marker.addTo(that.editableLayers);
+        that.map.setView(that.marker.getLatLng(), 18);
+
+        if (that.property.extent != null && that.property.extent != "") {
+          that.wkt.read(that.property.extent);
+          that.extent = that.wkt.toObject(that.mapOverlayOption);
+          that.extent.addTo(that.editableLayers);
+
+          that.map.fitBounds(that.extent.getBounds());
+        }
+      }
+
 
       var zoomControl = that.map.zoomControl;
 

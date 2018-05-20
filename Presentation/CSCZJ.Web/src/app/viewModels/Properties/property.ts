@@ -31,18 +31,20 @@ export class PropertyListItem{
 export class Property extends PropertyListItem {
     lon?:number;
     lat?:number;
+    rents:PropertyRentModel[];
 }
 
 //新建资产对象
 export class PropertyCreateModel
 {    
+    id:number;
     name:string;
-    typeId:number;
+    propertyTypeId:string;
     address:string;
     floor:number;
     fourToStation?:string;
     getedDate:string;   
-    getModeId:number;
+    getModeId:string;
     isAdmission:string;
     registerEstate:string;
     estateId:string;
@@ -54,9 +56,10 @@ export class PropertyCreateModel
     landArea:number;
     landTime:string;
     landTimeStr:string;
-    governmentId:number;
-    useTypeId:number;
-    currentTypeId:number;
+    governmentId:string;
+    governmentName:string;
+    useTypeId:string;
+    currentTypeId:string;
     isMortgage:string;
     description:string;
     logo:string;
@@ -81,14 +84,13 @@ export class PropertyCreateModel
 
     constructor(){
         this.name="";
-        this.typeId=0;
         this.address="";
         this.floor=0;
         this.fourToStation="";
         this.getedDate="";   
-        this.getModeId=0;
+        this.getModeId="0";
         this.isAdmission="";
-        this.registerEstate="true";
+        //this.registerEstate="true";
         this.estateId="";
         this.estateTime="";
         this.constructId="";
@@ -98,9 +100,8 @@ export class PropertyCreateModel
         this.landArea=0;
         this.landTime="";
         this.landTimeStr="";
-        this.governmentId=0;
-        this.useTypeId=0;
-        this.currentTypeId=0;
+        this.useTypeId="0";
+        this.currentTypeId="0";
         this.isMortgage="";
         this.description="";
         this.logo="";
@@ -122,6 +123,7 @@ export class PropertyCreateModel
         this.propertyNature="";
         this.landNature="";
         this.lifeTime=0;        
+        this.governmentName="";
     }
 }
 
@@ -146,4 +148,9 @@ export class PropertyFileModel
     src:string;
     percentage:number;
     uploaded:boolean;
+}
+
+export class PropertyRentModel
+{
+
 }

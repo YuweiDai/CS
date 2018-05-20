@@ -38,7 +38,7 @@ const DEFAULT_PERFECT_SCROLLBAR_CONFIG: PerfectScrollbarConfigInterface = {
     PropertyCreateComponent,
     PropertyDetailComponent,
     UiTableComponent,
-    LeftmenuComponent,
+    LeftmenuComponent
   ],
   providers:[
     {
