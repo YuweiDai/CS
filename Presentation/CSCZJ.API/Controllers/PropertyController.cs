@@ -1725,12 +1725,7 @@ namespace CSCZJ.API.Controllers
 
             if (!string.IsNullOrEmpty(checkMessage)) return BadRequest(checkMessage);
 
-            Picture logoPicture = null;
-            if (!string.IsNullOrEmpty(propertyCreateModel.Logo))  //上传的logo 不为空则表明新增了一个logo图片
-            {
-                var base64 = HttpUtility.HtmlDecode(propertyCreateModel.Logo.Trim());
-                logoPicture = _pictureService.InsertPicture(base64);
-            }
+            var logoPicture = _pictureService.GetPictureById(propertyCreateModel.LogoPictureId);            
 
             if (property.Published)
             {                
@@ -1817,7 +1812,7 @@ namespace CSCZJ.API.Controllers
             else {
                 #region 数据编辑
 
-                if (!PropertyCanEditDelete(property)) return BadRequest("无法编辑资产");
+                // if (!PropertyCanEditDelete(property)) return BadRequest("无法编辑资产");  temp
 
                 var imgs = property.Pictures;
                 property = propertyCreateModel.ToEntity(property);
@@ -1868,13 +1863,13 @@ namespace CSCZJ.API.Controllers
                 {
                     propertyNewRecord.State = PropertyApproveState.DepartmentApprove;
 
-                    //如果当前用户是主管部门，则跳过主管部门审核环节
-                    if (_workContext.CurrentAccountUser.Government.ParentGovernmentId == 0)
-                    {
+                    //如果当前用户是主管部门，则跳过主管部门审核环节   temp
+                    //if (_workContext.CurrentAccountUser.Government.ParentGovernmentId == 0)
+                    //{
                         propertyNewRecord.State = PropertyApproveState.AdminApprove;
                         propertyNewRecord.DSuggestion = "同意";
                         propertyNewRecord.DApproveDate = DateTime.Now;
-                    }
+                    //}
 
                     _propertyNewCreateService.UpdatePropertyNewCreate(propertyNewRecord);
 

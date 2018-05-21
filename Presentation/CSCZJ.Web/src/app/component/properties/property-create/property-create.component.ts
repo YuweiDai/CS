@@ -72,7 +72,7 @@ export class PropertyCreateComponent implements OnInit {
   private fileUploading = false;
   private previewImage = '';
   private previewVisible = false;
-  private avatarList=[];
+  private avatarList = [];
   private pictureList = [];
   private fileList = [];
 
@@ -95,7 +95,7 @@ export class PropertyCreateComponent implements OnInit {
       pIsAdmission: ['', [Validators.required]],
 
       //产权信息
-      pRegisterType: [''],
+      pRegisterEstate: ['', [Validators.required]],
       pEstateId: ['', [Validators.required]],
       pEstateTime: ['', [Validators.required]],
       pConstructId: [''],
@@ -140,6 +140,7 @@ export class PropertyCreateComponent implements OnInit {
             observer.next(null);
           }
         }
+
         observer.complete();
       });
     })
@@ -290,16 +291,17 @@ export class PropertyCreateComponent implements OnInit {
       that.title = "新增资产";
     }
     else {
+      that.title = "资产变更";
+
       let id = parseInt(that.route.snapshot.paramMap.get('id'));
       if (id != undefined && id != null) {
         //说明是编辑页面
-        that.propertyService.getUpdatedPropertyById(id).subscribe(response => {
+        that.propertyService.getUpdatedPropertyById(id).subscribe((response: any) => {
           if (response == undefined || response == null || response.Code) that.router.navigate(['/properties']);
           that.property = response;
 
           that.id = that.property.id;
           that.orginalPropertyName = that.property.name;
-          that.title = "资产变更";
 
           that.property.isAdmission = that.property.isAdmission.toString();
           that.property.isMortgage = that.property.isMortgage.toString();
@@ -315,33 +317,34 @@ export class PropertyCreateComponent implements OnInit {
             id: that.property.governmentId
           });
 
-          that.avatarList.push({
-            uid: -1,
-            name: "logo",
-            status: 'done',
-            url: that.property.logoUrl
-          });
+          var pics = [];
+          var files = [];
 
           that.property.pictures.forEach(element => {
-            that.pictureList.push({
-              uid: -1,
+            pics.push({
+              uid:element.pictureId,    //Uid不能重复
+              message:"成功",
               name: element.title,
               status: 'done',
-              url: element.href
+              url: element.href,
+              thumbUrl: element.href,
+              id: element.pictureId
             });
           });
 
-console.log(that.pictureList);
 
           that.property.files.forEach(element => {
-            that.fileList.push({
-              uid: -1,
+            files.push({
+              uid: element.fileId,
               name: element.title,
               status: 'done',
-              url: element.src
+              url: element.src,
+              id: element.fileId
             })
           });
-
+          that.avatarList = [{ uid: -1, name: "logo", status: 'done', url: this.property.logoUrl, thumbUrl: this.property.logoUrl }];
+          that.pictureList = [...pics];
+          that.fileList = [...files];
         });
       }
     }
@@ -360,7 +363,12 @@ console.log(that.pictureList);
     var title = "数据错误", content = "";
     switch (this.current) {
       case 0:
+
         validation = this.basicInfoForm.valid;
+        var errors = this.basicInfoForm.errors;
+
+        console.log(this.basicInfoForm.getError('pName'));
+        //console.log(this.basicInfoForm.controls['pName'].g;
 
         if (!validation) {
           for (const key in this.basicInfoForm.controls) {
@@ -392,6 +400,7 @@ console.log(that.pictureList);
             if (this.property.landTime != undefined) this.property.landTime = format(this.property.landTime, 'YYYY/MM/DD');
           }
         }
+
         break;
       case 1:
         validation = this.geoInfoForm.valid;
@@ -417,14 +426,18 @@ console.log(that.pictureList);
           this.property.pictures = [];
           this.pictureList.forEach(element => {
             var ppm = new PropertyPictureModel();
-            ppm.pictureId = element.response[0].id;
+            if (element.uid ==  element.id) ppm.pictureId = element.id;
+            else ppm.pictureId = element.response[0].id;
             this.property.pictures.push(ppm);
           });
           //同步文件信息
           this.property.files = [];
+          console.log(this.fileList);
           this.fileList.forEach(element => {
             var pfm = new PropertyFileModel();
-            pfm.fileId = element.response[0].id;
+
+            if (element.uid ==  element.id) pfm.fileId = element.id;
+            else pfm.fileId = element.response[0].id;
             this.property.files.push(pfm);
           });
         }
@@ -449,30 +462,58 @@ console.log(that.pictureList);
     var that = this;
     that.isSubmit = true;
     that.property.submit = submit;
-    this.propertyService.createProperty(this.property).subscribe((response: any) => {
-      if (response.Code) {
-        that.createNotification("error", "数据入库失败", "错误原因：" + response.message, 0);
-        that.isSubmit = false;
-      }
-      else {
-        var id = response.id;
-        if (id) {
-          this.modalService.confirm({
-            nzTitle: '提示',
-            nzContent: '数据入库成功',
-            nzOkText: '查看资产',
-            nzCancelText: '返回列表',
-            nzOnOk: function () {
-              that.router.navigate(['../properties/' + id]);
-            },
-            nzOnCancel: function () {
-              that.router.navigate(['/properties']);
-            }
-          });
-        }
-      }
 
-    });
+    if (that.id > 0) {
+      this.propertyService.updatedProperty(this.property).subscribe((response: any) => {
+        if (response.Code) {
+          that.createNotification("error", "数据变更申请失败", "错误原因：" + response.message, 0);
+          that.isSubmit = false;
+        }
+        else {
+          var id = response.id;
+          if (id) {
+            this.modalService.confirm({
+              nzTitle: '提示',
+              nzContent: '数据变更申请成功',
+              nzOkText: '继续编辑',
+              nzCancelText: '查看资产',
+              nzOnOk: function () {
+                that.router.navigate(['../properties/edit/' + id]);
+              },
+              nzOnCancel: function () {
+                that.router.navigate(['../properties/' + id]);
+              }
+            });
+          }
+        }
+      });
+    }
+    else {
+
+      this.propertyService.createProperty(this.property).subscribe((response: any) => {
+        if (response.Code) {
+          that.createNotification("error", "数据入库失败", "错误原因：" + response.message, 0);
+          that.isSubmit = false;
+        }
+        else {
+          var id = response.id;
+          if (id) {
+            this.modalService.confirm({
+              nzTitle: '提示',
+              nzContent: '数据入库成功',
+              nzOkText: '查看资产',
+              nzCancelText: '返回列表',
+              nzOnOk: function () {
+                that.router.navigate(['../properties/' + id]);
+              },
+              nzOnCancel: function () {
+                that.router.navigate(['/properties']);
+              }
+            });
+          }
+        }
+      });
+    }
   }
 
   //切换输入内容
@@ -483,7 +524,7 @@ console.log(that.pictureList);
       case 1:
         if (this.map == null || this.map == undefined) this.mapStepInitial();
         break;
-      case 3:
+      case 2:
         break;
       default:
         break;
@@ -824,11 +865,7 @@ console.log(that.pictureList);
       }
     }
   }
-  // private getBase64(img: File, callback: (img: {}) => void): void {
-  //   const reader = new FileReader();
-  //   reader.addEventListener('load', () => callback(reader.result));
-  //   reader.readAsDataURL(img);
-  // }
+
   handleAvatarPreview = (file: UploadFile) => {
     this.previewImage = file.url || file.thumbUrl;
     this.previewVisible = true;
@@ -842,7 +879,6 @@ console.log(that.pictureList);
   }
   handlePicturesChange(info: any): void {
     var that = this;
-    const pictureList = info.fileList;
 
     if (info.file.status === 'uploading') {
       this.picureUploading = true;
@@ -854,19 +890,22 @@ console.log(that.pictureList);
 
   }
   handleFilesChange(info: any): void {
+
     var that = this;
     const fileList = info.fileList;
-    console.log(fileList);
     if (info.file.status === 'uploading') {
       that.fileUploading = true;
       return;
     }
     if (info.file.status === 'done') {
       that.fileUploading = false;
-      if (info.file.response) {
-        info.file.url = info.file.response[0].url;
-      }
+      // if (info.file.response) {
+      //   info.file.url = info.file.response[0].url;
+      // }
+
+      that.fileList=fileList;
     }
+
 
 
   }

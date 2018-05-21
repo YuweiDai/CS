@@ -88,7 +88,7 @@ export class PropertyCreateModel
         this.floor=0;
         this.fourToStation="";
         this.getedDate="";   
-        this.getModeId="0";
+        // this.getModeId="0";
         this.isAdmission="";
         //this.registerEstate="true";
         this.estateId="";
@@ -100,8 +100,8 @@ export class PropertyCreateModel
         this.landArea=0;
         this.landTime="";
         this.landTimeStr="";
-        this.useTypeId="0";
-        this.currentTypeId="0";
+        // this.useTypeId="0";
+        // this.currentTypeId="0";
         this.isMortgage="";
         this.description="";
         this.logo="";

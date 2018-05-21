@@ -57,6 +57,15 @@ export class PropertyService{
       );    
     }
 
+    //资产变更
+    updatedProperty(propertyCreateModel:PropertyCreateModel):Observable<Property>{
+      const url = `${this.apiUrl}/${propertyCreateModel.id}`;
+      return this.http.put<Property>(url,propertyCreateModel,httpOptions).pipe(
+        tap((property: Property) => this.log(`updated property w/ id=${property.id}`)),
+        catchError(this.handleError<Property>(`update property `))
+      );      
+    }    
+
     //获取单个资产
     getPropertyById(id:number):Observable<Property>{
       const url = `${this.apiUrl}/${id}`;
@@ -73,9 +82,7 @@ export class PropertyService{
       .pipe(
       tap(response => { }),
       catchError(this.handleError('getPropertiesBySearch', []))
-      );  
-     
-   
+      );         
    }
 
 

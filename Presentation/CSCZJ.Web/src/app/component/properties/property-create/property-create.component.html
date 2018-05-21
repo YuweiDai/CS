@@ -18,7 +18,7 @@
                                     <nz-form-item>
                                         <nz-form-label [nzSpan]="4" nzRequired>资产名称</nz-form-label>
                                         <nz-form-control [nzSpan]="20" nzHasFeedback>
-                                            <input nz-input formControlName="pName" [(ngModel)]="property.name" placeholder="输入资产名称...">
+                                            <input nz-input formControlName="pName" [disabled]="'id>0'" [(ngModel)]="property.name" placeholder="输入资产名称...">
                                             <nz-form-explain *ngIf="basicInfoForm.get('pName').dirty && basicInfoForm.get('pName').errors || basicInfoForm.get('pName').pending ">
                                                 <ng-container *ngIf="basicInfoForm.get('pName').hasError('required')">
                                                     请输入资产名称！
@@ -245,11 +245,16 @@
 
                                         <nz-form-item>
                                             <nz-form-label [nzSpan]="4" nzRequired>登记方式</nz-form-label>
-                                            <nz-form-control [nzSpan]="20">
-                                                <nz-radio-group [(ngModel)]="property.registerEstate" formControlName="pRegisterType" (ngModelChange)="registerTypeValidateSwicher()">
+                                            <nz-form-control [nzSpan]="20" >
+                                                <nz-radio-group [(ngModel)]="property.registerEstate" formControlName="pRegisterEstate" (ngModelChange)="registerTypeValidateSwicher()">
                                                     <label nz-radio nzValue="true">不动产证</label>
                                                     <label nz-radio nzValue="false">房产土地证</label>
                                                 </nz-radio-group>
+                                                <nz-form-explain *ngIf="basicInfoForm.get('pRegisterEstate').dirty && basicInfoForm.get('pRegisterEstate').errors">
+                                                    <ng-container *ngIf="basicInfoForm.get('pRegisterEstate').hasError('required')">
+                                                        请选择资产登记方式！
+                                                    </ng-container>
+                                                </nz-form-explain>                                                
                                             </nz-form-control>
                                         </nz-form-item>
 
