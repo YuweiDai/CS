@@ -15,7 +15,6 @@ import { PropertyService } from '../../../services/propertyService';
 import { GovernmentService } from '../../../services/governmentService';
 import { ConfigService } from '../../../services/configService';
 
-
 declare var L: any;
 declare var Wkt: any;
 
@@ -77,6 +76,7 @@ export class PropertyCreateComponent implements OnInit {
   private fileList = [];
 
   private isSubmit = false;
+  private loading=false;
 
 
   constructor(private modalService: NzModalService, private msg: NzMessageService, private notification: NzNotificationService,
@@ -291,6 +291,7 @@ export class PropertyCreateComponent implements OnInit {
       that.title = "新增资产";
     }
     else {
+      that.loading=true;
       that.title = "资产变更";
 
       let id = parseInt(that.route.snapshot.paramMap.get('id'));
@@ -310,7 +311,10 @@ export class PropertyCreateComponent implements OnInit {
           that.property.getModeId = that.property.getModeId.toString();
           that.property.useTypeId = that.property.useTypeId.toString();
           that.property.currentTypeId = that.property.currentTypeId.toString();
-          that.property.governmentId = that.property.governmentId.toString();
+          if (parseInt(that.property.governmentId) > 0 && that.property.governmentName != undefined
+            && that.property.governmentId != "" && that.property.governmentId != "")
+            that.property.governmentId = that.property.governmentId.toString();
+            else that.property.governmentId="";
 
           that.optionList.push({
             name: that.property.governmentName,
@@ -322,8 +326,8 @@ export class PropertyCreateComponent implements OnInit {
 
           that.property.pictures.forEach(element => {
             pics.push({
-              uid:element.pictureId,    //Uid不能重复
-              message:"成功",
+              uid: element.pictureId,    //Uid不能重复
+              message: "成功",
               name: element.title,
               status: 'done',
               url: element.href,
@@ -345,6 +349,8 @@ export class PropertyCreateComponent implements OnInit {
           that.avatarList = [{ uid: -1, name: "logo", status: 'done', url: this.property.logoUrl, thumbUrl: this.property.logoUrl }];
           that.pictureList = [...pics];
           that.fileList = [...files];
+      
+          that.loading=false;
         });
       }
     }
@@ -426,7 +432,7 @@ export class PropertyCreateComponent implements OnInit {
           this.property.pictures = [];
           this.pictureList.forEach(element => {
             var ppm = new PropertyPictureModel();
-            if (element.uid ==  element.id) ppm.pictureId = element.id;
+            if (element.uid == element.id) ppm.pictureId = element.id;
             else ppm.pictureId = element.response[0].id;
             this.property.pictures.push(ppm);
           });
@@ -436,7 +442,7 @@ export class PropertyCreateComponent implements OnInit {
           this.fileList.forEach(element => {
             var pfm = new PropertyFileModel();
 
-            if (element.uid ==  element.id) pfm.fileId = element.id;
+            if (element.uid == element.id) pfm.fileId = element.id;
             else pfm.fileId = element.response[0].id;
             this.property.files.push(pfm);
           });
@@ -903,7 +909,7 @@ export class PropertyCreateComponent implements OnInit {
       //   info.file.url = info.file.response[0].url;
       // }
 
-      that.fileList=fileList;
+      that.fileList = fileList;
     }
 
 

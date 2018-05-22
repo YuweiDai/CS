@@ -3,7 +3,7 @@
         <div nz-col nzSpan="24" class="breadcrumb-container">
                 <nz-breadcrumb>
                         <nz-breadcrumb-item>
-                                资产列表
+                            资产管理
                         </nz-breadcrumb-item>                        
                 </nz-breadcrumb>            
         </div>
@@ -15,7 +15,8 @@
                 </div>
             </nz-card>
             <ng-template #extraTemplate>
-            </ng-template>
+                    <a class="m-r-md" [routerLink]="['./create']" ><i class="anticon anticon-plus"></i> 新增资产</a>
+                </ng-template>
         </div>
     </div>
 </div>

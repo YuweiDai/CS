@@ -150,7 +150,31 @@ export class PropertyFileModel
     uploaded:boolean;
 }
 
-export class PropertyRentModel
+export class ApproveModel
 {
+    title:string;
+    dSuggestion:string;
+    dApproveDate:string;
+    aSuggestion:string;
+    aApproveDate:string;
+    state:string;
+    property_Id:number;
+    submit:boolean;
+}
 
+export class PropertyRentModel extends ApproveModel
+{
+    id:number;
+    name:string;
+    rentTime:string;
+    backTime:string;
+    processDate:string;
+    valid:boolean;
+    priceString:string;
+    priceList?:string[];
+    rentArea:number;
+    rentMonth:number;
+    reamrk?:string;    
+    rentPictures:PropertyPictureModel[];
+    rentFiles:PropertyFileModel[];
 }

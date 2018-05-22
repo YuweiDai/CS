@@ -46,13 +46,13 @@
                 </div>
                 <div nz-col nzSpan="8" class="item" *ngIf="property.propertyType=='房屋'">
                   <div>层数：{{property.floor}} 层</div>
-                </div>                  
+                </div>
                 <div nz-col nzSpan="8" class="item" *ngIf="property.propertyType=='房屋'">
                   <div>房产面积：{{property.constructArea}} 平方米</div>
                 </div>
                 <div nz-col nzSpan="8" class="item">
                   <div>土地面积：{{property.landArea}} 平方米</div>
-                </div>                                              
+                </div>
                 <div nz-col nzSpan="24" class="item">
                   <div>备注：{{property.description}}</div>
                 </div>
@@ -80,11 +80,15 @@
                       </tr>
                       <tr>
                         <td>抵押情况</td>
-                        <td><i class="anticon" [ngClass]="{'anticon-check-circle':property.isMortgage,'anticon-close-circle':!property.isMortgage}"></i></td>
+                        <td>
+                          <i class="anticon" [ngClass]="{'anticon-check-circle':property.isMortgage,'anticon-close-circle':!property.isMortgage}"></i>
+                        </td>
                       </tr>
                       <tr>
                         <td>入账情况</td>
-                        <td><i class="anticon" [ngClass]="{'anticon-check-circle':property.isAdmission,'anticon-close-circle':!property.isAdmission}"></i></td>
+                        <td>
+                          <i class="anticon" [ngClass]="{'anticon-check-circle':property.isAdmission,'anticon-close-circle':!property.isAdmission}"></i>
+                        </td>
                       </tr>
 
                   </table>
@@ -103,7 +107,7 @@
                       <tr *ngIf="property.estateId">
                         <td>办证时间</td>
                         <td>{{property.estateTime}} </td>
-                      </tr>                      
+                      </tr>
                       <tr *ngIf="property.constructId">
                         <td>房产证</td>
                         <td>{{property.constructId}} </td>
@@ -125,27 +129,31 @@
                   </table>
                 </div>
 
-                <div nz-col nzXs="24" nzSm="24" nzMd="12" nzLg="12" nzXl="12" *ngIf="property.files.length>0">
+                <div nz-col nzXs="24" nzSm="24" nzMd="12" nzLg="12" nzXl="12" *ngIf="property.pictures!=[]">
                   <table class="detailTable">
                     <tbody>
                       <tr class="detailTitle">
                         <td>图片附件</td>
                       </tr>
                       <tr *ngFor="let picture of property.pictures; let i = index">
-                        <td>{{i+1}}.<a href="{{picture.href}}" target="_blank">{{picture.title}}</a></td>
+                        <td>{{i+1}}.
+                          <a href="{{picture.href}}" target="_blank">{{picture.title}}</a>
+                        </td>
                       </tr>
                     </tbody>
                   </table>
                 </div>
 
-                <div nz-col nzXs="24" nzSm="24" nzMd="12" nzLg="12" nzXl="12" *ngIf="property.files.length>0">
+                <div nz-col nzXs="24" nzSm="24" nzMd="12" nzLg="12" nzXl="12" *ngIf="property.files!=[]">
                   <table class="detailTable">
                     <tbody>
                       <tr class="detailTitle">
                         <td>文件附件</td>
                       </tr>
                       <tr *ngFor="let file of property.files; let i = index">
-                        <td>{{i+1}}.<a href="{{file.src}}" target="_blank">{{file.title}}</a></td>
+                        <td>{{i+1}}.
+                          <a href="{{file.src}}" target="_blank">{{file.title}}</a>
+                        </td>
                       </tr>
                     </tbody>
                   </table>
@@ -154,20 +162,62 @@
               </div>
             </nz-tab>
             <nz-tab nzTitle="租用信息">
-                <nz-list [nzDataSource]="property.rents" [nzRenderItem]="item" [nzItemLayout]="'horizontal'">
-                    <ng-template #item let-item>
-                      <nz-list-item>
-                        <nz-list-item-meta
-                          [nzTitle]="nzTitle"
-                          nzAvatar="https://zos.alipayobjects.com/rmsportal/ODTLcjxAfvqbxHnVXCYX.png"
-                          nzDescription="Ant Design, a design language for background applications, is refined by Ant UED Team">
-                          <ng-template #nzTitle>
-                            <a href="https://ng.ant.design">{{item.title}}</a>
-                          </ng-template>
-                        </nz-list-item-meta>
-                      </nz-list-item>
-                    </ng-template>
-                  </nz-list>
+              <div nz-row [nzGutter]="{ xs: 8, sm: 8, md: 8, lg: 8, xl: 8, xxl: 8 }" *ngIf="property.rents.length==0">
+                <div nz-col nzSpan="24" class="text-center">
+                  <h1>暂无租用信息</h1>
+                </div>
+              </div>
+              <div class="rentItem" *ngFor="let rent of property.rents">
+                <h1>租用起止日期：{{rent.rentTime}} 至 {{rent.backTime}}
+                  <span>
+                    <nz-tag *ngIf="rent.valid" [nzColor]="'#2db7f5'">租用中</nz-tag>
+                    <nz-tag *ngIf="!rent.valid" [nzColor]="'#f50'">已过期</nz-tag>
+                  </span>
+                </h1>
+                <div class="rentDetail" nz-row [nzGutter]="{ xs: 8, sm: 8, md: 8, lg: 8, xl: 8, xxl: 8 }">
+                  <div nz-col nzXs="12" nzSm="12" nzMd="12" nzLg="12" nzXl="12">
+                    租用方：{{rent.name}}
+                  </div>
+                  <div nz-col nzXs="12" nzSm="12" nzMd="12" nzLg="12" nzXl="12">
+                    租用面积：{{rent.rentArea}} 平方米
+                  </div>
+                  <div nz-col nzXs="24" nzSm="24" nzMd="24" nzLg="24" nzXl="24">
+                    租金情况：
+                    <nz-tag *ngFor="let price of rent.priceList;let i=index;"> 第{{i+1}}年租金{{price}}元 </nz-tag>
+                  </div>
+                  <div nz-col nzXs="12" nzSm="12" nzMd="12" nzLg="12" nzXl="12">
+                    图片附件：
+                    <a *ngFor="let pic of rent.pictures;" target="_blank" href="{{pic.href}}"> {{pic.title}} </a>
+                  </div>
+                  <div nz-col nzXs="12" nzSm="12" nzMd="12" nzLg="12" nzXl="12">
+                    文件附件：
+                    <a *ngFor="let file of rent.files;" target="_blank" href="{{file.src}}"> {{file.title}} </a>
+                  </div>
+                  <div nz-col nzXs="24" nzSm="24" nzMd="24" nzLg="24" nzXl="24">
+                    备注：{{rent.remark}}
+                  </div>
+                  <div nz-col nzXs="12" nzSm="12" nzMd="12" nzLg="12" nzXl="12">
+                    申请时间：{{rent.processDate}}
+                  </div>
+                  <div nz-col nzXs="12" nzSm="12" nzMd="12" nzLg="12" nzXl="12">
+                    审批状态：{{rent.state}}
+                  </div>
+                  <div nz-col nzXs="12" nzSm="12" nzMd="12" nzLg="12" nzXl="12">
+                    主管部门审批意见：{{rent.dSuggestion}}
+                  </div>
+                  <div nz-col nzXs="12" nzSm="12" nzMd="12" nzLg="12" nzXl="12">
+                    主管部门审批时间：{{rent.dApproveDate}}
+                  </div>
+                  <div nz-col nzXs="12" nzSm="12" nzMd="12" nzLg="12" nzXl="12">
+                    主管部门审批意见：{{rent.aSuggestion}}
+                  </div>
+                  <div nz-col nzXs="12" nzSm="12" nzMd="12" nzLg="12" nzXl="12">
+                    主管部门审批时间：{{rent.aApproveDate}}
+                  </div>
+                </div>
+              </div>
+
+
             </nz-tab>
             <nz-tab nzTitle="空间信息" (nzSelect)="mapStepInitial()">
               <div class="tabContent" nz-row>
@@ -180,8 +230,10 @@
           </nz-tabset>
         </nz-card>
         <ng-template #extraTemplate>
-            <a class="m-r-md" [routerLink]="['../edit', property.id]" ><i class="anticon anticon-edit"></i> 资产变更</a>
-            <!-- <a> 资产核销</a> -->
+          <a class="m-r-md" [routerLink]="['../edit', property.id]">
+            <i class="anticon anticon-edit"></i> 资产变更</a>
+            <a [routerLink]="['../rent']" [queryParams]='{pid:property.id}'>
+              <i class="anticon anticon-plus-circle-o"></i> 发布租用信息</a>
         </ng-template>
 
       </nz-spin>
