@@ -34,7 +34,7 @@ export class PropertyDetailComponent implements OnInit {
     this.loading = true;
     const id = +this.route.snapshot.paramMap.get('id');
 
-    this.propertyService.getPropertyById(id).subscribe(property => {
+    this.propertyService.getPropertyById(id,false).subscribe(property => {
       if (property == undefined) this.router.navigate(['../properties']);
       else {
         this.property = property;

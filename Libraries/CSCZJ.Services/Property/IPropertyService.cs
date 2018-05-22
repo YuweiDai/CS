@@ -73,7 +73,7 @@ namespace CSCZJ.Services.Property
         /// 获取所有可审批的资产
         /// </summary>
         /// <returns></returns>
-        IList<CSCZJ.Core.Domain.Properties.Property> GetProcessProperties(IList<int> governmentIds);
+        IList<CSCZJ.Core.Domain.Properties.Property> GetProcessProperties(string name,IList<int> governmentIds);
 
 
         IList<CSCZJ.Core.Domain.Properties.Property> GetCurrentGovermentProperties(string name);

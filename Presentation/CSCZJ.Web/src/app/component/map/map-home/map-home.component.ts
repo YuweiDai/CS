@@ -213,7 +213,7 @@ export class MapHomeComponent implements OnInit {
                 that.properties.forEach(element => {
                   if(a.latlng.lat==element.x&&a.latlng.lng==element.y){
                      
-                      that.propertyService.getPropertyById(element.id).subscribe(property=>{
+                      that.propertyService.getPropertyById(element.id,false).subscribe(property=>{
                         that.property=property;
 
                         that.basicInfo=[
@@ -257,7 +257,7 @@ export class MapHomeComponent implements OnInit {
 findThisOne(option):void{
 
      this.markers.clearLayers();
-     this.propertyService.getPropertyById(option.id).subscribe(property=>{
+     this.propertyService.getPropertyById(option.id,false).subscribe(property=>{
      var response = property;
    
          var points = response.location.split(' ');

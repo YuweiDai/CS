@@ -1198,7 +1198,7 @@ namespace CSCZJ.API.Controllers
 
         [HttpGet]
         [Route("{propertyId:int}")]
-        public IHttpActionResult Get(int propertyId)
+        public IHttpActionResult Get(int propertyId, bool simple = false)
         {
             //var currentUser = _workContext.CurrentAccountUser;
 
@@ -1209,27 +1209,37 @@ namespace CSCZJ.API.Controllers
             //if (!(currentUser.IsAdmin()|| currentUser.IsDataReviewer() || PropertyCanView(property))) 
             //    return NotFound();
 
+            if (simple)
+            {
+                var model = property.ToSimpleModel();
 
-            var model = property.ToModel();
-            model.LogoUrl = GetLogoUrl(property);
-            model.NewCreate = _propertyNewCreateService.GetPropertyNewCreateByPropertyId(model.Id).ToModel();
-            model.Edits = model.Edits.Where(m => m.Deleted != true).ToList();
-            model.Rents = model.Rents.Where(m => m.Deleted != true).ToList();
-            model.Lends = model.Lends.Where(m => m.Deleted).ToList();
+                //activity log
+                _accountUserActivityService.InsertActivity("GetpropertyInfo", "获取 名为 {0} 的资产简单信息", property.Name);
+                return Ok(model);
+            }
+            else
+            {
 
-            model.CanEditDelete = false;// PropertyCanEditDelete(property);
-            model.CanChange = false;// PropertyCanChange(property);
-            var propertyOff= _propertyOffService.GetPropertyOffById(model.Id).ToModel();
-            if (propertyOff != null) model.PropertyOff = propertyOff;
+                var model = property.ToModel();
+                model.LogoUrl = GetLogoUrl(property);
+                model.NewCreate = _propertyNewCreateService.GetPropertyNewCreateByPropertyId(model.Id).ToModel();
+                model.Edits = model.Edits.Where(m => m.Deleted != true).ToList();
+                model.Rents = model.Rents.Where(m => m.Deleted != true).ToList();
+                model.Lends = model.Lends.Where(m => m.Deleted).ToList();
 
-            //获取图片
-            PreparePropertyPictures(model);
-            //获取文件
-            PreparePropertyFiles(model);
-            //activity log
-            _accountUserActivityService.InsertActivity("GetpropertyInfo", "获取 名为 {0} 的资产信息", property.Name);
+                model.CanEditDelete = false;// PropertyCanEditDelete(property);
+                model.CanChange = false;// PropertyCanChange(property);
+                var propertyOff = _propertyOffService.GetPropertyOffById(model.Id).ToModel();
+                if (propertyOff != null) model.PropertyOff = propertyOff;
 
-            return Ok(model);
+                //获取图片
+                PreparePropertyPictures(model);
+                //获取文件
+                PreparePropertyFiles(model);
+                //activity log
+                _accountUserActivityService.InsertActivity("GetpropertyInfo", "获取 名为 {0} 的资产信息", property.Name);
+                return Ok(model);
+            }
         }
 
         /// <summary>
@@ -1971,25 +1981,20 @@ namespace CSCZJ.API.Controllers
 
         #region 资产处置
 
-        [AllowAnonymous]
+        //[AllowAnonymous]
         [HttpGet]
-        [Route("PropertyProcess")]
-        public IHttpActionResult GetPropertyProcess() {
+        [Route("PropertyProcess/{name}")]
+        public IHttpActionResult GetPropertyProcess(string name="") {
 
-            var currentAccount = _workContext.CurrentAccountUser;
-            var governmentIds = _governmentService.GetGovernmentIdsByCurrentUser(true);
+            //var currentAccount = _workContext.CurrentAccountUser;
+            var governmentIds = new List<int>();// _governmentService.GetGovernmentIdsByCurrentUser(true);
            
-            var properties = _propertyService.GetProcessProperties(governmentIds).Select(sp => {
+            var properties = _propertyService.GetProcessProperties(name,governmentIds).Select(sp => {
                 return new
                 {
                     Id = sp.Id,
                     Name = sp.Name,
-                    Region = sp.Region.ToDescription(),
                     Address = sp.Address,
-                    G = sp.Government.Name,
-                    constructArea = sp.ConstructArea,
-                    landArea = sp.LandArea
-
                 };
 
                 //return simplePropertyModel;
@@ -2265,8 +2270,8 @@ namespace CSCZJ.API.Controllers
         [Route("Lend")]   //Url 的动词名称意义直观 修改则为UpdateLend，审批为ApproveLend
         public IHttpActionResult CreateLendRecord(PropertyLendModel propertyLendModel)
         {
-            var currentUser = _workContext.CurrentAccountUser;
-            var suggestGovernmentId = currentUser.Government.Id;
+            //var currentUser = _workContext.CurrentAccountUser;
+            //var suggestGovernmentId = currentUser.Government.Id;
             if (propertyLendModel.Ids == "") return BadRequest("请选择需要处置的资产");
             var lendIds = propertyLendModel.Ids.Split(';');
             foreach (var id in lendIds) {
@@ -2288,7 +2293,7 @@ namespace CSCZJ.API.Controllers
                     propertyLendRecord.State = propertyLendModel.Submit ? PropertyApproveState.DepartmentApprove : PropertyApproveState.Start;
                  
                     propertyLendRecord.ProcessDate = DateTime.Now;
-                    propertyLendRecord.SuggestGovernmentId = suggestGovernmentId;
+                    propertyLendRecord.SuggestGovernmentId = 0;// suggestGovernmentId; temp
                
                     //如果当前用户是主管部门，则跳过主管部门审核环节
                     if (propertyLendModel.Submit && _workContext.CurrentAccountUser.IsParentGovernmentorAuditor())
@@ -2337,7 +2342,7 @@ namespace CSCZJ.API.Controllers
                     if (property.Locked || property.Deleted || !property.Published)
                         return BadRequest("无法对该资产进行操作或该资产已经不存在");
 
-                    if (!PropertyBelongCurrentUser(property, true)) return BadRequest("没有操作权限");
+                    //if (!PropertyBelongCurrentUser(property, true)) return BadRequest("没有操作权限");  temp
 
                     PropertyRent rent = new PropertyRent();
                     rent.Name = propertyRentModel.Name;
@@ -2354,15 +2359,15 @@ namespace CSCZJ.API.Controllers
                     rent.Property = property;
                     rent.State = propertyRentModel.Submit ? PropertyApproveState.DepartmentApprove : PropertyApproveState.Start;
                     rent.ProcessDate = DateTime.Now;
-                    rent.SuggestGovernmentId = currentUser.Government.Id;
+                    rent.SuggestGovernmentId = 0;// currentUser.Government.Id; temp
 
                     //如果当前用户是主管部门，则跳过主管部门审核环节
-                    if (propertyRentModel.Submit && _workContext.CurrentAccountUser.IsParentGovernmentorAuditor())
-                    {
+                    //if (propertyRentModel.Submit && _workContext.CurrentAccountUser.IsParentGovernmentorAuditor())
+                    //{
                         rent.State = PropertyApproveState.AdminApprove;
                         rent.DSuggestion = "同意";
                         rent.DApproveDate = DateTime.Now;
-                    }
+                    //}
 
                     _propertyRentService.InsertPropertyRent(rent);
                     _accountUserActivityService.InsertActivity("AddNewpropertyLendRecord", "增加 名为 {0} 的资产出借申请", property.Name);
@@ -2916,6 +2921,9 @@ namespace CSCZJ.API.Controllers
                 LinkMan = rent.Property.Government.Person,
                 LinkTel = rent.Property.Government.Tel
             };
+
+            response.PropertyRent.Valid = DateTime.Now >= rent.RentTime && DateTime.Now < rent.BackTime;
+
             if (response.PropertyRent.PriceString.EndsWith(";")) response.PropertyRent.PriceString = response.PropertyRent.PriceString.TrimEnd(';');            
 
             PreparePropertyRentPicturesAndFiles(response.PropertyRent);

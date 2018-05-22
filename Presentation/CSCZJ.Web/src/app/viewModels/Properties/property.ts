@@ -164,17 +164,37 @@ export class ApproveModel
 
 export class PropertyRentModel extends ApproveModel
 {
-    id:number;
+    id?:number;
+    ids?:string;
     name:string;
     rentTime:string;
     backTime:string;
-    processDate:string;
+    processDate?:string;
     valid:boolean;
     priceString:string;
     priceList?:string[];
     rentArea:number;
-    rentMonth:number;
+    rentMonth?:number;
     reamrk?:string;    
     rentPictures:PropertyPictureModel[];
     rentFiles:PropertyFileModel[];
+
+    constructor()
+    {
+        super();
+        this.ids="";
+        this.name="";
+        this.rentTime="";
+        this.backTime="";
+        this.valid=false;
+        this.priceString="";
+        //this.rentArea=0;
+    }
+}
+
+export class SimplePropertyModel
+{
+    id:number;
+    name:string;
+    address:string;
 }

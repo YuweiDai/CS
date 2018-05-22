@@ -11,7 +11,7 @@ import { TableParams } from "../viewModels/common/TableOption";
 
 import { ListResponse } from '../viewModels/Response/ListResponse'
 import { MapListResponse } from '../viewModels/Response/MapListResponse';
-import { Property ,PropertyCreateModel } from '../viewModels/Properties/property';
+import { Property ,PropertyCreateModel, SimplePropertyModel, PropertyRentModel } from '../viewModels/Properties/property';
 import {property_map} from '../viewModels/Properties/property_map';
 import {PropertyNameList} from '../viewModels/Properties/propertyName';
 import{HighSearchProperty} from '../viewModels/Properties/highSearchModel';
@@ -48,6 +48,14 @@ export class PropertyService{
       );     
     }
 
+    createPropertyRentRecord(propertyRentModel:PropertyRentModel):Observable<PropertyRentModel>{
+      const url = `${this.apiUrl}/Rent`;
+      return this.http.post<PropertyRentModel>(url,propertyRentModel,httpOptions).pipe(
+        tap((property: PropertyRentModel) => this.log(`added property Rent w/ id=${property.id}`)),
+        catchError(this.handleError<PropertyRentModel>(`addProperty Rent`))
+      );     
+    }    
+
     //获取单个资产
     getUpdatedPropertyById(id:number):Observable<PropertyCreateModel>{
       const url = `${this.apiUrl}/Update/${id}`;
@@ -67,13 +75,26 @@ export class PropertyService{
     }    
 
     //获取单个资产
-    getPropertyById(id:number):Observable<Property>{
-      const url = `${this.apiUrl}/${id}`;
+    getPropertyById(id:number,simple:boolean):Observable<Property>{
+      var url = `${this.apiUrl}/${id}`;
+
+      if(simple) url+='?simple=true';
+
       return this.http.get<Property>(url).pipe(
         tap(_ => this.log(`get property id=${id}`)),
         catchError(this.handleError<Property>(`getProperty id=${id}`))
       );    
     }
+
+    //获取可以处置的资产
+    getProcessPropertyByName(name:string):Observable<SimplePropertyModel[]>{
+      const url = `${this.apiUrl}/PropertyProcess/${name}`;
+      return this.http.get<SimplePropertyModel[]>(url).pipe(
+        tap(_ => this.log(`fetched process properties`)),
+        catchError(this.handleError<SimplePropertyModel[]>(`fetched process properties`))
+      );    
+    }
+
 
    //通过名称地址搜索资产
    getPropertiesBySearch(search:string):Observable<PropertyNameList[]>{

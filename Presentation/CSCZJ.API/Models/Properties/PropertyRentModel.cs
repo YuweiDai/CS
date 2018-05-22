@@ -35,6 +35,8 @@ namespace CSCZJ.API.Models.Properties
         public bool Submit { get; set; }
         public DateTime BackTime { get; set; }
 
+        public bool Valid { get; set; }
+
         public string PriceString { get; set; }
         public virtual ICollection<PropertyRentPictureModel> RentPictures { get; set; }
 
