@@ -10,6 +10,7 @@ import { PropertyListComponent }       from './property-list/property-list.compo
 import { PropertyCreateComponent }     from './property-create/property-create.component';
 import { PropertyDetailComponent }     from './property-detail/property-detail.component';
 import { PropertyRentComponent } from './property-rent/property-rent.component';
+import { PropertyOffComponent } from './property-off/property-off.component';
 
 import { LeftmenuComponent } from "../common/leftmenu/leftmenu.component";
 import { UiTableComponent } from '../common/ui-table/ui-table.component';
@@ -40,7 +41,8 @@ const DEFAULT_PERFECT_SCROLLBAR_CONFIG: PerfectScrollbarConfigInterface = {
     PropertyDetailComponent,
     UiTableComponent,
     LeftmenuComponent,
-    PropertyRentComponent
+    PropertyRentComponent,
+    PropertyOffComponent
   ],
   providers:[
     {

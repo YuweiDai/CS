@@ -33,7 +33,7 @@ namespace CSCZJ.API.Models.Properties
         public string Ids { get; set; }
 
         public bool Submit { get; set; }
-        public DateTime BackTime { get; set; }
+        public string BackTime { get; set; }
 
         public bool Valid { get; set; }
 

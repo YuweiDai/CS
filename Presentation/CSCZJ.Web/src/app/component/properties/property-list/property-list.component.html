@@ -1,11 +1,11 @@
 <div class="component-container">
     <div nz-row>
         <div nz-col nzSpan="24" class="breadcrumb-container">
-                <nz-breadcrumb>
-                        <nz-breadcrumb-item>
-                            资产管理
-                        </nz-breadcrumb-item>                        
-                </nz-breadcrumb>            
+            <nz-breadcrumb>
+                <nz-breadcrumb-item>
+                    资产管理
+                </nz-breadcrumb-item>
+            </nz-breadcrumb>
         </div>
         <div nz-col nzSpan="24">
             <nz-card nzTitle="资产列表" [nzExtra]="extraTemplate">
@@ -15,8 +15,13 @@
                 </div>
             </nz-card>
             <ng-template #extraTemplate>
-                    <a class="m-r-md" [routerLink]="['./create']" ><i class="anticon anticon-plus"></i> 新增资产</a>
-                </ng-template>
+                <a class="" [routerLink]="['./create']">
+                    <i class="anticon anticon-plus"></i> 新增资产</a>
+                <a class="m-l-md" [routerLink]="['./rent']">
+                    <i class="anticon anticon-pay-circle"></i> 资产出租</a>
+                <a class="m-l-md" [routerLink]="['./off']">
+                    <i class="anticon anticon-poweroff"></i> 资产核销</a>
+            </ng-template>
         </div>
     </div>
 </div>

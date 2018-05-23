@@ -186,11 +186,11 @@
                   </div>
                   <div nz-col nzXs="12" nzSm="12" nzMd="12" nzLg="12" nzXl="12">
                     图片附件：
-                    <a *ngFor="let pic of rent.pictures;" target="_blank" href="{{pic.href}}"> {{pic.title}} </a>
+                    <a *ngFor="let pic of rent.rentPictures;" target="_blank" href="{{pic.href}}"> {{pic.title}} </a>
                   </div>
                   <div nz-col nzXs="12" nzSm="12" nzMd="12" nzLg="12" nzXl="12">
                     文件附件：
-                    <a *ngFor="let file of rent.files;" target="_blank" href="{{file.src}}"> {{file.title}} </a>
+                    <a *ngFor="let file of rent.rentFiles;" target="_blank" href="{{file.src}}"> {{file.title}} </a>
                   </div>
                   <div nz-col nzXs="24" nzSm="24" nzMd="24" nzLg="24" nzXl="24">
                     备注：{{rent.remark}}
@@ -208,10 +208,10 @@
                     主管部门审批时间：{{rent.dApproveDate}}
                   </div>
                   <div nz-col nzXs="12" nzSm="12" nzMd="12" nzLg="12" nzXl="12">
-                    主管部门审批意见：{{rent.aSuggestion}}
+                    管理部门审批意见：{{rent.aSuggestion}}
                   </div>
                   <div nz-col nzXs="12" nzSm="12" nzMd="12" nzLg="12" nzXl="12">
-                    主管部门审批时间：{{rent.aApproveDate}}
+                    管理部门审批时间：{{rent.aApproveDate}}
                   </div>
                 </div>
               </div>
@@ -226,13 +226,60 @@
               </div>
 
             </nz-tab>
+            <nz-tab nzTitle="资产核销" *ngIf="property.propertyOff!=undefine">
+              <div class="rentItem">
+                <h1>核销日期：{{property.propertyOff.offTime}}</h1>
+                <div class="rentDetail" nz-row [nzGutter]="{ xs: 8, sm: 8, md: 8, lg: 8, xl: 8, xxl: 8 }">
+                  <div nz-col nzXs="12" nzSm="12" nzMd="12" nzLg="12" nzXl="12">
+                    核销原因：{{property.propertyOff.offTime}}
+                  </div>
+                  <div nz-col nzXs="12" nzSm="12" nzMd="12" nzLg="12" nzXl="12">
+                    核销方式：{{property.propertyOff.reason}}
+                  </div>
+
+                  <div nz-col nzXs="12" nzSm="12" nzMd="12" nzLg="12" nzXl="12">
+                    图片附件：
+                    <a *ngFor="let pic of property.propertyOff.offPictures;" target="_blank" href="{{pic.href}}"> {{pic.title}} </a>
+                  </div>
+                  <div nz-col nzXs="12" nzSm="12" nzMd="12" nzLg="12" nzXl="12">
+                    文件附件：
+                    <a *ngFor="let file of property.propertyOff.offFiles;" target="_blank" href="{{file.src}}"> {{file.title}} </a>
+                  </div>
+                  <div nz-col nzXs="24" nzSm="24" nzMd="24" nzLg="24" nzXl="24">
+                    备注：{{property.propertyOff.remark}}
+                  </div>
+                  <div nz-col nzXs="12" nzSm="12" nzMd="12" nzLg="12" nzXl="12">
+                    申请时间：{{property.propertyOff.processDate}}
+                  </div>
+                  <div nz-col nzXs="12" nzSm="12" nzMd="12" nzLg="12" nzXl="12">
+                    审批状态：{{property.propertyOff.state}}
+                  </div>
+                  <div nz-col nzXs="12" nzSm="12" nzMd="12" nzLg="12" nzXl="12">
+                    主管部门审批意见：{{property.propertyOff.dSuggestion}}
+                  </div>
+                  <div nz-col nzXs="12" nzSm="12" nzMd="12" nzLg="12" nzXl="12">
+                    主管部门审批时间：{{property.propertyOff.dApproveDate}}
+                  </div>
+                  <div nz-col nzXs="12" nzSm="12" nzMd="12" nzLg="12" nzXl="12">
+                    管理部门审批意见：{{property.propertyOff.aSuggestion}}
+                  </div>
+                  <div nz-col nzXs="12" nzSm="12" nzMd="12" nzLg="12" nzXl="12">
+                    管理部门审批时间：{{property.propertyOff.aApproveDate}}
+                  </div>
+                </div>
+              </div>
+
+
+            </nz-tab>
           </nz-tabset>
         </nz-card>
         <ng-template #extraTemplate>
-          <a class="m-r-md" [routerLink]="['../edit', property.id]">
+          <a [routerLink]="['../edit', property.id]">
             <i class="anticon anticon-edit"></i> 资产变更</a>
-            <a [routerLink]="['../rent']" [queryParams]='{pid:property.id}'>
-              <i class="anticon anticon-plus-circle-o"></i> 发布租用信息</a>
+          <a class="m-l-md" [routerLink]="['../rent']" [queryParams]='{pid:property.id}'>
+            <i class="anticon anticon-plus-circle-o"></i> 发布租用信息</a>
+          <a class="m-l-md" [routerLink]="['../off']" [queryParams]='{pid:property.id}' *ngIf="!property.propertyOff">
+            <i class="anticon anticon-poweroff"></i> 核销</a>
         </ng-template>
 
       </nz-spin>

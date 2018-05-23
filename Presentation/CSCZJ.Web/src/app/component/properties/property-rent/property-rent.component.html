@@ -25,7 +25,7 @@
                                 <nz-select formControlName="pIds" nzMode="multiple" [(ngModel)]="selectedProperties" nzPlaceHolder="请选择要出租的资产..." nzAllowClear
                                     nzShowSearch [nzServerSearch]="true" (nzOnSearch)="onSearch($event)">
                                     <ng-container *ngFor="let o of optionList">
-                                        <nz-option *ngIf="!isPropertyLoading" [nzValue]="o.id" [nzLabel]="o.name"></nz-option>
+                                        <nz-option nzCustomContent  *ngIf="!isPropertyLoading" [nzValue]="o.id" [nzLabel]="o.name">{{o.name}} ({{o.address}})</nz-option>
                                     </ng-container>
                                     <nz-option *ngIf="isPropertyLoading" nzDisabled nzCustomContent>
                                         <i class="anticon anticon-loading anticon-spin loading-icon"></i> 搜索数据...
@@ -121,10 +121,10 @@
 
                 </nz-card>
                 <ng-template #extraTemplate>
-                    <a class="m-r-md" (click)="save(false)">
+                    <a class="" (click)="save(false)">
                         <i class="anticon anticon-profile"></i> 保存</a>
-                    <a (click)="save(true)">
-                        <i class="anticon anticon-profile"></i> 保存，并提交</a>
+                    <a class="m-l-md" (click)="save(true)">
+                        <i class="anticon anticon-upload"></i> 保存，并提交</a>
                 </ng-template>
 
             </nz-spin>

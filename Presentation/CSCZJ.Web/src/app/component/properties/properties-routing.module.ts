@@ -6,7 +6,7 @@ import { PropertyListComponent } from './property-list/property-list.component';
 import { PropertyDetailComponent } from './property-detail/property-detail.component';
 import { PropertyCreateComponent } from './property-create/property-create.component';
 import { PropertyRentComponent } from './property-rent/property-rent.component';
-
+import { PropertyOffComponent } from './property-off/property-off.component';
 
 const propertyCenterRoutes: Routes = [
   {
@@ -25,6 +25,10 @@ const propertyCenterRoutes: Routes = [
         path: 'rent',
         component: PropertyRentComponent
       },
+      {
+        path: 'off',
+        component: PropertyOffComponent
+      },      
       {
         path: ':id',
         component: PropertyDetailComponent

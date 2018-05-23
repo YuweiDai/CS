@@ -38,6 +38,12 @@ export class PropertyDetailComponent implements OnInit {
       if (property == undefined) this.router.navigate(['../properties']);
       else {
         this.property = property;
+
+        this.property.rents.forEach(rent=>{
+          rent.priceList=rent.priceString.split(';');
+
+        });
+
         console.log(this.property);
         this.loading = false;
       }

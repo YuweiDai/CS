@@ -51,7 +51,7 @@ namespace CSCZJ.API.Models.Properties
         /// <summary>
         /// 是否入账
         /// </summary>
-        public bool IsAdmission { get; set; }
+        public string IsAdmission { get; set; }
 
         /// <summary>
         /// 取得时间
@@ -101,7 +101,7 @@ namespace CSCZJ.API.Models.Properties
         /// <summary>
         /// 是否抵押
         /// </summary>
-        public bool IsMortgage { get; set; }
+        public string IsMortgage { get; set; }
 
 
         public int GovernmentId { get; set; }

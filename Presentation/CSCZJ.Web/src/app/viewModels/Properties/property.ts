@@ -192,6 +192,31 @@ export class PropertyRentModel extends ApproveModel
     }
 }
 
+export class PropertyOffModel extends ApproveModel
+{
+    id?:number;
+    ids?:string;
+    name:string;
+    offTime:string;
+    offTypeId:string;
+    price:number;
+    reason:string;
+    processDate?:string;
+    offArea:number;
+    offMonth?:number;
+    reamrk?:string;    
+    offPictures:PropertyPictureModel[];
+    offFiles:PropertyFileModel[];
+
+    constructor()
+    {
+        super();
+        this.ids="";
+        this.name="";
+        this.offTime="";
+    }
+}
+
 export class SimplePropertyModel
 {
     id:number;

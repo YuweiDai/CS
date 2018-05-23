@@ -62,12 +62,16 @@ export class PropertyRentComponent implements OnInit {
       that.propertyService.getPropertyById(that.pid, true).subscribe((repsonse: any) => {
 
         if (repsonse != null && repsonse != undefined && !repsonse.Code) {
-          that.optionList.push({
-            name: repsonse.name,
-            id: that.pid
-          });
 
-          that.selectedProperties.push(that.pid);
+          if (!repsonse.locked) {
+            that.optionList.push({
+              name: repsonse.name,
+              id: that.pid
+            });
+
+            that.selectedProperties.push(that.pid);
+          }
+          else that.pid = 0;
         }
         that.loading = false;
       });
@@ -192,26 +196,25 @@ export class PropertyRentComponent implements OnInit {
 
 
         this.propertyService.createPropertyRentRecord(this.propertyRent).subscribe((response: any) => {
-          if (response.Code) {
-            that.createNotification("error", "数据出租申请失败", "错误原因：" + response.message, 0);
+          if (response!=undefined && response.Code) {
+            that.createNotification("error", "数据出租申请失败", "错误原因：" + response.Message, 0);
             that.isSubmit = false;
           }
           else {
-            var id = response.id;
-            if (id) {
-              this.modalService.confirm({
-                nzTitle: '提示',
-                nzContent: '数据出租申请成功',
-                nzOkText: '继续编辑',
-                nzCancelText: '查看资产',
-                nzOnOk: function () {
-                  that.router.navigate(['../properties/lendedit/' + id]);
-                },
-                nzOnCancel: function () {
-                  that.router.navigate(['../properties/' + id]);
-                }
-              });
+            var url='../properties';
+            if (this.selectedProperties.length==1) {
+              url+="/"+this.selectedProperties[0];
             }
+
+            this.modalService.confirm({
+              nzTitle: '提示',
+              nzContent: '数据出租申请成功',
+              nzOkText: '确定',
+              nzCancelText:null,
+              nzOnOk: function () {
+                that.router.navigate([url]);
+              }
+            });
           }
         });
         console.log(this.propertyRent);
@@ -219,6 +222,21 @@ export class PropertyRentComponent implements OnInit {
 
 
     }
+  }
+  //现场照片上传前
+  beforeAvatarUpload = (file: File) => {
+    console.log(file);
+    const isJPG = (file.type === 'image/jpeg' || file.type === 'image/png' || file.type === 'image/bmp');
+    if (!isJPG) {
+      this.createNotification("error", "图片格式错误", '文件《' + file.name + '》不是图片格式数据!', 2000);
+      return false;
+    }
+    const isLt2M = file.size / 1024 / 1024 < 2;
+    if (!isLt2M) {
+      this.createNotification("error", "图片大小错误", '图片《' + file.name + '》大小已经超过2MB!', 2000);
+      return false;
+    }
+    return isJPG && isLt2M;
   }
   handleAvatarPreview = (file: UploadFile) => {
     this.previewImage = file.url || file.thumbUrl;

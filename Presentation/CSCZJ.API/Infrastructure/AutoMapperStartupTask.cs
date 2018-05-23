@@ -120,7 +120,8 @@ namespace CSCZJ.Web.Api.Infrastructure
               .ForMember(dest => dest.GetedDate, mo => mo.MapFrom(src => src.GetedDate.HasValue ? src.GetedDate.Value.ToString("yyyy-MM-dd") : "未知"))
               .ForMember(dest => dest.ConstructTime, mo => mo.MapFrom(src => src.ConstructTime.HasValue ? src.ConstructTime.Value.ToString("yyyy-MM-dd") : "未知"))
               .ForMember(dest => dest.LandTime, mo => mo.MapFrom(src => src.LandTime.HasValue ? src.LandTime.Value.ToString("yyyy-MM-dd") : "未知"))
-
+              .ForMember(dest => dest.IsAdmission, mo => mo.MapFrom(src => src.IsAdmission?"是":"否"))
+              .ForMember(dest => dest.IsMortgage, mo => mo.MapFrom(src => src.IsMortgage ? "是" : "否"))
               .ForMember(dest => dest.CurrentType, mo => mo.MapFrom(src => src.CurrentType.ToDescription()))
               .ForMember(dest => dest.UseType, mo => mo.MapFrom(src => src.UseType.ToDescription()));
 
@@ -282,6 +283,7 @@ namespace CSCZJ.Web.Api.Infrastructure
 
             Mapper.CreateMap<PropertyRent, PropertyRentModel>()
                    .ForMember(dest => dest.RentTime, mo => mo.MapFrom(src => src.RentTime.ToString("yyyy-MM-dd")))
+                   .ForMember(dest => dest.BackTime, mo => mo.MapFrom(src => src.BackTime.ToString("yyyy-MM-dd")))
      .ForMember(dest => dest.ProcessDate, mo => mo.MapFrom(src => src.ProcessDate.ToString("yyyy-MM-dd HH:mm:ss")))
             .ForMember(dest => dest.State, mo => mo.MapFrom(src => src.State.ToDescription()))
             .ForMember(dest => dest.DApproveDate, mo => mo.MapFrom(src => src.DApproveDate.HasValue ? src.DApproveDate.Value.ToString("yyyy-MM-dd HH:mm:ss") : ""))
