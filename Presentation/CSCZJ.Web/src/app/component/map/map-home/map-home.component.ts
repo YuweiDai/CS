@@ -16,6 +16,7 @@ declare var L:any;
 declare var HeatmapOverlay: any;
 declare var Control:any;
 declare var IconLayers:any;
+declare var Wkt: any;
 
 @Component({
     selector: 'app-map-home',
@@ -49,6 +50,18 @@ export class MapHomeComponent implements OnInit {
     house:any;
     land:any;
     markers:any;  
+    private  wkt:any;
+    showExtent:any;
+    mapOverlayOption = {
+        icon:
+   new L.Icon.Default(),
+        editable: false,
+        color: '#AA0000',
+        weight: 3,
+        opacity: 1.0,
+        fillColor: '#AA0000',
+        fillOpacity: 0.2
+    };
 
     //热力图格式
     heatLayer = new L.LayerGroup();
@@ -204,6 +217,7 @@ export class MapHomeComponent implements OnInit {
 
             that.getMapProperties(that.markers);
             that.map.addLayer(that.markers);     
+            that.wkt = new Wkt.Wkt();
      
             //that.map.addLayer(this.heatmapLayer);
 
@@ -238,6 +252,14 @@ export class MapHomeComponent implements OnInit {
                           {title:"入账",value:that.property.isAdmission},
                           {title:"抵押",value:that.property.isMortgage},
                         ];
+
+                        if(element.extent!=""||element.extent!=null){
+                            that.wkt.read(element.extent);
+                            that.showExtent = that.wkt.toObject(that.mapOverlayOption);
+                            that.showExtent.addTo(that.map); 
+
+                        }
+                    
                   
 
                          });
