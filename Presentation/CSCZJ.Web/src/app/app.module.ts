@@ -16,7 +16,7 @@ import { OverviewComponent } from './component/statistics/overview/overview.comp
 import { PropertiesModule } from './component/properties/properties.module';
 import { MapHomeComponent } from './component/map/map-home/map-home.component';
 import { AccountListComponent } from './component/systemmanager/account-list/account-list.component';
-
+import { LoginComponent } from './component/passport/login/login.component';
 
 import { PropertyService } from "./services/propertyService";
 import { GovernmentService } from "./services/governmentService";
@@ -40,6 +40,7 @@ const DEFAULT_PERFECT_SCROLLBAR_CONFIG: PerfectScrollbarConfigInterface = {
     OverviewComponent,
     MapHomeComponent,
     AccountListComponent,
+    LoginComponent,
     
   ],
   imports: [

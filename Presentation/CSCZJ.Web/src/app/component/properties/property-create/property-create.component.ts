@@ -76,7 +76,7 @@ export class PropertyCreateComponent implements OnInit {
   private fileList = [];
 
   private isSubmit = false;
-  private loading=false;
+  private loading = false;
 
 
   constructor(private modalService: NzModalService, private msg: NzMessageService, private notification: NzNotificationService,
@@ -291,7 +291,7 @@ export class PropertyCreateComponent implements OnInit {
       that.title = "新增资产";
     }
     else {
-      that.loading=true;
+      that.loading = true;
       that.title = "资产变更";
 
       let id = parseInt(that.route.snapshot.paramMap.get('id'));
@@ -314,7 +314,7 @@ export class PropertyCreateComponent implements OnInit {
           if (parseInt(that.property.governmentId) > 0 && that.property.governmentName != undefined
             && that.property.governmentId != "" && that.property.governmentId != "")
             that.property.governmentId = that.property.governmentId.toString();
-            else that.property.governmentId="";
+          else that.property.governmentId = "";
 
           that.optionList.push({
             name: that.property.governmentName,
@@ -349,8 +349,8 @@ export class PropertyCreateComponent implements OnInit {
           that.avatarList = [{ uid: -1, name: "logo", status: 'done', url: this.property.logoUrl, thumbUrl: this.property.logoUrl }];
           that.pictureList = [...pics];
           that.fileList = [...files];
-      
-          that.loading=false;
+
+          that.loading = false;
         });
       }
     }
@@ -359,7 +359,7 @@ export class PropertyCreateComponent implements OnInit {
   ngAfterViewInit() {
   }
 
-  pre(): void {
+  pre(): void { 
     this.current -= 1;
     this.changeContent();
   }
@@ -484,7 +484,8 @@ export class PropertyCreateComponent implements OnInit {
               nzOkText: '继续编辑',
               nzCancelText: '查看资产',
               nzOnOk: function () {
-                that.router.navigate(['../properties/edit/' + id]);
+                window.location.reload();
+                //that.router.navigate(['../properties/edit/' + id]);
               },
               nzOnCancel: function () {
                 that.router.navigate(['../properties/' + id]);
@@ -636,6 +637,23 @@ export class PropertyCreateComponent implements OnInit {
         }
         console.log(that.property)
       });
+
+      //要素编辑事件
+      that.map.on(L.Draw.Event.EDITED, function (e) {
+        e.layers.eachLayer(function (layer) {
+          var geoJson = layer.toGeoJSON();
+          if (geoJson.geometry.type == "Point") {
+            var geojson = that.marker.toGeoJSON();
+            that.property.location = that.wkt.fromJson(geojson).write();
+          }
+          else {
+            var geojson = that.extent.toGeoJSON();
+            that.property.extent = that.wkt.fromJson(geojson).write();
+          }
+        });
+
+      });
+
 
       //要素删除事件
       that.map.on(L.Draw.Event.DELETED, function (e) {
