@@ -52,6 +52,7 @@ export class MapHomeComponent implements OnInit {
     markers:any;  
     private wkt: any;
     extent:any;
+    choosePropert:any;
     mapOverlayOption = {
         icon:
    new L.Icon.Default(),
@@ -276,7 +277,7 @@ findThisOne(option):void{
 
      this.markers.clearLayers();
      this.map.removeLayer(this.extent);
-     this.propertyService.getPropertyById(option.id).subscribe(property=>{
+     this.propertyService.getPropertyById(option.id,false).subscribe(property=>{
      var response = property;
    
          var points = response.location.split(' ');
@@ -362,8 +363,7 @@ findThisOne(option):void{
     Submit(): void {
         this.basicInfo = null;
         if(this.extent!=null||this.extent!=undefined)  this.map.removeLayer(this.extent);
-       // this.highSearchProperty=highSearchProperty;
-        console.log(this.highSearchProperty);
+
         this.highSearchProperty.House=false;
         this.highSearchProperty.Land=false;
         this.highSearchProperty.TMZ=false;
@@ -493,7 +493,56 @@ findThisOne(option):void{
 
       }
 
+      chooseProperty(choosePropert){
+          this.searchProperties.forEach(e=>{
+              if(choosePropert.name==e.name&&choosePropert.address==e.address){
+                this.map.setView([e.x,e.y],16);
+              }
+          })
 
+      }
+
+      Reset(){
+        this.propertyType.forEach(e=>{
+            e.checked=false;
+        });
+        this.regionType.forEach(e=>{
+            e.checked=false;
+        });
+        this.currentType.forEach(e=>{
+            e.checked=false;
+        });
+        this.propertyRights.forEach(e=>{
+            e.checked=false;
+        });
+        this.area.forEach(e=>{
+            e.checked=false;
+        });
+        this.highSearchProperty.Land=false;
+        this.highSearchProperty.TMZ=false;
+        this.highSearchProperty.ZSZ=false;
+        this.highSearchProperty.HBZ=false;
+        this.highSearchProperty.SBZ=false;
+        this.highSearchProperty.ZY=false;
+        this.highSearchProperty.CC=false;
+        this.highSearchProperty.XZ=false;
+        this.highSearchProperty.SYDP=false;
+        this.highSearchProperty.All=false;
+        this.highSearchProperty.isHouse=false;
+        this.highSearchProperty.isLand=false;
+        this.highSearchProperty.None=false;
+        this.highSearchProperty.One=false;
+        this.highSearchProperty.Two=false;
+        this.highSearchProperty.Three=false;
+        this.highSearchProperty.Four=false;
+        this.highSearchProperty.Five=false;
+
+        this.searchProperties=[];
+        this.showCollapse=false;
+
+        this.map.addLayer(this.markers);
+
+      }
 
 
 }
