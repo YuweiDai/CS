@@ -92,16 +92,20 @@
    </div> -->
    <perfect-scrollbar [ngStyle]="{'height.px': containerHeight }" [config]="perfectScrollbarConfig">
     <div nz-sider *ngFor="let p of searchProperties">
-      <nz-card style="width:300px;" [nzCover]="coverTemplate" >
-        <nz-card-meta nzTitle="名称：{{p.name}}" nzDescription="地址：{{p.address}}" [nzAvatar]="avatarTemplate"></nz-card-meta>
-      </nz-card>
-      <ng-template #avatarTemplate>
-        <nz-avatar nzSrc="../../assets/js/MarkerClusterGroup/map-marker.png"></nz-avatar>
-      </ng-template>
-      <ng-template #coverTemplate>
-        <img alt="example" src="../../assets/js/MarkerClusterGroup/pp.png"/>
-      </ng-template>
-      <nz-divider></nz-divider>
+      <div (click)='chooseProperty(p)'>
+          <nz-card style="width:300px;" [nzCover]="coverTemplate" >
+              <nz-card-meta nzTitle="名称：{{p.name}}" nzDescription="地址：{{p.address}}" [nzAvatar]="avatarTemplate"></nz-card-meta>
+            </nz-card>
+            <ng-template #avatarTemplate>
+              <nz-avatar nzSrc="../../assets/js/MarkerClusterGroup/map-marker.png"></nz-avatar>
+            </ng-template>
+            <ng-template #coverTemplate>
+              <img alt="example" src="../../assets/js/MarkerClusterGroup/pp.png"/>
+            </ng-template>
+            <nz-divider></nz-divider>
+
+      </div>
+    
     </div>
 </perfect-scrollbar>
     
