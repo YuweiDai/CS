@@ -16,6 +16,7 @@ declare var L:any;
 declare var HeatmapOverlay: any;
 declare var Control:any;
 declare var IconLayers:any;
+declare var Wkt: any;
 
 @Component({
     selector: 'app-map-home',
@@ -49,6 +50,18 @@ export class MapHomeComponent implements OnInit {
     house:any;
     land:any;
     markers:any;  
+    private wkt: any;
+    extent:any;
+    mapOverlayOption = {
+        icon:
+   new L.Icon.Default(),
+        editable: false,
+        color: '#AA0000',
+        weight: 3,
+        opacity: 1.0,
+        fillColor: '#AA0000',
+        fillOpacity: 0.2
+    };
 
     //热力图格式
     heatLayer = new L.LayerGroup();
@@ -171,14 +184,14 @@ export class MapHomeComponent implements OnInit {
                         icon: '../../assets/images/iconLayers/yx.png'
                     }
                 ], {
-                    position: 'bottomleft'
+                    position: 'bottomright'
                    // maxLayersInRow: 5
                 }
             );
 
             var zoomControl = that.map.zoomControl;
 
-            zoomControl.setPosition("bottomright");
+            zoomControl.setPosition("bottomleft");
 
              iconLayersControl.addTo(that.map);
 
@@ -186,12 +199,12 @@ export class MapHomeComponent implements OnInit {
 
             that.house = L.icon({
                 iconUrl: '../../assets/js/MarkerClusterGroup/house.png',
-                iconAnchor: [16, 16],
+                iconAnchor: [16, 32],
             });
 
            that.land = L.icon({
                 iconUrl: '../../assets/js/MarkerClusterGroup/land.png',
-                iconAnchor: [16, 16],
+                iconAnchor: [16, 32],
             });
 
             that.markers = new L.MarkerClusterGroup({
@@ -204,18 +217,21 @@ export class MapHomeComponent implements OnInit {
 
             that.getMapProperties(that.markers);
             that.map.addLayer(that.markers);     
+            that.wkt = new Wkt.Wkt();
      
             //that.map.addLayer(this.heatmapLayer);
 
             //点击获取单个资产信息
            that.markers.on('click', function (a) {
                that.showCollapse = false;
+              
                 that.properties.forEach(element => {
                   if(a.latlng.lat==element.x&&a.latlng.lng==element.y){
                      
                       that.propertyService.getPropertyById(element.id).subscribe(property=>{
                         that.property=property;
-
+                        if(that.extent!=undefined) that.map.removeLayer(that.extent);
+                       
                         that.basicInfo=[
                           {title:"资产名称",value:that.property.name},
                           {title:"类别",value:that.property.propertyType},
@@ -238,7 +254,9 @@ export class MapHomeComponent implements OnInit {
                           {title:"入账",value:that.property.isAdmission},
                           {title:"抵押",value:that.property.isMortgage},
                         ];
-                  
+                       that.wkt.read(property.extent);
+                       that.extent = that.wkt.toObject(that.mapOverlayOption);
+                       that.extent.addTo(that.map);
 
                          });
                   }
@@ -257,6 +275,7 @@ export class MapHomeComponent implements OnInit {
 findThisOne(option):void{
 
      this.markers.clearLayers();
+     this.map.removeLayer(this.extent);
      this.propertyService.getPropertyById(option.id).subscribe(property=>{
      var response = property;
    
@@ -308,21 +327,20 @@ findThisOne(option):void{
                    if(element.propertyType=="房屋"){
                     var m = new L.marker(new L.LatLng (element.x,element.y),{
                          icon:this.house
-                     },{propertyid:element.id}).bindTooltip(element.name,{permanent:true,direction:"top",offset:[0,-15]});                      
+                     },{propertyid:element.id}).bindTooltip(element.name,{permanent:false,direction:"top",offset:[0,-32]});                      
                      markers.addLayer(m);
                    }
 
                    else{
                     var m = new L.marker(new L.LatLng (element.x,element.y),{
                         icon:this.land
-                    }).bindTooltip(element.name,{permanent:true,direction:"top",offset:[0,-15]});                           
+                    }).bindTooltip(element.name,{permanent:false,direction:"top",offset:[0,-32]});                           
                     markers.addLayer(m);
 
                    }
                    
 
                    var heatPoint = {lat:element.x,lon:element.y,count:parseInt(element.constructArea)+1};
-                  // var heatPoint = {LatLng:L.latLng(parseFloat(element.x) ,parseFloat(element.y)), count:100};
                    this.heatMapData.data.push(heatPoint);                        
                     });    
 
@@ -337,11 +355,13 @@ findThisOne(option):void{
     closeDetail():void{
 
         this.basicInfo = null;
+        if(this.extent!=null||this.extent!=undefined)  this.map.removeLayer(this.extent);
     }
 
     //高级搜索提交
     Submit(): void {
         this.basicInfo = null;
+        if(this.extent!=null||this.extent!=undefined)  this.map.removeLayer(this.extent);
        // this.highSearchProperty=highSearchProperty;
         console.log(this.highSearchProperty);
         this.highSearchProperty.House=false;
@@ -456,6 +476,7 @@ findThisOne(option):void{
 
       Switch(){
         this.switchModel=!this.switchModel;
+        if(this.extent!=null||this.extent!=undefined)  this.map.removeLayer(this.extent);
 
         if(this.switchModel==false){
 
