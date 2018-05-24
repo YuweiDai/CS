@@ -1,14 +1,17 @@
-import { Component, OnDestroy, Inject, Optional } from '@angular/core';
-import { Router } from '@angular/router';
-import { FormGroup, FormBuilder, Validators } from '@angular/forms';
-import { NzMessageService, NzModalService } from 'ng-zorro-antd';
+import { Component, OnInit } from '@angular/core';
+import { FormBuilder, FormControl, FormGroup, ValidationErrors, Validators, ValidatorFn } from '@angular/forms';
+import { Observable } from 'rxjs/Observable';
+import { Observer } from 'rxjs/Observer';
+import { Router, ActivatedRoute, ParamMap } from '@angular/router';
+import { NzMessageService, UploadFile, NzNotificationService, NzModalService } from 'ng-zorro-antd';
 
 @Component({
   selector: 'passport-login',
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.less'],
+  providers: [],  
 })
-export class LoginComponent implements OnDestroy {
+export class LoginComponent implements OnInit{
   form: FormGroup;
   error = '';
   type = 0;
@@ -37,6 +40,8 @@ export class LoginComponent implements OnDestroy {
     modalSrv.closeAll();
   }
 
+  ngOnInit(){}
+
   // region: fields
 
   get userName() {
@@ -52,28 +57,43 @@ export class LoginComponent implements OnDestroy {
     return this.form.controls.captcha;
   }
 
-  // endregion
+  // // endregion
 
-  switch(ret: any) {
-    this.type = ret.index;
-  }
+  // switch(ret: any) {
+  //   this.type = ret.index;
+  // }
 
-  // region: get captcha
+  // // region: get captcha
 
-  count = 0;
-  interval$: any;
+  // count = 0;
+  // interval$: any;
 
-  getCaptcha() {
-    this.count = 59;
-    this.interval$ = setInterval(() => {
-      this.count -= 1;
-      if (this.count <= 0) clearInterval(this.interval$);
-    }, 1000);
-  }
+  // getCaptcha() {
+  //   this.count = 59;
+  //   this.interval$ = setInterval(() => {
+  //     this.count -= 1;
+  //     if (this.count <= 0) clearInterval(this.interval$);
+  //   }, 1000);
+  // }
 
-  // endregion
+  // // endregion
 
   submit() {
+
+    if (
+      this.userName.value !== 'admin' ||
+      this.password.value !== '888888'
+    ) {
+      this.error = `账户或密码错误`;
+      return;
+    }
+    else
+    {
+      this.router.navigate(['/admin/properties/create']);   
+      return;   
+    }
+
+
     this.error = '';
     if (this.type === 0) {
       this.userName.markAsDirty();
@@ -119,7 +139,7 @@ export class LoginComponent implements OnDestroy {
     }, 1000);
   }
 
-  // region: social
+  // #region: social
 
   // open(type: string, openType: SocialOpenType = 'href') {
   //   let url = ``;
@@ -162,9 +182,9 @@ export class LoginComponent implements OnDestroy {
   //   }
   // }
 
-  // endregion
+  // #endregion
 
-  ngOnDestroy(): void {
-    if (this.interval$) clearInterval(this.interval$);
-  }
+  // ngOnDestroy(): void {
+  //   if (this.interval$) clearInterval(this.interval$);
+  // }
 }
