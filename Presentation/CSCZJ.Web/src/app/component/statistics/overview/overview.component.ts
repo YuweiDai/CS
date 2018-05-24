@@ -276,15 +276,15 @@ export class OverviewComponent implements OnInit {
     };
     console.log(123);
 //加载地图图表
-this.http.get('../../../../assets/js/JS.json').subscribe(geoJson=>{
+this.http.get('../../../../assets/js/CS.json').subscribe(geoJson=>{
 
   this.mapLoaded = true;
   // register map:
-  this.es.registerMap('江山', geoJson);
+  this.es.registerMap('常山', geoJson);
 
   this.mapOption={
     title: {
-      text: '乡镇区域分布（建筑面积）',
+      text: '常山县乡镇区域分布（建筑面积）',
       x:'center' 
     },
     tooltip: {
@@ -314,26 +314,48 @@ this.http.get('../../../../assets/js/JS.json').subscribe(geoJson=>{
     },
     series: [
       {
-        name: '江山区域分布',
+        name: '常山乡镇区域分布',
         type: 'map',
-        mapType: '江山', // map type should be registered
+        mapType: '常山', // map type should be registered
         itemStyle: {
           normal: { label: { show: true } },
           emphasis: { label: { show: true } }
         },
         data: [
-          { name: '贺村供电所', value: 20057.34 },
-          { name: '长台供电所', value: 15477.48 },
-          { name: '峡口供电所', value: 31686.1 },
-          { name: '城区供电所', value: 6992.6 },
-          { name: '须江供电所', value: 44045.49 }     
+          { name: '白石镇', value: 20057.34 },
+          { name: '天马街道', value: 15477.48 },
+          { name: '同弓乡', value: 31686.1 },
+          { name: '球川镇', value: 6992.6 },
+          { name: '金川街道', value: 44045.49 },
+
+          { name: '青石镇', value: 20057.34 },
+          { name: '紫港街道', value: 15477.48 },
+          { name: '招贤镇', value: 31686.1 },
+          { name: '何家乡', value: 6992.6 },
+          { name: '大桥头乡', value: 44045.49 },
+
+          { name: '灰埠镇', value: 6992.6 },
+          { name: '东案乡', value: 44045.49 },
+          { name: '新昌乡下', value: 6992.6 },
+          { name: '新昌乡上', value: 44045.49 },
+          { name: '芳村镇', value: 44045.49 }
         ],
         nameMap: {
-          '贺村供电所': '贺村供电所',
-          '长台供电所': '长台供电所',
-          '峡口供电所': '峡口供电所',
-          '城区供电所': '城区供电所',
-          '须江供电所': '须江供电所'          
+          '白石镇': '白石镇',
+          '天马街道': '天马街道',
+          '同弓乡': '同弓乡',
+          '球川镇': '球川镇',
+          '金川街道': '金川街道',
+          '青石镇': '青石镇',
+          '紫港街道': '紫港街道',
+          '招贤镇': '招贤镇',
+          '何家乡': '何家乡',
+          '大桥头乡': '大桥头乡',
+          '灰埠镇': '灰埠镇',
+          '东案乡': '东案乡',
+          '新昌乡下': '新昌乡下',
+          '新昌乡上': '新昌乡上',
+          '芳村镇': '芳村镇'          
         }
       }
     ]
