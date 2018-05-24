@@ -79,6 +79,8 @@ namespace CSCZJ.API.Models.Properties
 
         public int GovernmentId { get; set; }
 
+        public string GovernmentName { get; set; }
+
         /// <summary>
         /// 用途
         /// </summary>

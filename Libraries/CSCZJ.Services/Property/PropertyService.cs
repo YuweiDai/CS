@@ -428,10 +428,10 @@ namespace CSCZJ.Services.Properties
         /// </summary>
         /// <param name="governmentIds"></param>
         /// <returns></returns>
-        public IList<CSCZJ.Core.Domain.Properties.Property> GetProcessProperties(IList<int> governmentIds)
+        public IList<CSCZJ.Core.Domain.Properties.Property> GetProcessProperties(string name,IList<int> governmentIds)
         {
             var query = from p in _propertyRepository.TableNoTracking
-                        where !p.Deleted && !p.Locked && p.Published && governmentIds.Contains(p.Government.Id)
+                        where !p.Deleted && !p.Locked && p.Published && p.Name.Contains(name)// governmentIds.Contains(p.Government.Id)
                         orderby p.CreatedOn descending
                         select p;
 

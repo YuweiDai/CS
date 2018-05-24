@@ -19,8 +19,8 @@ export class PropertyCenterComponent implements OnInit {
     this.containerHeight=layoutService.getContentHeight();  //获取内容高度
 
     this.menuItems= [
-      { icon: "icon-liebiao", title: "资产列表",url:"./",active:true },
-      { icon: "icon-xinzeng", title: "新增资产",url:"./create",active:false },
+      { icon: "icon-liebiao", title: "资产管理",url:"./",active:true },
+      // { icon: "icon-xinzeng", title: "新增资产",url:"./create",active:false },
       { icon: "icon-shenpi", title: "审批管理",url:"./",active:false }
     ];
   }

@@ -1198,7 +1198,7 @@ namespace CSCZJ.API.Controllers
 
         [HttpGet]
         [Route("{propertyId:int}")]
-        public IHttpActionResult Get(int propertyId)
+        public IHttpActionResult Get(int propertyId, bool simple = false)
         {
             //var currentUser = _workContext.CurrentAccountUser;
 
@@ -1209,27 +1209,52 @@ namespace CSCZJ.API.Controllers
             //if (!(currentUser.IsAdmin()|| currentUser.IsDataReviewer() || PropertyCanView(property))) 
             //    return NotFound();
 
+            if (simple)
+            {                
+                var model = property.ToSimpleModel();
 
-            var model = property.ToModel();
-            model.LogoUrl = GetLogoUrl(property);
-            model.NewCreate = _propertyNewCreateService.GetPropertyNewCreateByPropertyId(model.Id).ToModel();
-            model.Edits = model.Edits.Where(m => m.Deleted != true).ToList();
-            model.Rents = model.Rents.Where(m => m.Deleted != true).ToList();
-            model.Lends = model.Lends.Where(m => m.Deleted).ToList();
+                //activity log
+                _accountUserActivityService.InsertActivity("GetpropertyInfo", "获取 名为 {0} 的资产简单信息", property.Name);
+                return Ok(model);
+            }
+            else
+            {
 
-            model.CanEditDelete = false;// PropertyCanEditDelete(property);
-            model.CanChange = false;// PropertyCanChange(property);
-            var propertyOff= _propertyOffService.GetPropertyOffById(model.Id).ToModel();
-            if (propertyOff != null) model.PropertyOff = propertyOff;
+                var model = property.ToModel();
+                model.LogoUrl = GetLogoUrl(property);
+                model.NewCreate = _propertyNewCreateService.GetPropertyNewCreateByPropertyId(model.Id).ToModel();
+                model.Edits = model.Edits.Where(m => m.Deleted != true).ToList();
+                model.Rents = model.Rents.Where(m => m.Deleted != true).ToList();
+                model.Lends = model.Lends.Where(m => m.Deleted).ToList();
 
-            //获取图片
-            PreparePropertyPictures(model);
-            //获取文件
-            PreparePropertyFiles(model);
-            //activity log
-            _accountUserActivityService.InsertActivity("GetpropertyInfo", "获取 名为 {0} 的资产信息", property.Name);
+                model.CanEditDelete = false;// PropertyCanEditDelete(property);
+                model.CanChange = false;// PropertyCanChange(property);
+                var propertyOff = _propertyOffService.GetPropertyOffByPropertyId(model.Id).ToModel();
+                if (propertyOff != null) model.PropertyOff = propertyOff;
 
-            return Ok(model);
+                //获取图片
+                PreparePropertyPictures(model);
+                //获取文件
+                PreparePropertyFiles(model);
+
+                //获取出租信息
+                foreach(var rentModel in model.Rents)
+                {
+                    var rent = _propertyRentService.GetPropertyRentById(rentModel.Id);
+                    if (rent == null || rent.Deleted) throw new Exception("无法找到出租信息资源");                   
+
+                    rentModel.Valid = DateTime.Now >= rent.RentTime && DateTime.Now < rent.BackTime;
+
+                    if (rentModel.PriceString.EndsWith(";")) rentModel.PriceString = rentModel.PriceString.TrimEnd(';');
+
+                    PreparePropertyRentPicturesAndFiles(rentModel);                   
+                }
+ 
+
+                //activity log
+                _accountUserActivityService.InsertActivity("GetpropertyInfo", "获取 名为 {0} 的资产信息", property.Name);
+                return Ok(model);
+            }
         }
 
         /// <summary>
@@ -1241,13 +1266,13 @@ namespace CSCZJ.API.Controllers
         [Route("Update/{propertyId:int}")]
         public IHttpActionResult GetUpdatedProperty(int propertyId)
         {
-            var currentUser = _workContext.CurrentAccountUser;
+            //var currentUser = _workContext.CurrentAccountUser;
 
             var property = _propertyService.GetPropertyById(propertyId);
             if (property == null || property.Deleted)
                 return NotFound();
 
-            if (!PropertyCanEditDelete(property) && !PropertyCanChange(property)) return NotFound();// "资产无法编辑或变更！");
+            //if (!PropertyCanEditDelete(property) && !PropertyCanChange(property)) return NotFound();// "资产无法编辑或变更！");
 
             var propertyCreatModel = new PropertyCreateModel();
 
@@ -1256,7 +1281,7 @@ namespace CSCZJ.API.Controllers
                 var copyproperty = _copyPropertyService.GetCopyPropertyById(edit.CopyProperty_Id);
                 propertyCreatModel = copyproperty.ToCreateModel();
 
-                propertyCreatModel.Owner_self = propertyCreatModel.GovernmentId == currentUser.Government.Id;
+               // propertyCreatModel.Owner_self = propertyCreatModel.GovernmentId == currentUser.Government.Id;
                 propertyCreatModel.Owner_children = propertyCreatModel.Owner_self;
 
                 #region 新数据库对象
@@ -1314,7 +1339,7 @@ namespace CSCZJ.API.Controllers
                 //    return NotFound();
 
                 propertyCreatModel = property.ToCreateModel();
-                propertyCreatModel.Owner_self = propertyCreatModel.GovernmentId == currentUser.Government.Id;
+               // propertyCreatModel.Owner_self = propertyCreatModel.GovernmentId == currentUser.Government.Id;
                 propertyCreatModel.Owner_children = propertyCreatModel.Owner_self;
                 propertyCreatModel.LogoUrl = string.IsNullOrEmpty(GetLogoUrl(property)) ? null : GetLogoUrl(property);
                 var propertyLogoPicture = GetLogoPicture(property);
@@ -1426,7 +1451,7 @@ namespace CSCZJ.API.Controllers
                 },
                 Data = properties.Select(s =>
                 {
-                    var propertyModel = s.ToListModel();
+                    var propertyModel = s.ToListModel();                    
                     if (s.Off)
                         propertyModel.Name = propertyModel.Name + "（已核销）";
                     else if (!s.Published)
@@ -1636,7 +1661,7 @@ namespace CSCZJ.API.Controllers
         {
             var checkMessage = PropertyCreateModelValid(propertyCreateModel);
 
-            if (!string.IsNullOrEmpty(checkMessage)) return BadRequest(checkMessage);
+            if (!string.IsNullOrEmpty(checkMessage)) throw new Exception(checkMessage);
            
             var property = propertyCreateModel.ToEntity();       
 
@@ -1651,7 +1676,7 @@ namespace CSCZJ.API.Controllers
             #region 现场照片处理
 
             var picture = _pictureService.GetPictureById(propertyCreateModel.LogoPictureId);
-            if (picture == null) return BadRequest("未上传资产现场照片");
+            if (picture == null) throw new Exception("未上传资产现场照片");
 
             //关联
             var logoPicture = new PropertyPicture
@@ -1688,7 +1713,7 @@ namespace CSCZJ.API.Controllers
             };
 
             //如果当前用户是主管部门，则跳过主管部门审核环节
-            if (propertyCreateModel.Submit && _workContext.CurrentAccountUser.Government.ParentGovernmentId == 0)
+            if (propertyCreateModel.Submit )//&& _workContext.CurrentAccountUser.Government.ParentGovernmentId == 0)
             {
                 propertyNewRecord.State = PropertyApproveState.AdminApprove;
                 propertyNewRecord.DSuggestion = "同意";
@@ -1717,20 +1742,15 @@ namespace CSCZJ.API.Controllers
         {
             var property = _propertyService.GetPropertyById(propertyId);
 
-            // if ((propertyCreateModel.CurrentUse_Lend + propertyCreateModel.CurrentUse_Rent + propertyCreateModel.CurrentUse_Self + propertyCreateModel.CurrentUse_Idle > propertyCreateModel.ConstructArea)) return BadRequest("建筑面积应大于自用、出租、出借、闲置之和！");
-            if (propertyCreateModel.GetedDate == "01/01/0001") return BadRequest("取得时间不能为空");
+            // if ((propertyCreateModel.CurrentUse_Lend + propertyCreateModel.CurrentUse_Rent + propertyCreateModel.CurrentUse_Self + propertyCreateModel.CurrentUse_Idle > propertyCreateModel.ConstructArea)) throw new Exception("建筑面积应大于自用、出租、出借、闲置之和！");
+            if (propertyCreateModel.GetedDate == "01/01/0001") throw new Exception("取得时间不能为空");
             if (property == null || property.Deleted) return NotFound();
 
             var checkMessage = PropertyCreateModelValid(propertyCreateModel);
 
-            if (!string.IsNullOrEmpty(checkMessage)) return BadRequest(checkMessage);
+            if (!string.IsNullOrEmpty(checkMessage)) throw new Exception(checkMessage);
 
-            Picture logoPicture = null;
-            if (!string.IsNullOrEmpty(propertyCreateModel.Logo))  //上传的logo 不为空则表明新增了一个logo图片
-            {
-                var base64 = HttpUtility.HtmlDecode(propertyCreateModel.Logo.Trim());
-                logoPicture = _pictureService.InsertPicture(base64);
-            }
+            var logoPicture = _pictureService.GetPictureById(propertyCreateModel.LogoPictureId);            
 
             if (property.Published)
             {                
@@ -1739,7 +1759,7 @@ namespace CSCZJ.API.Controllers
                     var startEditsCount = _propertyEditService.GetPropertyEditByPropertyId(propertyId).Count(e => e.State == PropertyApproveState.Start);
                     if (startEditsCount == 0)
                     {
-                        if (property.Locked) return BadRequest("资产已被锁定，无法进行其他操作");
+                        if (property.Locked) throw new Exception("资产已被锁定，无法进行其他操作");
 
                         #region 新增的变更
 
@@ -1812,12 +1832,12 @@ namespace CSCZJ.API.Controllers
                     }
                 }
 
-                return BadRequest("该资产已经在进行编辑申请中，请将其执行完成后再申请！");
+                throw new Exception("该资产已经在进行编辑申请中，请将其执行完成后再申请！");
             }
             else {
                 #region 数据编辑
 
-                if (!PropertyCanEditDelete(property)) return BadRequest("无法编辑资产");
+                // if (!PropertyCanEditDelete(property)) throw new Exception("无法编辑资产");  temp
 
                 var imgs = property.Pictures;
                 property = propertyCreateModel.ToEntity(property);
@@ -1868,13 +1888,13 @@ namespace CSCZJ.API.Controllers
                 {
                     propertyNewRecord.State = PropertyApproveState.DepartmentApprove;
 
-                    //如果当前用户是主管部门，则跳过主管部门审核环节
-                    if (_workContext.CurrentAccountUser.Government.ParentGovernmentId == 0)
-                    {
+                    //如果当前用户是主管部门，则跳过主管部门审核环节   temp
+                    //if (_workContext.CurrentAccountUser.Government.ParentGovernmentId == 0)
+                    //{
                         propertyNewRecord.State = PropertyApproveState.AdminApprove;
                         propertyNewRecord.DSuggestion = "同意";
                         propertyNewRecord.DApproveDate = DateTime.Now;
-                    }
+                    //}
 
                     _propertyNewCreateService.UpdatePropertyNewCreate(propertyNewRecord);
 
@@ -1976,25 +1996,21 @@ namespace CSCZJ.API.Controllers
 
         #region 资产处置
 
-        [AllowAnonymous]
+        //[AllowAnonymous]
         [HttpGet]
-        [Route("PropertyProcess")]
-        public IHttpActionResult GetPropertyProcess() {
+        [Route("PropertyProcess/{name}")]
+        public IHttpActionResult GetPropertyProcess(string name="") {
 
-            var currentAccount = _workContext.CurrentAccountUser;
-            var governmentIds = _governmentService.GetGovernmentIdsByCurrentUser(true);
+            //var currentAccount = _workContext.CurrentAccountUser;
+            var governmentIds = new List<int>();// _governmentService.GetGovernmentIdsByCurrentUser(true);
            
-            var properties = _propertyService.GetProcessProperties(governmentIds).Select(sp => {
+            var properties = _propertyService.GetProcessProperties(name,governmentIds).Select(sp => {
                 return new
                 {
                     Id = sp.Id,
                     Name = sp.Name,
-                    Region = sp.Region.ToDescription(),
                     Address = sp.Address,
-                    G = sp.Government.Name,
-                    constructArea = sp.ConstructArea,
-                    landArea = sp.LandArea
-
+                    Locked=sp.Locked
                 };
 
                 //return simplePropertyModel;
@@ -2262,7 +2278,7 @@ namespace CSCZJ.API.Controllers
                         #endregion
                     }
                 default:
-                    return BadRequest("没有找到相应的处置类型");
+                    throw new Exception("没有找到相应的处置类型");
             }
         }
 
@@ -2270,18 +2286,18 @@ namespace CSCZJ.API.Controllers
         [Route("Lend")]   //Url 的动词名称意义直观 修改则为UpdateLend，审批为ApproveLend
         public IHttpActionResult CreateLendRecord(PropertyLendModel propertyLendModel)
         {
-            var currentUser = _workContext.CurrentAccountUser;
-            var suggestGovernmentId = currentUser.Government.Id;
-            if (propertyLendModel.Ids == "") return BadRequest("请选择需要处置的资产");
+            //var currentUser = _workContext.CurrentAccountUser;
+            //var suggestGovernmentId = currentUser.Government.Id;
+            if (propertyLendModel.Ids == "") throw new Exception("请选择需要处置的资产");
             var lendIds = propertyLendModel.Ids.Split(';');
             foreach (var id in lendIds) {
                 if (id != "") {
                     var property = _propertyService.GetPropertyById(Convert.ToInt32(id));
                     if (property == null) continue;  //防止错误的PropertyId传入
                     if (property.Locked || property.Deleted || !property.Published)
-                        return BadRequest("无法对该资产进行操作或该资产已经不存在");
+                        throw new Exception("无法对该资产进行操作或该资产已经不存在");
 
-                    if (!PropertyBelongCurrentUser(property, true)) return BadRequest("没有操作权限");
+                    if (!PropertyBelongCurrentUser(property, true)) throw new Exception("没有操作权限");
 
                     PropertyLend propertyLendRecord = new PropertyLend();
                     propertyLendRecord.Name = propertyLendModel.Name;
@@ -2293,7 +2309,7 @@ namespace CSCZJ.API.Controllers
                     propertyLendRecord.State = propertyLendModel.Submit ? PropertyApproveState.DepartmentApprove : PropertyApproveState.Start;
                  
                     propertyLendRecord.ProcessDate = DateTime.Now;
-                    propertyLendRecord.SuggestGovernmentId = suggestGovernmentId;
+                    propertyLendRecord.SuggestGovernmentId = 0;// suggestGovernmentId; temp
                
                     //如果当前用户是主管部门，则跳过主管部门审核环节
                     if (propertyLendModel.Submit && _workContext.CurrentAccountUser.IsParentGovernmentorAuditor())
@@ -2330,19 +2346,20 @@ namespace CSCZJ.API.Controllers
         [Route("Rent")]
         public IHttpActionResult CreateRentRecord(PropertyRentModel propertyRentModel)
         {
-            if (propertyRentModel.Ids == "") return BadRequest("请选择需要处置的资产");
-            var RentIds = propertyRentModel.Ids.Split(';');
+            if (propertyRentModel.Ids == "") throw new Exception("请选择需要处置的资产");
+            var rentIds = propertyRentModel.Ids.Split(';');
+            rentIds= rentIds.Where(s => !string.IsNullOrEmpty(s)).ToArray();  //删除空要素
             var currentUser = _workContext.CurrentAccountUser;
-            foreach (var id in RentIds)
+            foreach (var id in rentIds)
             {
                 if (id != "")
                 {
                     var property = _propertyService.GetPropertyById(Convert.ToInt32(id));
                     if (property == null) continue;  //防止错误的PropertyId传入
                     if (property.Locked || property.Deleted || !property.Published)
-                        return BadRequest("无法对该资产进行操作或该资产已经不存在");
+                        throw new Exception("无法对该资产进行操作或该资产已经不存在");
 
-                    if (!PropertyBelongCurrentUser(property, true)) return BadRequest("没有操作权限");
+                    //if (!PropertyBelongCurrentUser(property, true)) throw new Exception("没有操作权限");  temp
 
                     PropertyRent rent = new PropertyRent();
                     rent.Name = propertyRentModel.Name;
@@ -2354,20 +2371,20 @@ namespace CSCZJ.API.Controllers
                     rent.RentTime = Convert.ToDateTime(propertyRentModel.RentTime);
                     rent.BackTime = Convert.ToDateTime(propertyRentModel.BackTime);
 
-                    if (rent.BackTime <= rent.RentTime) return BadRequest("出租时间不能晚于或等于归还时间");
+                    if (rent.BackTime <= rent.RentTime) throw new Exception("出租时间不能晚于或等于归还时间");
 
                     rent.Property = property;
                     rent.State = propertyRentModel.Submit ? PropertyApproveState.DepartmentApprove : PropertyApproveState.Start;
                     rent.ProcessDate = DateTime.Now;
-                    rent.SuggestGovernmentId = currentUser.Government.Id;
+                    rent.SuggestGovernmentId = 0;// currentUser.Government.Id; temp
 
                     //如果当前用户是主管部门，则跳过主管部门审核环节
-                    if (propertyRentModel.Submit && _workContext.CurrentAccountUser.IsParentGovernmentorAuditor())
-                    {
-                        rent.State = PropertyApproveState.AdminApprove;
-                        rent.DSuggestion = "同意";
-                        rent.DApproveDate = DateTime.Now;
-                    }
+                    //if (propertyRentModel.Submit && _workContext.CurrentAccountUser.IsParentGovernmentorAuditor())
+                    //{
+                    rent.State = PropertyApproveState.AdminApprove;
+                    rent.DSuggestion = "同意";
+                    rent.DApproveDate = DateTime.Now;
+                    //}
 
                     _propertyRentService.InsertPropertyRent(rent);
                     _accountUserActivityService.InsertActivity("AddNewpropertyLendRecord", "增加 名为 {0} 的资产出借申请", property.Name);
@@ -2387,7 +2404,6 @@ namespace CSCZJ.API.Controllers
                 }
 
             }
-
             return Ok();
         }
 
@@ -2395,7 +2411,7 @@ namespace CSCZJ.API.Controllers
         [Route("Allot")]
         public IHttpActionResult CreateAllotRecord(PropertyAllotModel propertyAllotModel)
         {
-            if (propertyAllotModel.Ids == "") return BadRequest("请选择需要处置的资产");
+            if (propertyAllotModel.Ids == "") throw new Exception("请选择需要处置的资产");
             var AllotIds = propertyAllotModel.Ids.Split(';');
             var currentUser = _workContext.CurrentAccountUser;
             var prePropertyOwner = currentUser.Government.Name;
@@ -2407,12 +2423,12 @@ namespace CSCZJ.API.Controllers
                  
                     if (property == null) continue;  //防止错误的PropertyId传入
                     if (property.Locked || property.Deleted || !property.Published)
-                        return BadRequest("无法对该资产进行操作或该资产已经不存在");
+                        throw new Exception("无法对该资产进行操作或该资产已经不存在");
 
-                    if (!PropertyBelongCurrentUser(property, true)) return BadRequest("没有操作权限");
+                    if (!PropertyBelongCurrentUser(property, true)) throw new Exception("没有操作权限");
 
                     var nowGovernmentOwner = _governmentService.GetGovernmentUnitByName(propertyAllotModel.NowPropertyOwner).Name;
-                    if (nowGovernmentOwner == null) return BadRequest("目标产权单位无效");
+                    if (nowGovernmentOwner == null) throw new Exception("目标产权单位无效");
 
                     PropertyAllot allot = new PropertyAllot();
                     allot.PrePropertyOwner = prePropertyOwner;
@@ -2445,7 +2461,6 @@ namespace CSCZJ.API.Controllers
                     SwitchPropertyLockState(true, property);
                 }
             }
-
             return Ok();
         }
 
@@ -2453,11 +2468,11 @@ namespace CSCZJ.API.Controllers
         [Route("Off")]
         public IHttpActionResult CreateOffRecord(PropertyOffModel propertyOffModel)
         {
-            if (propertyOffModel.Ids == "") return BadRequest("请选择需要处置的资产");
-            var OffIds = propertyOffModel.Ids.Split(';');
+            if (propertyOffModel.Ids == "") throw new Exception("请选择需要处置的资产");
+            var offIds = propertyOffModel.Ids.Split(';');
             var currentUser = _workContext.CurrentAccountUser;
-            var sid = currentUser.Government.Id;
-            foreach (var id in OffIds)
+            var sid = 0;// currentUser.Government.Id;
+            foreach (var id in offIds)
             {
                 if (id != "")
                 {
@@ -2465,9 +2480,9 @@ namespace CSCZJ.API.Controllers
 
                     if (property == null) continue;  //防止错误的PropertyId传入
                     if (property.Locked || property.Deleted || !property.Published)
-                        return BadRequest("无法对该资产进行操作或该资产已经不存在");
+                        throw new Exception("无法对该资产进行操作或该资产已经不存在");
 
-                    if (!PropertyBelongCurrentUser(property, true)) return BadRequest("没有操作权限");
+                    //if (!PropertyBelongCurrentUser(property, true)) throw new Exception("没有操作权限");  temp
 
                     PropertyOff off = new PropertyOff();
                     off.Reason = propertyOffModel.Reason;
@@ -2494,12 +2509,12 @@ namespace CSCZJ.API.Controllers
 
 
                     //如果当前用户是主管部门，则跳过主管部门审核环节
-                    if (propertyOffModel.Submit && _workContext.CurrentAccountUser.IsParentGovernmentorAuditor())
-                    {
+                    //if (propertyOffModel.Submit && _workContext.CurrentAccountUser.IsParentGovernmentorAuditor())
+                    //{
                         off.State = PropertyApproveState.AdminApprove;
                         off.DSuggestion = "同意";
                         off.DApproveDate = DateTime.Now;
-                    }
+                    //}
 
                     _propertyOffService.InsertPropertyOff(off);
                     _accountUserActivityService.InsertActivity("AddNewpropertyLendRecord", "增加 名为 {0} 的资产出借申请", property.Name);
@@ -2529,7 +2544,7 @@ namespace CSCZJ.API.Controllers
             var currentUser = _workContext.CurrentAccountUser;
             var lend = _propertyLendService.GetPropertyLendById(id);
             
-            if (!PropertyApproveCanEditDeleteAndSubmit(lend.State, lend.SuggestGovernmentId)) return BadRequest("该项目已无法编辑");
+            if (!PropertyApproveCanEditDeleteAndSubmit(lend.State, lend.SuggestGovernmentId)) throw new Exception("该项目已无法编辑");
 
             lend = propertyLendModel.ToEntity(lend);
 
@@ -2571,11 +2586,11 @@ namespace CSCZJ.API.Controllers
 
             var currentUser = _workContext.CurrentAccountUser;
             var rent = _propertyRentService.GetPropertyRentById(id);
-            if (!PropertyApproveCanEditDeleteAndSubmit(rent.State, rent.SuggestGovernmentId)) return BadRequest("该项目已无法编辑");
+            if (!PropertyApproveCanEditDeleteAndSubmit(rent.State, rent.SuggestGovernmentId)) throw new Exception("该项目已无法编辑");
 
               rent = propertyRentModel.ToEntity(rent);
 
-            if (rent.BackTime <= rent.RentTime) return BadRequest("出租时间不能晚于或等于归还时间");
+            if (rent.BackTime <= rent.RentTime) throw new Exception("出租时间不能晚于或等于归还时间");
 
             #region 附件处理
 
@@ -2616,7 +2631,7 @@ namespace CSCZJ.API.Controllers
         {
             var currentUser = _workContext.CurrentAccountUser;
             var allot = _propertyAllotService.GetPropertyAllotById(id);
-            if (!PropertyApproveCanEditDeleteAndSubmit(allot.State, allot.SuggestGovernmentId)) return BadRequest("该项目已无法编辑");
+            if (!PropertyApproveCanEditDeleteAndSubmit(allot.State, allot.SuggestGovernmentId)) throw new Exception("该项目已无法编辑");
             allot = propertyAllotModel.ToEntity(allot);
             allot.NowGovernmentId = _governmentService.GetGovernmentUnitByName(propertyAllotModel.NowPropertyOwner).Id;
             SavePropertyAllotPictures(allot, propertyAllotModel.AllotPictures);
@@ -2653,7 +2668,7 @@ namespace CSCZJ.API.Controllers
             var currentUser = _workContext.CurrentAccountUser;
             var off = _propertyOffService.GetPropertyOffById(id);
 
-            if (!PropertyApproveCanEditDeleteAndSubmit(off.State, off.SuggestGovernmentId)) return BadRequest("该项目已无法编辑");
+            if (!PropertyApproveCanEditDeleteAndSubmit(off.State, off.SuggestGovernmentId)) throw new Exception("该项目已无法编辑");
             off = propertyOffModel.ToEntity(off);
             switch (propertyOffModel.OffType)
             {
@@ -2705,11 +2720,11 @@ namespace CSCZJ.API.Controllers
             var government = currentUser.Government;
 
             var newCreate = _propertyNewCreateService.GetPropertyNewCreateById(id);
-            if (newCreate == null || newCreate.Deleted) return BadRequest("无法找到资源");
+            if (newCreate == null || newCreate.Deleted) throw new Exception("无法找到资源");
 
             var property = _propertyService.GetPropertyById(newCreate.Property_Id);
 
-            //if (!PropertyBelongCurrentUser(property, false)) return BadRequest("没有操作权限");
+            //if (!PropertyBelongCurrentUser(property, false)) throw new Exception("没有操作权限");
 
             var response = new PropertyNewCreateApproveModel
             {
@@ -2740,10 +2755,10 @@ namespace CSCZJ.API.Controllers
             var government = currentUser.Government;
 
             var edit = _propertyEditService.GetPropertyEditById(id);
-            if (edit == null || edit.Deleted) return BadRequest("无法找到资源");
+            if (edit == null || edit.Deleted) throw new Exception("无法找到资源");
 
             var property = _propertyService.GetPropertyById(edit.Property.Id);
-            //if (!PropertyBelongCurrentUser(property, false)) return BadRequest("没有操作权限");
+            //if (!PropertyBelongCurrentUser(property, false)) throw new Exception("没有操作权限");
 
             var copyProperty = _copyPropertyService.GetCopyPropertyById(edit.CopyProperty_Id);
             var govermentName = _governmentService.GetGovernmentUnitById(copyProperty.Government_Id).Name;
@@ -2881,9 +2896,9 @@ namespace CSCZJ.API.Controllers
             var government = currentUser.Government;
 
             var lend = _propertyLendService.GetPropertyLendById(id);
-            if (lend == null || lend.Deleted) return BadRequest("无法找到资源");
+            if (lend == null || lend.Deleted) throw new Exception("无法找到资源");
 
-            //if (!PropertyBelongCurrentUser(lend.Property, false)) return BadRequest("没有操作权限");
+            //if (!PropertyBelongCurrentUser(lend.Property, false)) throw new Exception("没有操作权限");
 
             var response = new PropertyLendApproveModel
             {
@@ -2908,9 +2923,9 @@ namespace CSCZJ.API.Controllers
             var government = currentUser.Government;
 
             var rent = _propertyRentService.GetPropertyRentById(id);
-            if (rent == null || rent.Deleted) return BadRequest("无法找到资源");
+            if (rent == null || rent.Deleted) throw new Exception("无法找到资源");
 
-            //if (!PropertyBelongCurrentUser(rent.Property, false)) return BadRequest("没有操作权限");
+            //if (!PropertyBelongCurrentUser(rent.Property, false)) throw new Exception("没有操作权限");
 
             var response = new PropertyRentApproveModel
             {
@@ -2921,6 +2936,9 @@ namespace CSCZJ.API.Controllers
                 LinkMan = rent.Property.Government.Person,
                 LinkTel = rent.Property.Government.Tel
             };
+
+            response.PropertyRent.Valid = DateTime.Now >= rent.RentTime && DateTime.Now < rent.BackTime;
+
             if (response.PropertyRent.PriceString.EndsWith(";")) response.PropertyRent.PriceString = response.PropertyRent.PriceString.TrimEnd(';');            
 
             PreparePropertyRentPicturesAndFiles(response.PropertyRent);
@@ -2936,9 +2954,9 @@ namespace CSCZJ.API.Controllers
             var government = currentUser.Government;
 
             var allot = _propertyAllotService.GetPropertyAllotById(id);
-            if (allot == null || allot.Deleted) return BadRequest("无法找到资源");
+            if (allot == null || allot.Deleted) throw new Exception("无法找到资源");
 
-            //if (!PropertyBelongCurrentUser(allot.Property, false)) return BadRequest("没有操作权限");
+            //if (!PropertyBelongCurrentUser(allot.Property, false)) throw new Exception("没有操作权限");
 
             var response = new PropertyAllotApproveModel
             {
@@ -2961,8 +2979,8 @@ namespace CSCZJ.API.Controllers
             var government = currentUser.Government;
 
             var off = _propertyOffService.GetPropertyOffById(id);
-            if (off == null || off.Deleted) return BadRequest("无法找到资源");
-            //if (!PropertyBelongCurrentUser(off.Property, false)) return BadRequest("没有操作权限");
+            if (off == null || off.Deleted) throw new Exception("无法找到资源");
+            //if (!PropertyBelongCurrentUser(off.Property, false)) throw new Exception("没有操作权限");
 
             var response = new PropertyOffApproveModel
             {
@@ -2987,7 +3005,7 @@ namespace CSCZJ.API.Controllers
         [Route("Approve/{id}")]
         public IHttpActionResult DeleteApprove(int id, string approveType)
         {
-            if (string.IsNullOrEmpty(approveType)) return BadRequest("找不到要处理的类型");
+            if (string.IsNullOrEmpty(approveType)) throw new Exception("找不到要处理的类型");
 
             switch (approveType)
             {
@@ -2997,7 +3015,7 @@ namespace CSCZJ.API.Controllers
                         var edit = _propertyEditService.GetPropertyEditById(id);
                         if (edit == null) return NotFound();
                         
-                        if (!PropertyApproveCanEditDeleteAndSubmit(edit.State, edit.SuggestGovernmentId)) return BadRequest("无法删除");
+                        if (!PropertyApproveCanEditDeleteAndSubmit(edit.State, edit.SuggestGovernmentId)) throw new Exception("无法删除");
 
                         _propertyEditService.DeletePropertyEdit(edit);
 
@@ -3023,7 +3041,7 @@ namespace CSCZJ.API.Controllers
                     {
                         var lend = _propertyLendService.GetPropertyLendById(id);
                         if (lend == null) return NotFound();
-                        if (!PropertyApproveCanEditDeleteAndSubmit(lend.State, lend.SuggestGovernmentId)) return BadRequest("无法删除");
+                        if (!PropertyApproveCanEditDeleteAndSubmit(lend.State, lend.SuggestGovernmentId)) throw new Exception("无法删除");
                         _propertyLendService.DeletePropertyLend(lend);
 
                         //活动日志
@@ -3041,7 +3059,7 @@ namespace CSCZJ.API.Controllers
                     {
                         var rent = _propertyRentService.GetPropertyRentById(id);
                         if (rent == null) return NotFound();
-                        if (!PropertyApproveCanEditDeleteAndSubmit(rent.State, rent.SuggestGovernmentId)) return BadRequest("无法删除");
+                        if (!PropertyApproveCanEditDeleteAndSubmit(rent.State, rent.SuggestGovernmentId)) throw new Exception("无法删除");
                         _propertyRentService.DeletePropertyRent(rent);
 
                         //活动日志
@@ -3057,7 +3075,7 @@ namespace CSCZJ.API.Controllers
                     {
                         var allot = _propertyAllotService.GetPropertyAllotById(id);
                         if (allot == null) return NotFound();
-                        if (!PropertyApproveCanEditDeleteAndSubmit(allot.State, allot.SuggestGovernmentId)) return BadRequest("无法删除");
+                        if (!PropertyApproveCanEditDeleteAndSubmit(allot.State, allot.SuggestGovernmentId)) throw new Exception("无法删除");
                         _propertyAllotService.DeletePropertyAllot(allot);
 
                         //活动日志
@@ -3075,7 +3093,7 @@ namespace CSCZJ.API.Controllers
                         var property = off.Property;
 
                         if (off == null) return NotFound();
-                        if (!PropertyApproveCanEditDeleteAndSubmit(off.State, off.SuggestGovernmentId)) return BadRequest("无法删除");
+                        if (!PropertyApproveCanEditDeleteAndSubmit(off.State, off.SuggestGovernmentId)) throw new Exception("无法删除");
                         _propertyOffService.DeletePropertyOff(off);
 
                         //活动日志
@@ -3110,7 +3128,7 @@ namespace CSCZJ.API.Controllers
                     #region 新增审批
                     {
                         var newCreate = _propertyNewCreateService.GetPropertyNewCreateById(id);
-                        if (newCreate == null || newCreate.Deleted) return BadRequest("找不到资源");
+                        if (newCreate == null || newCreate.Deleted) throw new Exception("找不到资源");
 
                         if (PropertyApproveCanEditDeleteAndSubmit(newCreate.State, newCreate.SuggestGovernmentId))
                         {
@@ -3138,7 +3156,7 @@ namespace CSCZJ.API.Controllers
                     #region 编辑审批
                     {
                         var edit = _propertyEditService.GetPropertyEditById(id);
-                        if (edit == null || edit.Deleted) return BadRequest("找不到资源");
+                        if (edit == null || edit.Deleted) throw new Exception("找不到资源");
 
                         if (PropertyApproveCanEditDeleteAndSubmit(edit.State, edit.SuggestGovernmentId))
                         {
@@ -3164,7 +3182,7 @@ namespace CSCZJ.API.Controllers
                     #region 出借审批
                     {
                         var lend = _propertyLendService.GetPropertyLendById(id);
-                        if (lend == null || lend.Deleted) return BadRequest("找不到资源");
+                        if (lend == null || lend.Deleted) throw new Exception("找不到资源");
 
                         if (PropertyApproveCanEditDeleteAndSubmit(lend.State, lend.SuggestGovernmentId))
                         {
@@ -3188,7 +3206,7 @@ namespace CSCZJ.API.Controllers
                     #region 出租审批
                     {
                         var rent = _propertyRentService.GetPropertyRentById(id);
-                        if (rent == null || rent.Deleted) return BadRequest("找不到资源");
+                        if (rent == null || rent.Deleted) throw new Exception("找不到资源");
 
                         if (PropertyApproveCanEditDeleteAndSubmit(rent.State, rent.SuggestGovernmentId))
                         {
@@ -3213,7 +3231,7 @@ namespace CSCZJ.API.Controllers
                     #region 划拨审批
                     {
                         var allot = _propertyAllotService.GetPropertyAllotById(id);
-                        if (allot == null || allot.Deleted) return BadRequest("找不到资源");
+                        if (allot == null || allot.Deleted) throw new Exception("找不到资源");
 
                         if (PropertyApproveCanEditDeleteAndSubmit(allot.State, allot.SuggestGovernmentId))
                         {
@@ -3237,7 +3255,7 @@ namespace CSCZJ.API.Controllers
                     #region 核销审批
                     {
                         var off = _propertyOffService.GetPropertyOffById(id);
-                        if (off == null || off.Deleted) return BadRequest("找不到资源");
+                        if (off == null || off.Deleted) throw new Exception("找不到资源");
 
                         if (PropertyApproveCanEditDeleteAndSubmit(off.State, off.SuggestGovernmentId))
                         {
@@ -3473,9 +3491,9 @@ namespace CSCZJ.API.Controllers
                     #region 新增审批
                     {
                         var newCreate = _propertyNewCreateService.GetPropertyNewCreateById(id);
-                        if (newCreate == null || newCreate.Deleted) return BadRequest("找不到资源");
+                        if (newCreate == null || newCreate.Deleted) throw new Exception("找不到资源");
 
-                        if (!PropertyCanApprove(newCreate.State,newCreate.SuggestGovernmentId)) return BadRequest("没有审批权限");
+                        if (!PropertyCanApprove(newCreate.State,newCreate.SuggestGovernmentId)) throw new Exception("没有审批权限");
 
                         if (newCreate.State == PropertyApproveState.DepartmentApprove)
                         {
@@ -3525,8 +3543,8 @@ namespace CSCZJ.API.Controllers
                     #region 编辑审批
                     {
                         var edit = _propertyEditService.GetPropertyEditById(id);
-                        if (edit == null || edit.Deleted) return BadRequest("找不到资源");
-                        if (!PropertyCanApprove(edit.State, edit.SuggestGovernmentId)) return BadRequest("没有审批权限");
+                        if (edit == null || edit.Deleted) throw new Exception("找不到资源");
+                        if (!PropertyCanApprove(edit.State, edit.SuggestGovernmentId)) throw new Exception("没有审批权限");
                         if (edit.State == PropertyApproveState.DepartmentApprove)
                         {
                             edit.DApproveDate = DateTime.Now;
@@ -3615,7 +3633,7 @@ namespace CSCZJ.API.Controllers
                             //   property.NextStepUsage = copyproperty.NextStepUsage;
                                 if (!string.IsNullOrEmpty(copyproperty.Location))
                                     property.Location = DbGeography.FromText(copyproperty.Location);
-                                else return BadRequest("空间位置未赋值");
+                                else throw new Exception("空间位置未赋值");
                                 if (!string.IsNullOrEmpty(copyproperty.Extent))
                                     property.Extent = DbGeography.FromText(copyproperty.Extent);
                                 property.Description = copyproperty.Description;
@@ -3724,8 +3742,8 @@ namespace CSCZJ.API.Controllers
                     #region 出借审批
                     {
                         var lend = _propertyLendService.GetPropertyLendById(id);
-                        if (lend == null || lend.Deleted) return BadRequest("找不到资源");
-                        if (!PropertyCanApprove(lend.State, lend.SuggestGovernmentId)) return BadRequest("没有审批权限");
+                        if (lend == null || lend.Deleted) throw new Exception("找不到资源");
+                        if (!PropertyCanApprove(lend.State, lend.SuggestGovernmentId)) throw new Exception("没有审批权限");
                         if (lend.State == PropertyApproveState.DepartmentApprove)
                         {
                             lend.DApproveDate = DateTime.Now;
@@ -3770,8 +3788,8 @@ namespace CSCZJ.API.Controllers
                     #region 出租审批
                     {
                         var rent = _propertyRentService.GetPropertyRentById(id);
-                        if (rent == null || rent.Deleted) return BadRequest("找不到资源");
-                        if (!PropertyCanApprove(rent.State, rent.SuggestGovernmentId)) return BadRequest("没有审批权限");
+                        if (rent == null || rent.Deleted) throw new Exception("找不到资源");
+                        if (!PropertyCanApprove(rent.State, rent.SuggestGovernmentId)) throw new Exception("没有审批权限");
                         if (rent.State == PropertyApproveState.DepartmentApprove)
                         {
                             rent.DApproveDate = DateTime.Now;
@@ -3817,8 +3835,8 @@ namespace CSCZJ.API.Controllers
                     #region 划拨审批
                     {
                         var allot = _propertyAllotService.GetPropertyAllotById(id);
-                        if (allot == null || allot.Deleted) return BadRequest("找不到资源");
-                        if (!PropertyCanApprove(allot.State, allot.SuggestGovernmentId)) return BadRequest("没有审批权限");
+                        if (allot == null || allot.Deleted) throw new Exception("找不到资源");
+                        if (!PropertyCanApprove(allot.State, allot.SuggestGovernmentId)) throw new Exception("没有审批权限");
                         if (allot.State == PropertyApproveState.DepartmentApprove)
                         {
                             allot.DApproveDate = DateTime.Now;
@@ -3845,7 +3863,7 @@ namespace CSCZJ.API.Controllers
                             {
                                 allot.State = PropertyApproveState.Finish;
                                 var newGovernment = _governmentService.GetGovernmentUnitById(allot.NowGovernmentId);
-                                if (newGovernment == null) return BadRequest("找不到新的权属单位");
+                                if (newGovernment == null) throw new Exception("找不到新的权属单位");
                                 allot.Property.Government = newGovernment;
 
                                 SwitchPropertyLockState(false, allot.Property);
@@ -3869,8 +3887,8 @@ namespace CSCZJ.API.Controllers
                     #region 划拨审批
                     {
                         var off = _propertyOffService.GetPropertyOffById(id);
-                        if (off == null || off.Deleted) return BadRequest("找不到资源");
-                        if (!PropertyCanApprove(off.State, off.SuggestGovernmentId)) return BadRequest("没有审批权限");
+                        if (off == null || off.Deleted) throw new Exception("找不到资源");
+                        if (!PropertyCanApprove(off.State, off.SuggestGovernmentId)) throw new Exception("没有审批权限");
                         if (off.State == PropertyApproveState.Start)
                         {
                             off.State = PropertyApproveState.DepartmentApprove;
@@ -3954,9 +3972,9 @@ namespace CSCZJ.API.Controllers
                                 #region 新增审批
                                 {
                                     var newCreate = _propertyNewCreateService.GetPropertyNewCreateById(id);
-                                    if (newCreate == null || newCreate.Deleted) return BadRequest("找不到资源");
+                                    if (newCreate == null || newCreate.Deleted) throw new Exception("找不到资源");
 
-                                    if (!PropertyCanApprove(newCreate.State, newCreate.SuggestGovernmentId)) return BadRequest("没有审批权限");
+                                    if (!PropertyCanApprove(newCreate.State, newCreate.SuggestGovernmentId)) throw new Exception("没有审批权限");
 
                                     if (newCreate.State == PropertyApproveState.DepartmentApprove)
                                     {
@@ -4006,8 +4024,8 @@ namespace CSCZJ.API.Controllers
                                 #region 编辑审批
                                 {
                                     var edit = _propertyEditService.GetPropertyEditById(id);
-                                    if (edit == null || edit.Deleted) return BadRequest("找不到资源");
-                                    if (!PropertyCanApprove(edit.State, edit.SuggestGovernmentId)) return BadRequest("没有审批权限");
+                                    if (edit == null || edit.Deleted) throw new Exception("找不到资源");
+                                    if (!PropertyCanApprove(edit.State, edit.SuggestGovernmentId)) throw new Exception("没有审批权限");
                                     if (edit.State == PropertyApproveState.DepartmentApprove)
                                     {
                                         edit.DApproveDate = DateTime.Now;
@@ -4096,7 +4114,7 @@ namespace CSCZJ.API.Controllers
                                        //     property.NextStepUsage = copyproperty.NextStepUsage;
                                             if (!string.IsNullOrEmpty(copyproperty.Location))
                                                 property.Location = DbGeography.FromText(copyproperty.Location);
-                                            else return BadRequest("空间位置未赋值");
+                                            else throw new Exception("空间位置未赋值");
                                             if (!string.IsNullOrEmpty(copyproperty.Extent))
                                                 property.Extent = DbGeography.FromText(copyproperty.Extent);
                                             property.Description = copyproperty.Description;
@@ -4205,8 +4223,8 @@ namespace CSCZJ.API.Controllers
                                 #region 出借审批
                                 {
                                     var lend = _propertyLendService.GetPropertyLendById(id);
-                                    if (lend == null || lend.Deleted) return BadRequest("找不到资源");
-                                    if (!PropertyCanApprove(lend.State, lend.SuggestGovernmentId)) return BadRequest("没有审批权限");
+                                    if (lend == null || lend.Deleted) throw new Exception("找不到资源");
+                                    if (!PropertyCanApprove(lend.State, lend.SuggestGovernmentId)) throw new Exception("没有审批权限");
                                     if (lend.State == PropertyApproveState.DepartmentApprove)
                                     {
                                         lend.DApproveDate = DateTime.Now;
@@ -4251,8 +4269,8 @@ namespace CSCZJ.API.Controllers
                                 #region 出租审批
                                 {
                                     var rent = _propertyRentService.GetPropertyRentById(id);
-                                    if (rent == null || rent.Deleted) return BadRequest("找不到资源");
-                                    if (!PropertyCanApprove(rent.State, rent.SuggestGovernmentId)) return BadRequest("没有审批权限");
+                                    if (rent == null || rent.Deleted) throw new Exception("找不到资源");
+                                    if (!PropertyCanApprove(rent.State, rent.SuggestGovernmentId)) throw new Exception("没有审批权限");
                                     if (rent.State == PropertyApproveState.DepartmentApprove)
                                     {
                                         rent.DApproveDate = DateTime.Now;
@@ -4298,8 +4316,8 @@ namespace CSCZJ.API.Controllers
                                 #region 划拨审批
                                 {
                                     var allot = _propertyAllotService.GetPropertyAllotById(id);
-                                    if (allot == null || allot.Deleted) return BadRequest("找不到资源");
-                                    if (!PropertyCanApprove(allot.State, allot.SuggestGovernmentId)) return BadRequest("没有审批权限");
+                                    if (allot == null || allot.Deleted) throw new Exception("找不到资源");
+                                    if (!PropertyCanApprove(allot.State, allot.SuggestGovernmentId)) throw new Exception("没有审批权限");
                                     if (allot.State == PropertyApproveState.DepartmentApprove)
                                     {
                                         allot.DApproveDate = DateTime.Now;
@@ -4326,7 +4344,7 @@ namespace CSCZJ.API.Controllers
                                         {
                                             allot.State = PropertyApproveState.Finish;
                                             var newGovernment = _governmentService.GetGovernmentUnitById(allot.NowGovernmentId);
-                                            if (newGovernment == null) return BadRequest("找不到新的权属单位");
+                                            if (newGovernment == null) throw new Exception("找不到新的权属单位");
                                             allot.Property.Government = newGovernment;
 
                                             SwitchPropertyLockState(false, allot.Property);
@@ -4350,8 +4368,8 @@ namespace CSCZJ.API.Controllers
                                 #region 划拨审批
                                 {
                                     var off = _propertyOffService.GetPropertyOffById(id);
-                                    if (off == null || off.Deleted) return BadRequest("找不到资源");
-                                    if (!PropertyCanApprove(off.State, off.SuggestGovernmentId)) return BadRequest("没有审批权限");
+                                    if (off == null || off.Deleted) throw new Exception("找不到资源");
+                                    if (!PropertyCanApprove(off.State, off.SuggestGovernmentId)) throw new Exception("没有审批权限");
                                     if (off.State == PropertyApproveState.Start)
                                     {
                                         off.State = PropertyApproveState.DepartmentApprove;
@@ -4685,7 +4703,7 @@ namespace CSCZJ.API.Controllers
             bool sucess = false;
             var currentUser = _workContext.CurrentAccountUser;
             if (currentUser.IsAdmin() || currentUser.IsGovAuditor() || currentUser.IsStateOwnerAuditor() ||
-                currentUser.IsDataReviewer()) return BadRequest("当前用户没有权限导入数据");
+                currentUser.IsDataReviewer()) throw new Exception("当前用户没有权限导入数据");
 
             ImportResponse reponse = new ImportResponse();
             var httpRequest = HttpContext.Current.Request;
@@ -4727,7 +4745,7 @@ namespace CSCZJ.API.Controllers
                     using (FileStream excelStream = new FileStream(excelPath, FileMode.Open))
                     {
 
-                        if (excelStream == null) return BadRequest("没有找到名称为资产导入表的excel文件");
+                        if (excelStream == null) throw new Exception("没有找到名称为资产导入表的excel文件");
                      
                         reponse = _importManager.ImportProductsFromXlsx(excelStream, picPath);
                     }

@@ -8,6 +8,8 @@ namespace CSCZJ.API.Models.Properties
 
         public string Address { get; set; }
 
+        public bool Locked { get; set; }
+
      //   public string GovernmentName { get; set; }
     }
 }
