@@ -51,6 +51,8 @@
                         </td>                        
                     </ng-container >                    
                     <td  class="text-center"  nzRight="0px">
+                            <a [routerLink]="['./edit', data.id]">
+                                <i class="anticon anticon-edit"></i> 变更</a>                        
                         <a [routerLink]="'./'+data.id">查询详情</a>
                          <!-- | <a>删除</a> -->
                     </td>

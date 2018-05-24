@@ -228,7 +228,7 @@ export class MapHomeComponent implements OnInit {
                 that.properties.forEach(element => {
                   if(a.latlng.lat==element.x&&a.latlng.lng==element.y){
                      
-                      that.propertyService.getPropertyById(element.id).subscribe(property=>{
+                      that.propertyService.getPropertyById(element.id,false).subscribe(property=>{
                         that.property=property;
                         if(that.extent!=undefined) that.map.removeLayer(that.extent);
                        
