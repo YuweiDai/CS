@@ -16,6 +16,7 @@ export class LoginComponent implements OnInit{
   error = '';
   type = 0;
   loading = false;
+  
 
   constructor(
     fb: FormBuilder,
@@ -89,38 +90,38 @@ export class LoginComponent implements OnInit{
     }
     else
     {
-      this.router.navigate(['/admin/properties/create']);   
+      this.router.navigate(['/admin/dashboard']);   
       return;   
     }
 
 
-    this.error = '';
-    if (this.type === 0) {
-      this.userName.markAsDirty();
-      this.userName.updateValueAndValidity();
-      this.password.markAsDirty();
-      this.password.updateValueAndValidity();
-      if (this.userName.invalid || this.password.invalid) return;
-    } else {
-      this.mobile.markAsDirty();
-      this.mobile.updateValueAndValidity();
-      this.captcha.markAsDirty();
-      this.captcha.updateValueAndValidity();
-      if (this.mobile.invalid || this.captcha.invalid) return;
-    }
-    // mock http
-    this.loading = true;
-    setTimeout(() => {
-      this.loading = false;
-      if (this.type === 0) {
-        if (
-          this.userName.value !== 'admin' ||
-          this.password.value !== '888888'
-        ) {
-          this.error = `账户或密码错误`;
-          return;
-        }
-      }
+    // this.error = '';
+    // if (this.type === 0) {
+    //   this.userName.markAsDirty();
+    //   this.userName.updateValueAndValidity();
+    //   this.password.markAsDirty();
+    //   this.password.updateValueAndValidity();
+    //   if (this.userName.invalid || this.password.invalid) return;
+    // } else {
+    //   this.mobile.markAsDirty();
+    //   this.mobile.updateValueAndValidity();
+    //   this.captcha.markAsDirty();
+    //   this.captcha.updateValueAndValidity();
+    //   if (this.mobile.invalid || this.captcha.invalid) return;
+    // }
+    // // mock http
+    // this.loading = true;
+    // setTimeout(() => {
+    //   this.loading = false;
+    //   if (this.type === 0) {
+    //     if (
+    //       this.userName.value !== 'admin' ||
+    //       this.password.value !== '888888'
+    //     ) {
+    //       this.error = `账户或密码错误`;
+    //       return;
+    //     }
+    //   }
 
       // 清空路由复用信息
       //this.reuseTabService.clear();
@@ -135,8 +136,8 @@ export class LoginComponent implements OnInit{
       // 重新获取 StartupService 内容，若其包括 User 有关的信息的话
       // this.startupSrv.load().then(() => this.router.navigate(['/']));
       // 否则直接跳转
-      this.router.navigate(['/']);
-    }, 1000);
+     // this.router.navigate(['/']);
+    // }, 1000);
   }
 
   // #region: social
