@@ -12,12 +12,12 @@ import { PropertyCreateComponent } from './properties/property-create/property-c
 import { PropertyRentComponent } from './properties/property-rent/property-rent.component';
 import { PropertyOffComponent } from './properties/property-off/property-off.component';
 
-import { AuthGuard } from "../../services/passportService";
+import { AuthGuard } from "../../services/auth-guard.service";
 
 const adminRoutes: Routes = [
     {
         path: 'admin',
-        // canActivate: [AuthGuard],
+        canActivate: [AuthGuard],
         component: AdminCenterComponent,
         children: [
             { path: 'dashboard', component: OverviewComponent },

@@ -1,8 +1,10 @@
 import { Injectable } from '@angular/core';
 
-import { HttpClient, HttpHeaders,HttpParams  } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { catchError, map, tap } from 'rxjs/operators';
+
+import { HttpInterceptorService } from "../extensions/HttpInterceptor";
 
 import { ConfigService } from "./configService";
 import { LogService } from "./logService";
@@ -11,147 +13,148 @@ import { TableParams } from "../viewModels/common/TableOption";
 
 import { ListResponse } from '../viewModels/Response/ListResponse'
 import { MapListResponse } from '../viewModels/Response/MapListResponse';
-import { Property ,PropertyCreateModel, SimplePropertyModel, PropertyRentModel,PropertyOffModel } from '../viewModels/Properties/property';
-import {property_map} from '../viewModels/Properties/property_map';
-import {PropertyNameList} from '../viewModels/Properties/propertyName';
-import{HighSearchProperty} from '../viewModels/Properties/highSearchModel';
+import { Property, PropertyCreateModel, SimplePropertyModel, PropertyRentModel, PropertyOffModel } from '../viewModels/Properties/property';
+import { property_map } from '../viewModels/Properties/property_map';
+import { PropertyNameList } from '../viewModels/Properties/propertyName';
+import { HighSearchProperty } from '../viewModels/Properties/highSearchModel';
 
 
 const httpOptions = {
-    headers: new HttpHeaders({ 'Content-Type': 'application/json' })
+  headers: new HttpHeaders({ 'Content-Type': 'application/json' })
 };
 
 @Injectable()
-export class PropertyService{
-    private apiUrl="";
-    
-
-    constructor( private http: HttpClient,
-        private logService:LogService,
-        private configService:ConfigService){ 
-          this.apiUrl+=configService.getApiUrl()+"properties";
-        }
-
-    nameValidate(name:string):Observable<boolean>{
-      const url = `${this.apiUrl}/Unique/${name}`;
-      return this.http.get<boolean>(url).pipe(
-        tap(_ => this.log(`fetched property id=${name}`)),
-        catchError(this.handleError<boolean>(`getProperty id=${name}`))
-      );    
-    }
-
-    createProperty(propertyCreateModel:PropertyCreateModel):Observable<Property>{
-      const url = `${this.apiUrl}/create`;
-      return this.http.post<Property>(url,propertyCreateModel,httpOptions).pipe(
-        tap((property: Property) => this.log(`added property w/ id=${property.id}`)),
-        catchError(this.handleError<Property>(`addProperty `))
-      );     
-    }
-
-    createPropertyRentRecord(propertyRentModel:PropertyRentModel):Observable<PropertyRentModel>{
-      const url = `${this.apiUrl}/Rent`;
-      return this.http.post<PropertyRentModel>(url,propertyRentModel,httpOptions).pipe(
-        tap((property: PropertyRentModel) => this.log(`added property Rent w/ id=${property.id}`)),
-        catchError(this.handleError<PropertyRentModel>(`addProperty Rent`))
-      );     
-    }    
-
-    createPropertyOffRecord(propertyOffModel:PropertyOffModel):Observable<PropertyOffModel>{
-      const url = `${this.apiUrl}/Off`;
-      return this.http.post<PropertyOffModel>(url,propertyOffModel,httpOptions).pipe(
-        tap((property: PropertyOffModel) => this.log(`added property off w/ id=${property.id}`)),
-        catchError(this.handleError<PropertyOffModel>(`addProperty off`))
-      );     
-    }        
-
-    //获取单个资产
-    getUpdatedPropertyById(id:number):Observable<PropertyCreateModel>{
-      const url = `${this.apiUrl}/Update/${id}`;
-      return this.http.get<PropertyCreateModel>(url).pipe(
-        tap(_ => this.log(`get Update property id=${id}`)),
-        catchError(this.handleError<PropertyCreateModel>(`getUpdateProperty id=${id}`))
-      );    
-    }
-
-    //资产变更
-    updatedProperty(propertyCreateModel:PropertyCreateModel):Observable<Property>{
-      const url = `${this.apiUrl}/${propertyCreateModel.id}`;
-      return this.http.put<Property>(url,propertyCreateModel,httpOptions).pipe(
-        tap((property: Property) => this.log(`updated property w/ id=${property.id}`)),
-        catchError(this.handleError<Property>(`update property `))
-      );      
-    }    
-
-    //获取单个资产
-    getPropertyById(id:number,simple:boolean):Observable<Property>{
-      var url = `${this.apiUrl}/${id}`;
-
-      if(simple) url+='?simple=true';
-
-      return this.http.get<Property>(url).pipe(
-        tap(_ => this.log(`get property id=${id}`)),
-        catchError(this.handleError<Property>(`getProperty id=${id}`))
-      );    
-    }
-
-    //获取可以处置的资产
-    getProcessPropertyByName(name:string):Observable<SimplePropertyModel[]>{
-      const url = `${this.apiUrl}/PropertyProcess/${name}`;
-      return this.http.get<SimplePropertyModel[]>(url).pipe(
-        tap(_ => this.log(`fetched process properties`)),
-        catchError(this.handleError<SimplePropertyModel[]>(`fetched process properties`))
-      );    
-    }
+export class PropertyService {
+  private apiUrl = "";
 
 
-   //通过名称地址搜索资产
-   getPropertiesBySearch(search:string):Observable<PropertyNameList[]>{
-  
-      return this.http.get<PropertyNameList[]>(this.apiUrl+"/search?search="+search)
+  constructor(private http: HttpInterceptorService,
+    private logService: LogService,
+    private configService: ConfigService) {
+    this.apiUrl += configService.getApiUrl() + "properties";
+  }
+
+  nameValidate(name: string): Observable<boolean> {
+    const url = `${this.apiUrl}/Unique/${name}`;
+
+    return this.http.get(url).pipe(
+      tap(_ => this.log(`fetched property id=${name}`)),
+      catchError(this.handleError<boolean>(`getProperty id=${name}`))
+    );
+  }
+
+  createProperty(propertyCreateModel: PropertyCreateModel): Observable<Property> {
+    const url = `${this.apiUrl}/create`;
+    return this.http.post<Property>(url, propertyCreateModel, httpOptions).pipe(
+      tap((property: Property) => this.log(`added property w/ id=${property.id}`)),
+      catchError(this.handleError<Property>(`addProperty `))
+    );
+  }
+
+  createPropertyRentRecord(propertyRentModel: PropertyRentModel): Observable<PropertyRentModel> {
+    const url = `${this.apiUrl}/Rent`;
+    return this.http.post<PropertyRentModel>(url, propertyRentModel, httpOptions).pipe(
+      tap((property: PropertyRentModel) => this.log(`added property Rent w/ id=${property.id}`)),
+      catchError(this.handleError<PropertyRentModel>(`addProperty Rent`))
+    );
+  }
+
+  createPropertyOffRecord(propertyOffModel: PropertyOffModel): Observable<PropertyOffModel> {
+    const url = `${this.apiUrl}/Off`;
+    return this.http.post<PropertyOffModel>(url, propertyOffModel, httpOptions).pipe(
+      tap((property: PropertyOffModel) => this.log(`added property off w/ id=${property.id}`)),
+      catchError(this.handleError<PropertyOffModel>(`addProperty off`))
+    );
+  }
+
+  //获取单个资产
+  getUpdatedPropertyById(id: number): Observable<PropertyCreateModel> {
+    const url = `${this.apiUrl}/Update/${id}`;
+    return this.http.get<PropertyCreateModel>(url).pipe(
+      tap(_ => this.log(`get Update property id=${id}`)),
+      catchError(this.handleError<PropertyCreateModel>(`getUpdateProperty id=${id}`))
+    );
+  }
+
+  //资产变更
+  updatedProperty(propertyCreateModel: PropertyCreateModel): Observable<Property> {
+    const url = `${this.apiUrl}/${propertyCreateModel.id}`;
+    return this.http.put<Property>(url, propertyCreateModel, httpOptions).pipe(
+      tap((property: Property) => this.log(`updated property w/ id=${property.id}`)),
+      catchError(this.handleError<Property>(`update property `))
+    );
+  }
+
+  //获取单个资产
+  getPropertyById(id: number, simple: boolean): Observable<Property> {
+    var url = `${this.apiUrl}/${id}`;
+
+    if (simple) url += '?simple=true';
+
+    return this.http.get<Property>(url).pipe(
+      tap(_ => this.log(`get property id=${id}`)),
+      catchError(this.handleError<Property>(`getProperty id=${id}`))
+    );
+  }
+
+  //获取可以处置的资产
+  getProcessPropertyByName(name: string): Observable<SimplePropertyModel[]> {
+    const url = `${this.apiUrl}/PropertyProcess/${name}`;
+    return this.http.get<SimplePropertyModel[]>(url).pipe(
+      tap(_ => this.log(`fetched process properties`)),
+      catchError(this.handleError<SimplePropertyModel[]>(`fetched process properties`))
+    );
+  }
+
+
+  //通过名称地址搜索资产
+  getPropertiesBySearch(search: string): Observable<PropertyNameList[]> {
+
+    return this.http.get<PropertyNameList[]>(this.apiUrl + "/search?search=" + search)
       .pipe(
-      tap(response => { }),
-      catchError(this.handleError('getPropertiesBySearch', []))
-      );         
-   }
+        tap(response => { }),
+        catchError(this.handleError('getPropertiesBySearch', []))
+      );
+  }
 
 
 
-       
-    //获取资产列表
-    getAllProperties(params:TableParams):Observable<ListResponse>{
-      let url=this.apiUrl;
 
-      let requestParams = new URLSearchParams();
-      if(!(params.query==""|| params.query==null||params.query==undefined)) requestParams.append('query', params.query)
-      requestParams.append('pageIndex', params.pageIndex.toString())
-      requestParams.append('pageSize', params.pageSize.toString())
-      requestParams.append('showHidden', "true")
-      if(!(params.sort==""|| params.sort==null||params.sort==undefined)) requestParams.append('sort', params.sort)
-      requestParams.append('time', new Date().getTime().toString());
+  //获取资产列表
+  getAllProperties(params: TableParams): Observable<ListResponse> {
+    let url = this.apiUrl;
 
-        return this.http.get<ListResponse>(url+"?"+requestParams.toString())      
-        .pipe(
-            tap(response =>{}),
-            catchError(this.handleError('getAllProperties', {}))
-          );
-    }
+    let requestParams = new URLSearchParams();
+    if (!(params.query == "" || params.query == null || params.query == undefined)) requestParams.append('query', params.query)
+    requestParams.append('pageIndex', params.pageIndex.toString())
+    requestParams.append('pageSize', params.pageSize.toString())
+    requestParams.append('showHidden', "true")
+    if (!(params.sort == "" || params.sort == null || params.sort == undefined)) requestParams.append('sort', params.sort)
+    requestParams.append('time', new Date().getTime().toString());
+
+    return this.http.get<ListResponse>(url + "?" + requestParams.toString())
+      .pipe(
+        tap(response => { }),
+        catchError(this.handleError('getAllProperties', {}))
+      );
+  }
 
 
-    getAllPropertiesInMap():Observable<property_map[]> {
-      return this.http.get<property_map[]>(this.apiUrl+"/geo/bigdata")
-          .pipe(
-          tap(response => { }),
-          catchError(this.handleError('getAllPropertiesInMap', []))
-          );
+  getAllPropertiesInMap(): Observable<property_map[]> {
+    return this.http.get<property_map[]>(this.apiUrl + "/geo/bigdata")
+      .pipe(
+        tap(response => { }),
+        catchError(this.handleError('getAllPropertiesInMap', []))
+      );
   }
 
   //获取高级搜索资产
-  getHighSearchProperties(highSearch:HighSearchProperty):Observable<property_map[]>{
-    return this.http.post<property_map[]>(this.apiUrl+"/highSearch",highSearch)
-    .pipe(
-    tap(response => { }),
-    catchError(this.handleError('gethighSearchPropertiesInMap', []))
-    );
+  getHighSearchProperties(highSearch: HighSearchProperty): Observable<property_map[]> {
+    return this.http.post<property_map[]>(this.apiUrl + "/highSearch", highSearch)
+      .pipe(
+        tap(response => { }),
+        catchError(this.handleError('gethighSearchPropertiesInMap', []))
+      );
 
   }
 
@@ -170,7 +173,7 @@ export class PropertyService{
    * @param operation - name of the operation that failed
    * @param result - optional value to return as the observable result
    */
-  private handleError<T> (operation = 'operation', result?: T) {
+  private handleError<T>(operation = 'operation', result?: T) {
     return (error: any): Observable<T> => {
 
       // TODO: send the error to remote logging infrastructure
@@ -182,10 +185,10 @@ export class PropertyService{
       // Let the app keep running by returning an empty result.
       return Observable.of(result as T);
     };
-  }  
+  }
 
   /** Log a PropertyService message with the MessageService */
   private log(message: string) {
     this.logService.add('PropertyService: ' + message);
-  }  
+  }
 }

@@ -307,6 +307,8 @@ namespace CSCZJ.API.Controllers
         [Route("SetRoles")]
         public IHttpActionResult SetRoles()
         {
+
+            return BadRequest("角色配置 cloesd");
             #region 用户角色创建
 
             var crAdministrators = new AccountUserRole();
@@ -372,6 +374,22 @@ namespace CSCZJ.API.Controllers
             };
             user.AccountUserRoles.Add(crAdministrators);
             user.AccountUserRoles.Add(crRegistered);
+            _accountUserService.InsertAccountUser(user);
+
+           user = new AccountUser()
+            {
+                UserName = "lisi",
+                AccountUserGuid = Guid.NewGuid(),
+                Active = true,
+                CreatedOn = DateTime.Now,
+                IsSystemAccount = false,
+                Password = "123456",
+                PasswordFormat = PasswordFormat.Clear,
+                LastActivityDate = DateTime.Now,
+                Deleted = false,
+                UpdatedOn = DateTime.Now,
+                Government = cz
+            };
             _accountUserService.InsertAccountUser(user);
 
             #endregion
