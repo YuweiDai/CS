@@ -6,6 +6,8 @@ import { HttpModule } from '@angular/http'
 import { AppRoutingModule } from './/app-routing.module'
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations'
 
+import { Ng2Webstorage } from 'ngx-webstorage';
+
 import { NgZorroAntdModule } from 'ng-zorro-antd';
 import { AdminModule } from "./component/admin/admin.module";
 import { PassportModule } from "./component/passport/passport.module";
@@ -26,7 +28,7 @@ import { AuthInterceptorService, AuthService, TokensManagerService } from "./ser
   imports: [
     FormsModule,
     BrowserModule,
-    BrowserAnimationsModule,
+    BrowserAnimationsModule, Ng2Webstorage,
     RouterModule,
     NgZorroAntdModule.forRoot(),
     AdminModule,
