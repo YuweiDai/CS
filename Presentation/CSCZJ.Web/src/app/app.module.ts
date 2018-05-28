@@ -6,66 +6,40 @@ import { HttpModule } from '@angular/http'
 import { AppRoutingModule } from './/app-routing.module'
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations'
 
+import { Ng2Webstorage } from 'ngx-webstorage';
+
 import { NgZorroAntdModule } from 'ng-zorro-antd';
-import { NgxEchartsModule } from 'ngx-echarts';
+import { AdminModule } from "./component/admin/admin.module";
+import { PassportModule } from "./component/passport/passport.module";
+
 
 import { AppComponent } from './app.component';
-import { HeaderComponent } from './layout/header/header.component';
-import { FooterComponent } from './layout/footer/footer.component';
-import { OverviewComponent } from './component/statistics/overview/overview.component';
-import { PropertiesModule } from './component/properties/properties.module';
-import { MapHomeComponent } from './component/map/map-home/map-home.component';
-import { AccountListComponent } from './component/systemmanager/account-list/account-list.component';
 
-
-import { PropertyService } from "./services/propertyService";
-import { GovernmentService } from "./services/governmentService";
-import { MapService } from "./services/map/mapService";
 import { LogService } from "./services/logService";
 import { ConfigService } from "./services/configService";
 import { LayoutService } from "./services/layoutService";
-
-import { PerfectScrollbarModule ,PERFECT_SCROLLBAR_CONFIG,PerfectScrollbarConfigInterface} from 'ngx-perfect-scrollbar';
-
-const DEFAULT_PERFECT_SCROLLBAR_CONFIG: PerfectScrollbarConfigInterface = {
-  suppressScrollX: true
-};
+import { AuthInterceptorService, AuthService, TokensManagerService } from "./services/passportService";
 
 
 @NgModule({
   declarations: [
     AppComponent,
-    HeaderComponent,
-    FooterComponent,
-    OverviewComponent,
-    MapHomeComponent,
-    AccountListComponent,
-    
   ],
   imports: [
     FormsModule,
     BrowserModule,
-    BrowserAnimationsModule,
-    RouterModule,    
-    
+    BrowserAnimationsModule, Ng2Webstorage,
+    RouterModule,
     NgZorroAntdModule.forRoot(),
-    NgxEchartsModule,
-
-    PerfectScrollbarModule,
-    PropertiesModule,    
+    AdminModule,
+    PassportModule,
     AppRoutingModule,
-    
   ],
   providers: [
-    {
-      provide: PERFECT_SCROLLBAR_CONFIG,
-      useValue: DEFAULT_PERFECT_SCROLLBAR_CONFIG
-    },
-    PropertyService,GovernmentService,
-    MapService,
     LogService,
     ConfigService,
-    LayoutService
+    LayoutService,
+    AuthInterceptorService, AuthService, TokensManagerService
   ],
   bootstrap: [AppComponent]
 })

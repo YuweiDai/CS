@@ -11,4 +11,8 @@ export class ConfigService{
     getApiUrl():string{
         return this.apiUrl;
     }
+
+    getClinetId():string{
+        return "";
+    }
 }

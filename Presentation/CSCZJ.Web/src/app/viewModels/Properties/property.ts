@@ -25,6 +25,7 @@ export class PropertyListItem{
     governmentName:string;
     canEditDelete: boolean;   
     location:string;
+    extent:string;
 }
 
 //详细的资产对象
@@ -189,6 +190,31 @@ export class PropertyRentModel extends ApproveModel
         this.valid=false;
         this.priceString="";
         //this.rentArea=0;
+    }
+}
+
+export class PropertyOffModel extends ApproveModel
+{
+    id?:number;
+    ids?:string;
+    name:string;
+    offTime:string;
+    offTypeId:string;
+    price:number;
+    reason:string;
+    processDate?:string;
+    offArea:number;
+    offMonth?:number;
+    reamrk?:string;    
+    offPictures:PropertyPictureModel[];
+    offFiles:PropertyFileModel[];
+
+    constructor()
+    {
+        super();
+        this.ids="";
+        this.name="";
+        this.offTime="";
     }
 }
 

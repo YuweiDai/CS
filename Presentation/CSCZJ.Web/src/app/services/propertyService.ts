@@ -11,7 +11,7 @@ import { TableParams } from "../viewModels/common/TableOption";
 
 import { ListResponse } from '../viewModels/Response/ListResponse'
 import { MapListResponse } from '../viewModels/Response/MapListResponse';
-import { Property ,PropertyCreateModel, SimplePropertyModel, PropertyRentModel } from '../viewModels/Properties/property';
+import { Property ,PropertyCreateModel, SimplePropertyModel, PropertyRentModel,PropertyOffModel } from '../viewModels/Properties/property';
 import {property_map} from '../viewModels/Properties/property_map';
 import {PropertyNameList} from '../viewModels/Properties/propertyName';
 import{HighSearchProperty} from '../viewModels/Properties/highSearchModel';
@@ -55,6 +55,14 @@ export class PropertyService{
         catchError(this.handleError<PropertyRentModel>(`addProperty Rent`))
       );     
     }    
+
+    createPropertyOffRecord(propertyOffModel:PropertyOffModel):Observable<PropertyOffModel>{
+      const url = `${this.apiUrl}/Off`;
+      return this.http.post<PropertyOffModel>(url,propertyOffModel,httpOptions).pipe(
+        tap((property: PropertyOffModel) => this.log(`added property off w/ id=${property.id}`)),
+        catchError(this.handleError<PropertyOffModel>(`addProperty off`))
+      );     
+    }        
 
     //获取单个资产
     getUpdatedPropertyById(id:number):Observable<PropertyCreateModel>{

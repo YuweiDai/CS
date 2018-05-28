@@ -309,6 +309,9 @@ namespace CSCZJ.API.Controllers
         {
             #region 用户角色创建
 
+            var crAdministrators = new AccountUserRole();
+            var crRegistered = new AccountUserRole();
+
             var roleNames = new List<string> {
                 SystemAccountUserRoleNames.Administrators,
                 SystemAccountUserRoleNames.DataReviewer,
@@ -332,8 +335,45 @@ namespace CSCZJ.API.Controllers
                     };
 
                     _accountUserService.InsertAccountUserRole(role);
+
+                    if (roleName == SystemAccountUserRoleNames.Administrators) crAdministrators = role;
+                    if (roleName == SystemAccountUserRoleNames.Registered) crRegistered = role;
                 }
             }
+            #endregion
+            #region 测试组织机构
+
+            var cz = new GovernmentUnit
+            {
+                Name = "县财政局",
+                GovernmentType = GovernmentType.Government,
+                Person = "联系人",
+                Tel = "0570-5062456"
+            };
+            _governmentService.InsertGovernmentUnit(cz);
+
+            #endregion
+
+            #region 用户创建
+
+            var user = new AccountUser()
+            {
+                UserName = "张三",
+                AccountUserGuid = Guid.NewGuid(),
+                Active = true,
+                CreatedOn = DateTime.Now,
+                IsSystemAccount = false,
+                Password = "123456",
+                PasswordFormat = PasswordFormat.Clear,
+                LastActivityDate = DateTime.Now,
+                Deleted = false,
+                UpdatedOn = DateTime.Now,
+                Government = cz
+            };
+            user.AccountUserRoles.Add(crAdministrators);
+            user.AccountUserRoles.Add(crRegistered);
+            _accountUserService.InsertAccountUser(user);
+
             #endregion
 
             return Ok("角色配置完成");
