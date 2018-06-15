@@ -27,6 +27,14 @@ namespace CSCZJ.Web.Framework.Security.Authorization
                 context.SetError("无效授权", "用户名或密码错误");
                 return;
             }
+            else
+            {
+                if(!user.IsRegistered()|| !user.IsAdmin())
+                {
+                    context.SetError("无效授权", "该用户没有登陆权限！");
+                    return;
+                }
+            }
 
             var identity = new ClaimsIdentity(context.Options.AuthenticationType);
             identity.AddClaim(new Claim(ClaimTypes.Name, string.IsNullOrWhiteSpace(user.UserName) ? "" : user.UserName));
@@ -46,7 +54,7 @@ namespace CSCZJ.Web.Framework.Security.Authorization
                     "userName", user.UserName
                 },
                 {
-                    "nickName", user.NickName
+                    "nickName", user.NickName??string.Empty
                 },
                 {
                     "userRoles",string.Join(",", user.AccountUserRoles.Select(cr=>cr.Name).ToArray())

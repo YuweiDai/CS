@@ -1,15 +1,19 @@
 import { Injectable } from '@angular/core';
+import { CanActivate } from '@angular/router';
 
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { catchError, map, tap } from 'rxjs/operators';
 
 
+import { LocalStorageService, SessionStorageService } from 'ngx-webstorage';
+
 import { ConfigService } from "./configService";
 import { LogService } from "./logService";
 
 import { AuthenticationModel } from "../viewModels/passport/AuthenticationModel";
-import { LoginModel } from "../viewModels/passport/LoginModel";
+import { LoginModel, LoginResult } from "../viewModels/passport/LoginModel";
+import { ResponseModel } from "../viewModels/Response/ResponseModel";
 
 @Injectable()
 export class AuthInterceptorService {
@@ -60,78 +64,115 @@ export class AuthInterceptorService {
 
 @Injectable()
 export class AuthService {
-    private apiUrl="";
+    private apiUrl = "";
+    private authentication= {
+        isAuth: false,
+        account: "",
+        nickName:"",
+        useRefreshTokens: false,
+        roles: "",
+        isAdmin: true
+    };
+    private isLoggerIn = false;
+    redirectUrl: string;
 
-    private authentication: AuthenticationModel;
     constructor(private http: HttpClient,
+        private localStorageService: LocalStorageService,
         private logService: LogService,
         private configService: ConfigService) {
         this.apiUrl += configService.getApiUrl();
     }
 
     //登陆
-    login(loginModel: LoginModel): void {
-        var that=this;
-        var url=that.apiUrl+"token";
+    login(loginModel: LoginModel): Observable<LoginResult> {
+        var that = this;
+        var url = that.apiUrl + "token";
         var data = "grant_type=password&userName=" + loginModel.account + "&password=" + loginModel.password;
+        return that.http.post(url, data, { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }).pipe(
+            tap((response: LoginResult) => {
 
-        that.http.post(url, data, { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }).pipe(
-            tap(response =>{
-                console.log(response);
-                this.log(`getRefreshTokens`);
-            } ),
-            catchError(this.handleError<any>(`getRefreshTokens`))
-        );
-        
-        // .success(function (response) {
+                //是否为管理员登录
+                if (loginModel.isAdmin && !(that.userHasRole(response.userRoles, "管理员") || that.userHasRole(response.userRoles, "注册单位"))) {
+                    that.logout();                
+                }
+                else {
+                    var authroziationData = { token: response.access_token, userName: loginModel.account, nickName: response.nickName, refreshToken: "", useRefreshTokens: false, roles: response.userRoles, isAdmin: that.userHasRole(response.userRoles, "管理员") };
 
-        //     //是否为管理员登录
-        //     if (loginModel.isAdmin && !(_userHasRole(response.userRoles, "管理员")||_userHasRole(response.userRoles, "注册单位"))) {
-        //         that.logout();
-        //         deferred.reject({ "error": "无效授权", "error_description": "账户无登录权限" });
-        //     }
-        //     else
-        //     {
-        //         var authroziationData = { token: response.access_token, userName: loginModel.account,nickName:response.nickName, refreshToken:"", useRefreshTokens: false, roles: response.userRoles, isAdmin: _userHasRole(response.userRoles, "管理员") > -1 };
-                
-        //         if (loginModel.useRefreshTokens) {
-        //             authroziationData.useRefreshTokens = true;
-        //             authroziationData.refreshToken = response.refresh_token;
-        //         }
- 
-        //         $localStorage.authorizationData = authroziationData;
+                    if (loginModel.useRefreshTokens) {
+                        authroziationData.useRefreshTokens = true;
+                        authroziationData.refreshToken = response.refresh_token;
+                    }
 
-        //         _authentication.isAuth = true;
-        //         _authentication.account = loginModel.account;
-        //         _authentication.nickName = response.nickName;
-        //         _authentication.useRefreshTokens = loginModel.useRefreshTokens;
-        //         _authentication.roles = response.userRoles;
-        //         _authentication.isAdmin = _userHasRole(response.userRoles, "管理员") > -1;
+                    that.localStorageService.store("authroziationData", authroziationData);
 
-        //         console.log($localStorage.authorizationData);
+                    that.authentication.isAuth = true;
+                    that.authentication.account = loginModel.account;
+                    that.authentication.nickName = response.nickName;
+                    that.authentication.useRefreshTokens = loginModel.useRefreshTokens;
+                    that.authentication.roles = response.userRoles;
+                    that.authentication.isAdmin = that.userHasRole(response.userRoles, "管理员");
 
-        //         deferred.resolve(response);
-        //     }
-        // }).error(function (err, status) {
-        //     _logOut();
-        //     deferred.reject(err);
-        // });
+                    console.log(that.localStorageService.retrieve("authorizationData"));
+                    this.log(`getRefreshTokens`);
+                }
+            }),
+            catchError(this.handleError<any>(`getTokens`))
+        )
     }
 
     logout(): void {
+        this.localStorageService.store("authroziationData", null);
 
+        this.authentication.isAuth = false;
+        this.authentication.account = "";
+        this.authentication.nickName = "";
+        this.authentication.useRefreshTokens = false;
     }
 
     isAdmin(): boolean {
-        return true;
+        return this.userHasRole(this.authentication.roles, "管理员");
+    }
+
+    isLoggedIn():boolean
+    {
+        return this.authentication.isAuth;
     }
 
     fillAuthData(): void {
-
+        var authData = this.localStorageService.retrieve("authroziationData");
+        if (authData) {
+            this.authentication.isAuth = true;
+            this.authentication.account = authData.userName;
+            this.authentication.nickName = authData.nickName;
+            this.authentication.roles = authData.roles;
+            this.authentication.useRefreshTokens = authData.useRefreshTokens;
+            this.authentication.isAdmin = authData.isAdmin;
+        }
     }
 
     refreshToken(): void {
+        var that=this;
+        var authData = this.localStorageService.retrieve("authroziationData");
+        var url = that.apiUrl + "token";
+        if (authData) {
 
+            if (authData.useRefreshTokens) {
+
+                var data = "grant_type=refresh_token&refresh_token=" + authData.refreshToken + "&client_id=" + this.configService.getClinetId();
+
+                this.localStorageService.store("authroziationData", null);
+
+                this.http.post(url, data, { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }).pipe(
+                    tap((response: LoginResult) => {
+                        var authorizationData = { token: response.access_token, userName: response.userName,nickName:response.nickName, 
+                            refreshToken: response.refresh_token, useRefreshTokens: true, isAdmin: that.userHasRole(response.userRoles, "管理员")  };
+
+                            that.localStorageService.store("authorizationData",authorizationData);
+                    }),
+                   // catchError(this.handleError<any>(`getRefreshTokens`))
+                );
+            }
+        }
     }
 
     private userHasRole(roles: string, targetRole: string): boolean {
@@ -152,6 +193,11 @@ export class AuthService {
 
             // TODO: better job of transforming error for user consumption
             this.log(`${operation} failed: ${error.message}`);
+
+            // var response=new ResponseModel();
+            // response.Code=-2;
+            // response.Message="error";
+            // response.Data=null;
 
             // Let the app keep running by returning an empty result.
             return Observable.of(result as T);
@@ -185,14 +231,14 @@ export class TokensManagerService {
     }
 
 
-    deleteRefreshTokens(tokenid:string): Observable<any> {
-        const url = this.apiUrl + "/refreshtokens/?"+tokenid;
+    deleteRefreshTokens(tokenid: string): Observable<any> {
+        const url = this.apiUrl + "/refreshtokens/?" + tokenid;
 
         return this.http.delete<any>(url).pipe(
             tap(_ => this.log(`deleteRefreshTokens`)),
             catchError(this.handleError<any>(`deleteRefreshTokens`))
         );
-    }    
+    }
 
     /**
      * Handle Http operation that failed.

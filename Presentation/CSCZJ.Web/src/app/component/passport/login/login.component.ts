@@ -4,25 +4,27 @@ import { Observable } from 'rxjs/Observable';
 import { Observer } from 'rxjs/Observer';
 import { Router, ActivatedRoute, ParamMap } from '@angular/router';
 import { NzMessageService, UploadFile, NzNotificationService, NzModalService } from 'ng-zorro-antd';
+import { AuthService } from '../../../services/passportService';
+import { LoginModel } from '../../../viewModels/passport/LoginModel';
 
 @Component({
   selector: 'passport-login',
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.less'],
-  providers: [],  
+  providers: [],
 })
-export class LoginComponent implements OnInit{
+export class LoginComponent implements OnInit {
   form: FormGroup;
   error = '';
   type = 0;
   loading = false;
-  
 
   constructor(
     fb: FormBuilder,
     private router: Router,
     public msg: NzMessageService,
     private modalSrv: NzModalService,
+    private authSerivce: AuthService
     // private settingsService: SettingsService,
     // private socialService: SocialService,
     // @Optional()
@@ -32,7 +34,7 @@ export class LoginComponent implements OnInit{
     // private startupSrv: StartupService,
   ) {
     this.form = fb.group({
-      userName: [null, [Validators.required, Validators.minLength(5)]],
+      userName: [null, [Validators.required]],
       password: [null, Validators.required],
       mobile: [null, [Validators.required, Validators.pattern(/^1\d{10}$/)]],
       captcha: [null, [Validators.required]],
@@ -41,7 +43,7 @@ export class LoginComponent implements OnInit{
     modalSrv.closeAll();
   }
 
-  ngOnInit(){}
+  ngOnInit() { }
 
   // region: fields
 
@@ -80,63 +82,74 @@ export class LoginComponent implements OnInit{
   // // endregion
 
   submit() {
+    console.log("123");
+    var loginModel = new LoginModel(this.userName.value, this.password.value);
 
-    if (
-      this.userName.value !== 'admin' ||
-      this.password.value !== '888888'
-    ) {
-      this.error = `账户或密码错误`;
-      return;
-    }
-    else
-    {
-      this.router.navigate(['/admin/dashboard']);   
-      return;   
-    }
+    this.authSerivce.login(loginModel).subscribe(      
+      (response: any) => { 
+        if(response==undefined||response==null)
+        this.msg.error("用户名不存在或密码错误！");
+        else
+      this.router.navigate(['/admin/dashboard']);
+       },
+    );
 
-
-    // this.error = '';
-    // if (this.type === 0) {
-    //   this.userName.markAsDirty();
-    //   this.userName.updateValueAndValidity();
-    //   this.password.markAsDirty();
-    //   this.password.updateValueAndValidity();
-    //   if (this.userName.invalid || this.password.invalid) return;
-    // } else {
-    //   this.mobile.markAsDirty();
-    //   this.mobile.updateValueAndValidity();
-    //   this.captcha.markAsDirty();
-    //   this.captcha.updateValueAndValidity();
-    //   if (this.mobile.invalid || this.captcha.invalid) return;
+    return;
+    // if (
+    //   this.userName.value !== 'admin' ||
+    //   this.password.value !== '888888'
+    // ) {
+    //   this.error = `账户或密码错误`;
+    //   return;
     // }
-    // // mock http
+    // else {
+    //   this.router.navigate(['/admin/properties/create']);
+    //   return;
+    // }
+
+
+    this.error = '';
+    if (this.type === 0) {
+      this.userName.markAsDirty();
+      this.userName.updateValueAndValidity();
+      this.password.markAsDirty();
+      this.password.updateValueAndValidity();
+      if (this.userName.invalid || this.password.invalid) return;
+    } else {
+      this.mobile.markAsDirty();
+      this.mobile.updateValueAndValidity();
+      this.captcha.markAsDirty();
+      this.captcha.updateValueAndValidity();
+      if (this.mobile.invalid || this.captcha.invalid) return;
+    }
+    // mock http
     // this.loading = true;
     // setTimeout(() => {
-    //   this.loading = false;
-    //   if (this.type === 0) {
-    //     if (
-    //       this.userName.value !== 'admin' ||
-    //       this.password.value !== '888888'
-    //     ) {
-    //       this.error = `账户或密码错误`;
-    //       return;
-    //     }
-    //   }
+    //   // this.loading = false;
+    //   // if (this.type === 0) {
+    //   //   if (
+    //   //     this.userName.value !== 'admin' ||
+    //   //     this.password.value !== '888888'
+    //   //   ) {
+    //   //     this.error = `账户或密码错误`;
+    //   //     return;
+    //   //   }
+    //   // }
 
-      // 清空路由复用信息
-      //this.reuseTabService.clear();
-      // 设置Token信息
-      // this.tokenService.set({
-      //   token: '123456789',
-      //   name: this.userName.value,
-      //   email: `cipchk@qq.com`,
-      //   id: 10000,
-      //   time: +new Date(),
-      // });
-      // 重新获取 StartupService 内容，若其包括 User 有关的信息的话
-      // this.startupSrv.load().then(() => this.router.navigate(['/']));
-      // 否则直接跳转
-     // this.router.navigate(['/']);
+    //   // 清空路由复用信息
+    //   //this.reuseTabService.clear();
+    //   // 设置Token信息
+    //   // this.tokenService.set({
+    //   //   token: '123456789',
+    //   //   name: this.userName.value,
+    //   //   email: `cipchk@qq.com`,
+    //   //   id: 10000,
+    //   //   time: +new Date(),
+    //   // });
+    //   // 重新获取 StartupService 内容，若其包括 User 有关的信息的话
+    //   // this.startupSrv.load().then(() => this.router.navigate(['/']));
+    //   // 否则直接跳转
+    //   // this.router.navigate(['/']);
     // }, 1000);
   }
 

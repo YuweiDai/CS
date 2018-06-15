@@ -2399,6 +2399,7 @@ namespace CSCZJ.API.Controllers
                     _propertyRentService.UpdatePropertyRent(rent);
                     #endregion
 
+                    //
                     SwitchPropertyLockState(true, property);
 
                 }
