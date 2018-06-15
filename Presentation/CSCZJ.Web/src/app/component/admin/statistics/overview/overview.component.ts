@@ -284,7 +284,7 @@ this.http.get('../../../../assets/js/CS.json').subscribe(geoJson=>{
 
   this.mapOption={
     title: {
-      text: '常山县乡镇区域分布（建筑面积）',
+      text: '常山县乡镇资产区域分布（建筑面积）',
       x:'center' 
     },
     tooltip: {
@@ -351,7 +351,7 @@ this.http.get('../../../../assets/js/CS.json').subscribe(geoJson=>{
           '招贤镇': '招贤镇',
           '何家乡': '何家乡',
           '大桥头乡': '大桥头乡',
-          '灰埠镇': '灰埠镇',
+          '辉埠镇': '辉埠镇',
           '东案乡': '东案乡',
           '新昌乡下': '新昌乡下',
           '新昌乡上': '新昌乡上',

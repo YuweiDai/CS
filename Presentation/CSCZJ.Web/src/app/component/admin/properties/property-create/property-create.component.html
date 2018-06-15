@@ -53,6 +53,7 @@
                                                 <nz-radio-group [(ngModel)]="property.propertyTypeId" formControlName="pType" (ngModelChange)="propertyTypeValidateSwicher()">
                                                     <label nz-radio nzValue="0">房产</label>
                                                     <label nz-radio nzValue="1">土地</label>
+
                                                 </nz-radio-group>
                                                 <nz-form-explain *ngIf="basicInfoForm.get('pType').dirty && basicInfoForm.get('pType').errors">
                                                     <ng-container *ngIf="basicInfoForm.get('pType').hasError('required')">
@@ -112,15 +113,10 @@
                                         </nz-form-item>
 
                                         <nz-form-item *ngIf="property.propertyTypeId==0">
-                                            <nz-form-label [nzSpan]="4" [nzRequired]="basicFormValidateConfig.floorRequired">房屋层数</nz-form-label>
+                                            <nz-form-label [nzSpan]="4">房屋层数</nz-form-label>
                                             <nz-form-control [nzSpan]="20">
                                                 <nz-input-number formControlName="pFloor" [(ngModel)]="property.floor" [nzMin]="1" [nzMax]="50" [nzStep]="1"></nz-input-number>
-                                                层
-                                                <nz-form-explain *ngIf="basicInfoForm.get('pFloor').dirty && basicInfoForm.get('pFloor').errors">
-                                                    <ng-container *ngIf="basicInfoForm.get('pFloor').hasError('required')">
-                                                        请输入房屋层数！
-                                                    </ng-container>
-                                                </nz-form-explain>
+                                                层                                                
                                             </nz-form-control>
                                         </nz-form-item>
 
@@ -162,6 +158,18 @@
 
                                 <div nz-col nzXs="12" nzSm="12" nzMd="12" nzLg="12" nzXl="12">
                                     <nz-card nzTitle="使用信息">
+                                        <nz-form-item>
+                                            <nz-form-label [nzSpan]="4" nzRequired>使用方</nz-form-label>
+                                            <nz-form-control [nzSpan]="20" nzHasFeedback>
+                                                <input nz-input formControlName="pUsedPeolple" [(ngModel)]="property.usedPeople" placeholder="输入资产使用方..." type="text">
+                                                <nz-form-explain *ngIf="basicInfoForm.get('pUsedPeolple').dirty && basicInfoForm.get('pUsedPeolple').errors">
+                                                    <ng-container *ngIf="basicInfoForm.get('pUsedPeolple').hasError('required')">
+                                                        请选择资产使用方！
+                                                    </ng-container>
+                                                </nz-form-explain>
+
+                                            </nz-form-control>
+                                        </nz-form-item>
 
                                         <nz-form-item>
                                             <nz-form-label [nzSpan]="4" nzRequired>使用现状</nz-form-label>

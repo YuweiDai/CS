@@ -49,7 +49,6 @@ export class PropertyCreateComponent implements OnInit {
   };
 
   private basicFormValidateConfig = {
-    floorRequired: false,
     constructAreaRequired: false,
     estateIdRequired: true,
     estateTimeRequired: true,
@@ -106,6 +105,7 @@ export class PropertyCreateComponent implements OnInit {
       pLandTime: [''],
 
       pGovernmentId: ['', [Validators.required]],
+      pUsedPeolple: ['', [Validators.required]],
       pUseTypeId: ['', [Validators.required]],
       pCurrentTypeId: ['', [Validators.required]],
       pIsMortgage: ['', [Validators.required]],
@@ -149,9 +149,6 @@ export class PropertyCreateComponent implements OnInit {
   //资产类别变化引起的表单验证切换
   propertyTypeValidateSwicher(): void {
     if (this.property.propertyTypeId == "0") {
-      this.basicInfoForm.get('pFloor').setValidators(Validators.required);
-      this.basicInfoForm.get('pFloor').markAsDirty();
-      this.basicFormValidateConfig.floorRequired = true;
 
       this.basicInfoForm.get('pConstructArea').setValidators(Validators.required);
       this.basicInfoForm.get('pConstructArea').markAsDirty();
@@ -168,13 +165,10 @@ export class PropertyCreateComponent implements OnInit {
       }
 
     } else {
-      this.basicInfoForm.get('pFloor').clearValidators();
-      this.basicInfoForm.get('pFloor').markAsPristine();
-      this.basicFormValidateConfig.floorRequired = false;
 
       this.basicInfoForm.get('pConstructArea').clearValidators();
       this.basicInfoForm.get('pConstructArea').markAsPristine();
-      this.basicFormValidateConfig.floorRequired = false;
+      this.basicFormValidateConfig.constructAreaRequired = false;
 
       if (this.property.registerEstate == 'false') {
         this.basicInfoForm.get('pConstructId').clearValidators();
