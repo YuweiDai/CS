@@ -82,19 +82,6 @@
                                             </nz-form-control>
                                         </nz-form-item>
 
-                  
-                                        <nz-form-item>
-                                            <nz-form-label [nzSpan]="4" nzRequired>使用方</nz-form-label>
-                                            <nz-form-control [nzSpan]="20" nzHasFeedback>
-                                                <input nz-input formControlName="usedPeople" [(ngModel)]="property.usedPeople" placeholder="输入使用单位或个人..." type="text">
-                                                <nz-form-explain *ngIf="basicInfoForm.get('usedPeople').dirty&&basicInfoForm.get('usedPeople').errors">
-                                                    <ng-container *ngIf="basicInfoForm.get('usedPeople').hasError('required')">
-                                                        请输入资产使用方！
-                                                    </ng-container>
-                                                </nz-form-explain>
-                                            </nz-form-control>
-                                        </nz-form-item>
-
                                         <nz-form-item>
                                             <nz-form-label [nzSpan]="4" nzRequired>获取日期</nz-form-label>
                                             <nz-form-control [nzSpan]="20" nzHasFeedback>
