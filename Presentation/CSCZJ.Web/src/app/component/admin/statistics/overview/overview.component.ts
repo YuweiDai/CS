@@ -334,7 +334,7 @@ this.http.get('../../../../assets/js/CS.json').subscribe(geoJson=>{
           { name: '何家乡', value: 6992.6 },
           { name: '大桥头乡', value: 44045.49 },
 
-          { name: '灰埠镇', value: 6992.6 },
+          { name: '辉埠镇', value: 6992.6 },
           { name: '东案乡', value: 44045.49 },
           { name: '新昌乡下', value: 6992.6 },
           { name: '新昌乡上', value: 44045.49 },
