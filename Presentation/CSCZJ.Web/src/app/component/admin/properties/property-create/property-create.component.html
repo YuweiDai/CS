@@ -53,6 +53,7 @@
                                                 <nz-radio-group [(ngModel)]="property.propertyTypeId" formControlName="pType" (ngModelChange)="propertyTypeValidateSwicher()">
                                                     <label nz-radio nzValue="0">房产</label>
                                                     <label nz-radio nzValue="1">土地</label>
+
                                                 </nz-radio-group>
                                                 <nz-form-explain *ngIf="basicInfoForm.get('pType').dirty && basicInfoForm.get('pType').errors">
                                                     <ng-container *ngIf="basicInfoForm.get('pType').hasError('required')">
@@ -78,6 +79,19 @@
                                             <nz-form-label [nzSpan]="4">坐落四至</nz-form-label>
                                             <nz-form-control [nzSpan]="20">
                                                 <input nz-input formControlName="pFourToStation" [(ngModel)]="property.fourToStation" placeholder="输入资产坐落四至..." type="text">
+                                            </nz-form-control>
+                                        </nz-form-item>
+
+                  
+                                        <nz-form-item>
+                                            <nz-form-label [nzSpan]="4" nzRequired>使用方</nz-form-label>
+                                            <nz-form-control [nzSpan]="20" nzHasFeedback>
+                                                <input nz-input formControlName="usedPeople" [(ngModel)]="property.usedPeople" placeholder="输入使用单位或个人..." type="text">
+                                                <nz-form-explain *ngIf="basicInfoForm.get('usedPeople').dirty&&basicInfoForm.get('usedPeople').errors">
+                                                    <ng-container *ngIf="basicInfoForm.get('usedPeople').hasError('required')">
+                                                        请输入资产使用方！
+                                                    </ng-container>
+                                                </nz-form-explain>
                                             </nz-form-control>
                                         </nz-form-item>
 

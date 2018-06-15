@@ -90,6 +90,7 @@ export class PropertyCreateComponent implements OnInit {
       pAddress: ['', [Validators.required]],
       pFloor: [''],
       pFourToStation: [''],
+      usedPeople: ['',[Validators.required]],
       pGetedDate: ['', [Validators.required]],
       pGetModeId: ['', [Validators.required]],
       pIsAdmission: ['', [Validators.required]],
