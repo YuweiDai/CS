@@ -4,7 +4,7 @@ import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { catchError, map, tap } from 'rxjs/operators';
 
-import { HttpInterceptorService } from "../extensions/HttpInterceptor";
+// import { HttpInterceptorService } from "../extensions/HttpInterceptor";
 
 import { ConfigService } from "./configService";
 import { LogService } from "./logService";
@@ -28,7 +28,7 @@ export class PropertyService {
   private apiUrl = "";
 
 
-  constructor(private http: HttpInterceptorService,
+  constructor(private http: HttpClient,
     private logService: LogService,
     private configService: ConfigService) {
     this.apiUrl += configService.getApiUrl() + "properties";
