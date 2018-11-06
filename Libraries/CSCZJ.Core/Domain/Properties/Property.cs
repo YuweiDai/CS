@@ -194,6 +194,13 @@ namespace CSCZJ.Core.Domain.Properties
         /// 是否为Excel导入
         /// </summary>
         public bool FromExcelImport { get; set; }
+
+
+        /// <summary>
+        /// 父级资产Id，默认为0
+        /// </summary>
+        public int ParentPropertyId { get; set; }
+
         
         public virtual ICollection<PropertyPicture> Pictures
         {

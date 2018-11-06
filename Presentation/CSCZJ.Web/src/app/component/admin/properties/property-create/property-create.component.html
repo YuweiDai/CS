@@ -19,8 +19,9 @@
                     <div class="component-content">
                         <nz-steps [nzCurrent]="current" [nzStatus]="stepStatus">
                             <nz-step nzTitle="详细信息" nzDescription="填写资产的基本信息、使用信息以及产权信息。"></nz-step>
-                            <nz-step nzTitle="空间信息" nzDescription="填写资产的空间位置信息。"></nz-step>
+                            <nz-step nzTitle="空间信息" nzDescription="填写资产的空间位置信息。"></nz-step>                           
                             <nz-step nzTitle="相关附件" nzDescription="填写资产照片以及文件信息。"></nz-step>
+                            <nz-step nzTitle="资产关联" nzDescription="填写资产的空间位置信息。"></nz-step>                             
                             <nz-step nzTitle="提交保存" nzDescription="提交入库。"></nz-step>
                         </nz-steps>
                     </div>
@@ -433,7 +434,12 @@
                             </div>
                         </form>
                     </div>
-                    <div class="step" id="subMitAll" [hidden]="current!=3">
+
+                    <div class="step" id="subProperties" [hidden]="current!=3">
+
+                    </div>
+
+                    <div class="step" id="subMitAll" [hidden]="current!=4">
                         <div class="m-b-md" nz-row [nzGutter]="{ xs: 8, sm: 16, md: 24, lg: 32, xl: 32, xxl: 32 }">
                             <div nz-col [nzSpan]="24">
 
