@@ -148,7 +148,7 @@ export class PropertyCreateComponent implements OnInit {
 
   //资产类别变化引起的表单验证切换
   propertyTypeValidateSwicher(): void {
-    if (this.property.propertyTypeId == "0") {
+    if (this.property.propertyTypeId == "0"||this.property.propertyTypeId == "2") {
 
       this.basicInfoForm.get('pConstructArea').setValidators(Validators.required);
       this.basicInfoForm.get('pConstructArea').markAsDirty();
