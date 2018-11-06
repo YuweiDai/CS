@@ -36,7 +36,7 @@
                   <div>坐落位置：{{property.address}}</div>
                 </div>
                 <div nz-col nzSpan="24" class="item">
-                  <div>四至情况：{{property.fourToStation}}</div>
+                  <div>使用单位：{{property.usedPeople}}</div>
                 </div>
                 <div nz-col nzSpan="8" class="item">
                   <div>取得方式：{{property.getMode}}</div>
@@ -44,13 +44,11 @@
                 <div nz-col nzSpan="16" class="item">
                   <div>取得日期：{{property.getedDate}}</div>
                 </div>
-                <div nz-col nzSpan="8" class="item" *ngIf="property.propertyType=='房屋'">
-                  <div>层数：{{property.floor}} 层</div>
-                </div>
+               
                 <div nz-col nzSpan="8" class="item" *ngIf="property.propertyType=='房屋'">
                   <div>房产面积：{{property.constructArea}} 平方米</div>
                 </div>
-                <div nz-col nzSpan="8" class="item">
+                <div nz-col nzSpan="16" class="item">
                   <div>土地面积：{{property.landArea}} 平方米</div>
                 </div>
                 <div nz-col nzSpan="24" class="item">

@@ -108,20 +108,20 @@ export class LoginComponent implements OnInit {
     // }
 
 
-    this.error = '';
-    if (this.type === 0) {
-      this.userName.markAsDirty();
-      this.userName.updateValueAndValidity();
-      this.password.markAsDirty();
-      this.password.updateValueAndValidity();
-      if (this.userName.invalid || this.password.invalid) return;
-    } else {
-      this.mobile.markAsDirty();
-      this.mobile.updateValueAndValidity();
-      this.captcha.markAsDirty();
-      this.captcha.updateValueAndValidity();
-      if (this.mobile.invalid || this.captcha.invalid) return;
-    }
+    // this.error = '';
+    // if (this.type === 0) {
+    //   this.userName.markAsDirty();
+    //   this.userName.updateValueAndValidity();
+    //   this.password.markAsDirty();
+    //   this.password.updateValueAndValidity();
+    //   if (this.userName.invalid || this.password.invalid) return;
+    // } else {
+    //   this.mobile.markAsDirty();
+    //   this.mobile.updateValueAndValidity();
+    //   this.captcha.markAsDirty();
+    //   this.captcha.updateValueAndValidity();
+    //   if (this.mobile.invalid || this.captcha.invalid) return;
+    // }
     // mock http
     // this.loading = true;
     // setTimeout(() => {

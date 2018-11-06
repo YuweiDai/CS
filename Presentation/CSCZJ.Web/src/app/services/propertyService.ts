@@ -37,7 +37,7 @@ export class PropertyService {
   nameValidate(name: string): Observable<boolean> {
     const url = `${this.apiUrl}/Unique/${name}`;
 
-    return this.http.get(url).pipe(
+    return this.http.get<boolean>(url).pipe(
       tap(_ => this.log(`fetched property id=${name}`)),
       catchError(this.handleError<boolean>(`getProperty id=${name}`))
     );

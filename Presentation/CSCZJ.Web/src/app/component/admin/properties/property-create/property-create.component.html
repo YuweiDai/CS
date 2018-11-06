@@ -53,6 +53,7 @@
                                                 <nz-radio-group [(ngModel)]="property.propertyTypeId" formControlName="pType" (ngModelChange)="propertyTypeValidateSwicher()">
                                                     <label nz-radio nzValue="0">房产</label>
                                                     <label nz-radio nzValue="1">土地</label>
+                                                    <label nz-radio nzValue="2">房产对应土地</label>
                                                 </nz-radio-group>
                                                 <nz-form-explain *ngIf="basicInfoForm.get('pType').dirty && basicInfoForm.get('pType').errors">
                                                     <ng-container *ngIf="basicInfoForm.get('pType').hasError('required')">

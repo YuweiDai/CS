@@ -308,7 +308,7 @@ namespace CSCZJ.API.Controllers
         public IHttpActionResult SetRoles()
         {
 
-            return BadRequest("角色配置 cloesd");
+          //  return BadRequest("角色配置 cloesd");
             #region 用户角色创建
 
             var crAdministrators = new AccountUserRole();
@@ -338,9 +338,10 @@ namespace CSCZJ.API.Controllers
 
                     _accountUserService.InsertAccountUserRole(role);
 
-                    if (roleName == SystemAccountUserRoleNames.Administrators) crAdministrators = role;
-                    if (roleName == SystemAccountUserRoleNames.Registered) crRegistered = role;
+
                 }
+                if (roleName == SystemAccountUserRoleNames.Administrators) crAdministrators = role;
+                    if (roleName == SystemAccountUserRoleNames.Registered) crRegistered = role;
             }
             #endregion
             #region 测试组织机构
