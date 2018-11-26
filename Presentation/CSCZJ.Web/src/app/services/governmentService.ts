@@ -44,6 +44,8 @@ export class GovernmentService{
       );    
     }
 
+    
+
     //获取单个资产
     // getPropertyById(id:number):Observable<Property>{
     //   const url = `${this.apiUrl}/${id}`;

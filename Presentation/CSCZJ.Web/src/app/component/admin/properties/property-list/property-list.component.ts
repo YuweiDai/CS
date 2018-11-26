@@ -11,6 +11,7 @@ import { PropertyService } from '../../../../services/propertyService';
   selector: 'app-property-list',
   templateUrl: './property-list.component.html',
   styleUrls: ['./property-list.component.less'],
+  
   // animations: [ slideInDownAnimation ],
   // encapsulation: ViewEncapsulation.None,
 })

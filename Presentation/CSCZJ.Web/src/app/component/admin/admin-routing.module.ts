@@ -11,6 +11,7 @@ import { PropertyDetailComponent } from './properties/property-detail/property-d
 import { PropertyCreateComponent } from './properties/property-create/property-create.component';
 import { PropertyRentComponent } from './properties/property-rent/property-rent.component';
 import { PropertyOffComponent } from './properties/property-off/property-off.component';
+import { PropertyExportComponent } from './properties/property-export/property-export.component';
 
 import { AuthGuard } from "../../services/auth-guard.service";
 
@@ -34,6 +35,10 @@ const adminRoutes: Routes = [
                         component: PropertyCreateComponent
                     },
                     {
+                        path: 'export',
+                        component: PropertyExportComponent
+                    },
+                    {
                         path: 'rent',
                         component: PropertyRentComponent
                     },
@@ -49,6 +54,7 @@ const adminRoutes: Routes = [
                         path: 'edit/:id',
                         component: PropertyCreateComponent
                     },
+                  
                 ]
             },
             { path: 'map', component: MapHomeComponent },
