@@ -82,6 +82,7 @@ export class PropertyCreateModel
     propertyNature:string
     landNature:string
     lifeTime:number 
+    isMain:boolean
 
     constructor(){
         this.name="";
@@ -125,6 +126,7 @@ export class PropertyCreateModel
         this.landNature="";
         this.lifeTime=0;        
         this.governmentName="";
+        this.isMain=true;
     }
 }
 

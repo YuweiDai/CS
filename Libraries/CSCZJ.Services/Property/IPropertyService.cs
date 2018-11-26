@@ -87,6 +87,8 @@ namespace CSCZJ.Services.Property
         IList<CSCZJ.Core.Domain.Properties.Property> GetHighSearchProperties(ArrayList properyTypeList, IList<int> regionList, ArrayList areaList, IList<int> currentList, ArrayList rightList);
 
 
+        IList<CSCZJ.Core.Domain.Properties.Property> GetPropertiesBySameNumberId(string numberId, string typeId);
+
         #region Property pictures
 
         /// <summary>

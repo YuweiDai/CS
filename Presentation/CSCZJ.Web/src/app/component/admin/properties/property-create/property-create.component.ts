@@ -28,11 +28,12 @@ declare var Wkt: any;
 export class PropertyCreateComponent implements OnInit {
   private id: number;
   private title: string;
-  private current: number;
+  private current: number;  
   private stepStatus: string;
   private property = new PropertyCreateModel();
   private orginalPropertyName: string;
-
+  private sameCardIdCheckd:boolean;
+ 
   private wkt: any;
   private map: any;
   private marker = null;
@@ -273,11 +274,12 @@ export class PropertyCreateComponent implements OnInit {
 
   ngOnInit() {
     var that = this;
-    that.current = 0;
+    that.current = 3;
     that.stepStatus = "process";//waitprocessfinisherror
     that.pictureUploadUrl = that.configService.getApiUrl() + "Media/Pictures/Upload";
     that.fileUploadUrl = that.configService.getApiUrl() + "Media/Files/Upload";
 
+    that.sameCardIdCheckd=false;
 
     let routeConfig = that.route.routeConfig;
     if (routeConfig.path.indexOf("create") > -1) {
@@ -356,9 +358,22 @@ export class PropertyCreateComponent implements OnInit {
   pre(): void { 
     this.current -= 1;
     this.changeContent();
+
+    console.log("pre");
+
+
+    this.propertyService.getPropertiesBySameNumberId("12345","0")
+    .subscribe(response=>{
+    var that=this;
+    console.log(response);
+     
+    });
+     
   }
 
   next(): void {
+console.log("next");
+
     var validation = false;
     var title = "数据错误", content = "";
     switch (this.current) {
@@ -443,6 +458,9 @@ export class PropertyCreateComponent implements OnInit {
         }
         break;
       case 3:
+
+
+
         break;
     }
 

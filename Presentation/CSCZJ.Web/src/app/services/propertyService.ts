@@ -117,9 +117,6 @@ export class PropertyService {
       );
   }
 
-
-
-
   //获取资产列表
   getAllProperties(params: TableParams): Observable<ListResponse> {
     let url = this.apiUrl;
@@ -159,6 +156,20 @@ export class PropertyService {
   }
 
 
+  getPropertiesBySameNumberId(numberId:string,typeId:string): Observable<SimplePropertyModel[]> {
+
+    let url = this.apiUrl+"/samenumber";
+
+    let requestParams = new URLSearchParams();
+    requestParams.append('numberId', numberId);
+    requestParams.append('typeId', typeId);
+
+    return this.http.get<SimplePropertyModel[]>(url + "?" + requestParams.toString())
+      .pipe(
+        tap(response => { }),
+        catchError(this.handleError('gethighSearchPropertiesInMap', []))
+      );
+  }
 
 
 
