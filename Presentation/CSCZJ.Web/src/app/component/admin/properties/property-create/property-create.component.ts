@@ -274,7 +274,7 @@ export class PropertyCreateComponent implements OnInit {
 
   ngOnInit() {
     var that = this;
-    that.current = 3;
+    that.current = 0;
     that.stepStatus = "process";//waitprocessfinisherror
     that.pictureUploadUrl = that.configService.getApiUrl() + "Media/Pictures/Upload";
     that.fileUploadUrl = that.configService.getApiUrl() + "Media/Files/Upload";
@@ -360,14 +360,6 @@ export class PropertyCreateComponent implements OnInit {
     this.changeContent();
 
     console.log("pre");
-
-
-    this.propertyService.getPropertiesBySameNumberId("12345","0")
-    .subscribe(response=>{
-    var that=this;
-    console.log(response);
-     
-    });
      
   }
 
@@ -455,6 +447,20 @@ console.log("next");
             else pfm.fileId = element.response[0].id;
             this.property.files.push(pfm);
           });
+
+          console.log(this.property);
+          //获取同号资产
+           
+          var typeId = this.property.registerEstate == "true" ? "0" : "1";
+          var number = this.property.registerEstate == "true" ? this.property.estateId : this.property.estateId;
+
+
+          this.propertyService.getPropertiesBySameNumberId(number, typeId)
+            .subscribe(response => {
+              var that = this;
+              console.log(response);
+
+            });
         }
         break;
       case 3:
