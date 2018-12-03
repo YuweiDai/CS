@@ -20,8 +20,7 @@
                         <nz-steps [nzCurrent]="current" [nzStatus]="stepStatus">
                             <nz-step nzTitle="详细信息" nzDescription="填写资产的基本信息、使用信息以及产权信息。"></nz-step>
                             <nz-step nzTitle="空间信息" nzDescription="填写资产的空间位置信息。"></nz-step>                           
-                            <nz-step nzTitle="相关附件" nzDescription="填写资产照片以及文件信息。"></nz-step>
-                            <nz-step nzTitle="资产关联" nzDescription="填写资产的空间位置信息。"></nz-step>                             
+                            <nz-step nzTitle="相关附件" nzDescription="填写资产照片以及文件信息。"></nz-step>                          
                             <nz-step nzTitle="提交保存" nzDescription="提交入库。"></nz-step>
                         </nz-steps>
                     </div>
@@ -435,17 +434,34 @@
                         </form>
                     </div>
 
-                    <div class="step" id="subProperties" [hidden]="current!=3">
-
-                    </div>
-
-                    <div class="step" id="subMitAll" [hidden]="current!=4">
+                    <div class="step" id="subMitAll" [hidden]="current!=3">
                         <div class="m-b-md" nz-row [nzGutter]="{ xs: 8, sm: 16, md: 24, lg: 32, xl: 32, xxl: 32 }">
                             <div nz-col [nzSpan]="24">
-
+                                  
                                 <nz-spin nzTip='Loading...' [nzSpinning]="isSubmit">
-                                    <h1 class="text-center">是否提交名为
-                                        <strong>{{property.name}}</strong>的资产入库？</h1>
+
+                                    <div  [hidden]="sameCardIdCheckd" >
+                                            <nz-alert nzType="info" nzMessage="一证多资产提醒" nzShowIcon></nz-alert>
+
+                                            <h2>与当前资产证号相同的资产有：
+                                                    <nz-tag [nzColor]="'#f50'">交通大楼（主资产）</nz-tag>
+                                                    <nz-tag>资产1</nz-tag>
+                                                    <nz-tag>资产2</nz-tag>
+                                                    <nz-tag>资产3</nz-tag>
+                                                    <nz-tag>资产4</nz-tag>
+                                            </h2>
+                                            
+                                            <h2><label nz-checkbox [(ngModel)]="property.isMain">当前资产设为主资产</label></h2>
+                                    </div>
+
+
+
+
+
+                                    <h1 class="text-center">是否提交名为 <strong>{{property.name}}</strong> 的资产入库？</h1>
+
+                                    
+
                                     <div class="text-center">
                                         <button nz-button nzSize="large" (click)="pre()" nzType="primary">
                                             <i class="anticon anticon-left-circle"></i> 返回</button>

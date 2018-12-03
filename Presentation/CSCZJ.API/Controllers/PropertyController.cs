@@ -1651,6 +1651,27 @@ namespace CSCZJ.API.Controllers
         }
 
         /// <summary>
+        /// 获取相同不动产证号 或者 房产证的 资产
+        /// </summary>
+        /// <param name="numberId">证据号码</param>
+        /// <param name="typeId">证件类型，0为不动产证 1为房产证</param>
+        /// <returns></returns>
+        [HttpGet]
+        [Route("samenumber")]
+        public IHttpActionResult GetPropertiesBySameNumberId(string numberId, string typeId)
+        {
+            if (typeId != "0" && typeId != "1") return BadRequest();
+
+            var response = _propertyService.GetPropertiesBySameNumberId(numberId,typeId).Select(p =>
+            {
+                return p.ToSimpleModel();
+            });
+
+            return Ok(response);
+        }
+
+
+        /// <summary>
         /// 新增资产
         /// </summary>
         /// <param name="propertyModel"></param>

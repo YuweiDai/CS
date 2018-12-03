@@ -28,11 +28,12 @@ declare var Wkt: any;
 export class PropertyCreateComponent implements OnInit {
   private id: number;
   private title: string;
-  private current: number;
+  private current: number;  
   private stepStatus: string;
   private property = new PropertyCreateModel();
   private orginalPropertyName: string;
-
+  private sameCardIdCheckd:boolean;
+ 
   private wkt: any;
   private map: any;
   private marker = null;
@@ -278,6 +279,7 @@ export class PropertyCreateComponent implements OnInit {
     that.pictureUploadUrl = that.configService.getApiUrl() + "Media/Pictures/Upload";
     that.fileUploadUrl = that.configService.getApiUrl() + "Media/Files/Upload";
 
+    that.sameCardIdCheckd=false;
 
     let routeConfig = that.route.routeConfig;
     if (routeConfig.path.indexOf("create") > -1) {
@@ -356,9 +358,14 @@ export class PropertyCreateComponent implements OnInit {
   pre(): void { 
     this.current -= 1;
     this.changeContent();
+
+    console.log("pre");
+     
   }
 
   next(): void {
+console.log("next");
+
     var validation = false;
     var title = "数据错误", content = "";
     switch (this.current) {
@@ -440,9 +447,26 @@ export class PropertyCreateComponent implements OnInit {
             else pfm.fileId = element.response[0].id;
             this.property.files.push(pfm);
           });
+
+          console.log(this.property);
+          //获取同号资产
+           
+          var typeId = this.property.registerEstate == "true" ? "0" : "1";
+          var number = this.property.registerEstate == "true" ? this.property.estateId : this.property.estateId;
+
+
+          this.propertyService.getPropertiesBySameNumberId(number, typeId)
+            .subscribe(response => {
+              var that = this;
+              console.log(response);
+
+            });
         }
         break;
       case 3:
+
+
+
         break;
     }
 
