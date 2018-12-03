@@ -29,7 +29,7 @@ export class PropertyService {
   private apiUrl = "";
 
 
-  constructor(private http: HttpClient,private http1:Http,
+  constructor(private http: HttpClient,
     private logService: LogService,
     private configService: ConfigService) {
     this.apiUrl += configService.getApiUrl() + "properties";
@@ -52,18 +52,12 @@ export class PropertyService {
     );
   }
 
-  exportProperty(exportModel: ExportModel): Observable<ArrayBuffer> {
+  exportProperty(exportModel: ExportModel){
 
     const url = `${this.apiUrl}/Export`;
-    let httpOptions1 = {
-      headers: new HttpHeaders({ 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' })
-    };
+  
 
-    let headers = new Headers({ 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' });
-    let options = new RequestOptions({ headers: headers, responseType: ResponseContentType.ArrayBuffer });
-
-
-    return this.http1.post(url, exportModel, options).map(res => res.json()).catch(this.handleError());
+    return this.http.post(url, exportModel,{responseType:"arraybuffer"});
   
 
   }

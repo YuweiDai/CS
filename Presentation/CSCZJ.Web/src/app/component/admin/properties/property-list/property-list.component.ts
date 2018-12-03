@@ -104,7 +104,16 @@ export class PropertyListComponent implements OnInit {
 
     this.propertyService.exportProperty(this.exportModel).subscribe((response:any) => {
 
-    console.log(response);
+      var blob = new Blob([response], {type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"});  
+      var objectUrl = URL.createObjectURL(blob);  
+      var a = document.createElement("a");
+      document.body.appendChild(a);
+      a.setAttribute("style", "display:none");
+      a.setAttribute("href", objectUrl);
+      a.setAttribute("download", "资产下载");
+      a.click();
+      URL.revokeObjectURL(objectUrl); 
+
     })
 
     console.log('Button ok clicked!');
