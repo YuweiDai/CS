@@ -440,15 +440,13 @@
                                   
                                 <nz-spin nzTip='Loading...' [nzSpinning]="isSubmit">
 
-                                    <div  [hidden]="sameCardIdCheckd" >
+                                    <div  [hidden]="sameCardProperties.length==0" >
                                             <nz-alert nzType="info" nzMessage="一证多资产提醒" nzShowIcon></nz-alert>
 
                                             <h2>与当前资产证号相同的资产有：
-                                                    <nz-tag [nzColor]="'#f50'">交通大楼（主资产）</nz-tag>
-                                                    <nz-tag>资产1</nz-tag>
-                                                    <nz-tag>资产2</nz-tag>
-                                                    <nz-tag>资产3</nz-tag>
-                                                    <nz-tag>资产4</nz-tag>
+                                                <nz-tag *ngFor="let sameProperty of sameCardProperties" [nzColor]="sameProperty.isMain?'#f50':''">
+                                                    {{sameProperty.name}}
+                                                </nz-tag>                                                                                               
                                             </h2>
                                             
                                             <h2><label nz-checkbox [(ngModel)]="property.isMain">当前资产设为主资产</label></h2>

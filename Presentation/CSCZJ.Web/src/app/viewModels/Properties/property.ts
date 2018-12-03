@@ -226,3 +226,10 @@ export class SimplePropertyModel
     name:string;
     address:string;
 }
+
+export class SameIdPropertyModel
+{
+    id:number;
+    name:string;
+    isMain:boolean;
+}

@@ -1658,14 +1658,27 @@ namespace CSCZJ.API.Controllers
         /// <returns></returns>
         [HttpGet]
         [Route("samenumber")]
-        public IHttpActionResult GetPropertiesBySameNumberId(string numberId, string typeId)
+        public IHttpActionResult GetPropertiesBySameNumberId(string numberId, string typeId, int id = 0)
         {
             if (typeId != "0" && typeId != "1") return BadRequest();
 
-            var response = _propertyService.GetPropertiesBySameNumberId(numberId,typeId).Select(p =>
+            var response = _propertyService.GetPropertiesBySameNumberId(numberId, typeId).Select(p =>
+             {
+                 return p.ToSameIdModel();
+             });
+
+            if(id!=0)
             {
-                return p.ToSimpleModel();
-            });
+                var currentProperty = _propertyService.GetPropertyById(id);
+
+                if (currentProperty != null)
+                {
+                    var removedProperties = new List<SameIdPropertyModel> { currentProperty.ToSameIdModel() };
+                    response = response.Except(removedProperties);
+                }                    
+            }
+
+        
 
             return Ok(response);
         }

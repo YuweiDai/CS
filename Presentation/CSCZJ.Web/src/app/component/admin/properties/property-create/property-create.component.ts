@@ -8,7 +8,7 @@ import { NzMessageService, UploadFile, NzNotificationService, NzModalService } f
 
 import { format, compareAsc } from 'date-fns'
 
-import { PropertyCreateModel, PropertyPictureModel, PropertyFileModel } from '../../../../viewModels/Properties/property';
+import { PropertyCreateModel, PropertyPictureModel, PropertyFileModel,SameIdPropertyModel } from '../../../../viewModels/Properties/property';
 
 import { MapService } from '../../../../services/map/mapService';
 import { PropertyService } from '../../../../services/propertyService';
@@ -32,7 +32,9 @@ export class PropertyCreateComponent implements OnInit {
   private stepStatus: string;
   private property = new PropertyCreateModel();
   private orginalPropertyName: string;
-  private sameCardIdCheckd:boolean;
+  private isSameCardIdLoading:boolean;
+  private sameCardIdChecked:boolean;
+  private sameCardProperties:SameIdPropertyModel[];
  
   private wkt: any;
   private map: any;
@@ -83,6 +85,9 @@ export class PropertyCreateComponent implements OnInit {
     private router: Router, private route: ActivatedRoute, private fb: FormBuilder,
     private mapService: MapService, private configService: ConfigService, private propertyService: PropertyService, private governmentService: GovernmentService) {
 
+
+     this.sameCardProperties=[];
+     this.sameCardIdChecked=false;
 
     this.basicInfoForm = this.fb.group({
       pName: ['', [Validators.required], [this.propertyNameAsyncValidator]],
@@ -279,8 +284,6 @@ export class PropertyCreateComponent implements OnInit {
     that.pictureUploadUrl = that.configService.getApiUrl() + "Media/Pictures/Upload";
     that.fileUploadUrl = that.configService.getApiUrl() + "Media/Files/Upload";
 
-    that.sameCardIdCheckd=false;
-
     let routeConfig = that.route.routeConfig;
     if (routeConfig.path.indexOf("create") > -1) {
       //说明是新增
@@ -455,11 +458,11 @@ console.log("next");
           var number = this.property.registerEstate == "true" ? this.property.estateId : this.property.estateId;
 
 
-          this.propertyService.getPropertiesBySameNumberId(number, typeId)
+          this.propertyService.getPropertiesBySameNumberId(number, typeId,0)
             .subscribe(response => {
               var that = this;
-              console.log(response);
-
+              that.sameCardIdChecked=true;
+              that.sameCardProperties=response;
             });
         }
         break;
@@ -486,6 +489,9 @@ console.log("next");
     var that = this;
     that.isSubmit = true;
     that.property.submit = submit;
+
+    console.log(that.property);
+
 
     if (that.id > 0) {
       this.propertyService.updatedProperty(this.property).subscribe((response: any) => {

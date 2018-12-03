@@ -13,7 +13,7 @@ import { TableParams } from "../viewModels/common/TableOption";
 
 import { ListResponse } from '../viewModels/Response/ListResponse'
 import { MapListResponse } from '../viewModels/Response/MapListResponse';
-import { Property, PropertyCreateModel, SimplePropertyModel, PropertyRentModel, PropertyOffModel } from '../viewModels/Properties/property';
+import { Property, PropertyCreateModel, SimplePropertyModel,SameIdPropertyModel, PropertyRentModel, PropertyOffModel } from '../viewModels/Properties/property';
 import { property_map } from '../viewModels/Properties/property_map';
 import { PropertyNameList } from '../viewModels/Properties/propertyName';
 import { HighSearchProperty } from '../viewModels/Properties/highSearchModel';
@@ -156,15 +156,16 @@ export class PropertyService {
   }
 
 
-  getPropertiesBySameNumberId(numberId:string,typeId:string): Observable<SimplePropertyModel[]> {
+  getPropertiesBySameNumberId(numberId:string,typeId:string,id:number): Observable<SameIdPropertyModel[]> {
 
     let url = this.apiUrl+"/samenumber";
 
     let requestParams = new URLSearchParams();
     requestParams.append('numberId', numberId);
     requestParams.append('typeId', typeId);
+    requestParams.append('id', id.toString());
 
-    return this.http.get<SimplePropertyModel[]>(url + "?" + requestParams.toString())
+    return this.http.get<SameIdPropertyModel[]>(url + "?" + requestParams.toString())
       .pipe(
         tap(response => { }),
         catchError(this.handleError('gethighSearchPropertiesInMap', []))
