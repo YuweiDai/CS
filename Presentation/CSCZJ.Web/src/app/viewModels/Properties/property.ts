@@ -35,6 +35,29 @@ export class Property extends PropertyListItem {
     rents:PropertyRentModel[];
 }
 
+//资产导出Model
+ export class ExportModel{
+    propertyids:string;
+    govermentids:string;
+    isName:boolean;
+    isAddress:boolean;
+    isGoverment:boolean;
+    isPropertyType:boolean;
+    isRegion:boolean;
+    isGetMode:boolean;
+    isPropertyID:boolean;
+    isUsedPeople:boolean;
+    isFourToStation:boolean;
+    isEstateId:boolean;
+    isConstructArea:boolean;
+    isConstructId:boolean;
+    isLandArea:boolean;
+    isCurrentType:boolean;
+    isUsedType:boolean;
+ }
+
+
+
 //新建资产对象
 export class PropertyCreateModel
 {    

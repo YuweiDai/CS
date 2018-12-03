@@ -8,6 +8,7 @@ import { PropertyCreateComponent } from './property-create/property-create.compo
 import { PropertyRentComponent } from './property-rent/property-rent.component';
 import { PropertyOffComponent } from './property-off/property-off.component';
 import { PropertyExportComponent } from './property-export/property-export.component';
+import { PropertyRentlistComponent } from './property-rentlist/property-rentlist.component';
 
 const propertyCenterRoutes: Routes = [
   {
@@ -42,6 +43,10 @@ const propertyCenterRoutes: Routes = [
         path: 'export',
         component: PropertyExportComponent
     },
+    {
+      path: 'rentlist',
+      component: PropertyRentlistComponent
+  },
     ]
   }
 ];

@@ -1,9 +1,9 @@
 import { Injectable } from '@angular/core';
 
-import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpParams, } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { catchError, map, tap } from 'rxjs/operators';
-
+import { ResponseContentType,RequestOptions,RequestOptionsArgs,Headers,Http } from '@angular/http';
 // import { HttpInterceptorService } from "../extensions/HttpInterceptor";
 
 import { ConfigService } from "./configService";
@@ -13,7 +13,7 @@ import { TableParams } from "../viewModels/common/TableOption";
 
 import { ListResponse } from '../viewModels/Response/ListResponse'
 import { MapListResponse } from '../viewModels/Response/MapListResponse';
-import { Property, PropertyCreateModel, SimplePropertyModel, PropertyRentModel, PropertyOffModel } from '../viewModels/Properties/property';
+import { Property, PropertyCreateModel, SimplePropertyModel, PropertyRentModel, PropertyOffModel,ExportModel } from '../viewModels/Properties/property';
 import { property_map } from '../viewModels/Properties/property_map';
 import { PropertyNameList } from '../viewModels/Properties/propertyName';
 import { HighSearchProperty } from '../viewModels/Properties/highSearchModel';
@@ -23,12 +23,13 @@ const httpOptions = {
   headers: new HttpHeaders({ 'Content-Type': 'application/json' })
 };
 
+
 @Injectable()
 export class PropertyService {
   private apiUrl = "";
 
 
-  constructor(private http: HttpClient,
+  constructor(private http: HttpClient,private http1:Http,
     private logService: LogService,
     private configService: ConfigService) {
     this.apiUrl += configService.getApiUrl() + "properties";
@@ -49,6 +50,22 @@ export class PropertyService {
       tap((property: Property) => this.log(`added property w/ id=${property.id}`)),
       catchError(this.handleError<Property>(`addProperty `))
     );
+  }
+
+  exportProperty(exportModel: ExportModel): Observable<ArrayBuffer> {
+
+    const url = `${this.apiUrl}/Export`;
+    let httpOptions1 = {
+      headers: new HttpHeaders({ 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' })
+    };
+
+    let headers = new Headers({ 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' });
+    let options = new RequestOptions({ headers: headers, responseType: ResponseContentType.ArrayBuffer });
+
+
+    return this.http1.post(url, exportModel, options).map(res => res.json()).catch(this.handleError());
+  
+
   }
 
   createPropertyRentRecord(propertyRentModel: PropertyRentModel): Observable<PropertyRentModel> {
