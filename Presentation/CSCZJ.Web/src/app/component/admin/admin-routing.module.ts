@@ -12,6 +12,7 @@ import { PropertyCreateComponent } from './properties/property-create/property-c
 import { PropertyRentComponent } from './properties/property-rent/property-rent.component';
 import { PropertyOffComponent } from './properties/property-off/property-off.component';
 import { PropertyExportComponent } from './properties/property-export/property-export.component';
+import { PropertyRentlistComponent } from './properties/property-rentlist/property-rentlist.component';
 
 import { AuthGuard } from "../../services/auth-guard.service";
 
@@ -37,6 +38,10 @@ const adminRoutes: Routes = [
                     {
                         path: 'export',
                         component: PropertyExportComponent
+                    },
+                    {
+                        path: 'rentlist',
+                        component: PropertyRentlistComponent
                     },
                     {
                         path: 'rent',

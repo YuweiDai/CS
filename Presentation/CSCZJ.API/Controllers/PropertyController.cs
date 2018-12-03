@@ -4646,10 +4646,11 @@ namespace CSCZJ.API.Controllers
         #region 资产导入导出   
 
         [HttpPost]
-        [Route("Export/{ids}")]
-        public HttpResponseMessage ExportProperties(string ids, PropertyAdvanceConditionModel advance)
+        [Route("Export")]
+        public HttpResponseMessage ExportProperties(ExportModel exportModel)
         {
-            var exportModel = advance.Fields;
+            string ids = "";
+            //var exportModel = advance.Fields;
             var browser = String.Empty;
             //    string path = @"~/Content/资产导出" + DateTime.Now.ToString("yyyyMMddhhmmss");
             string path = System.Web.Hosting.HostingEnvironment.MapPath(@"~/Content/资产导出/" + DateTime.Now.ToString("yyyyMMddhhmmss"));
@@ -4662,33 +4663,35 @@ namespace CSCZJ.API.Controllers
 
             #region 获取导出的资产集合
             IList<Property> properties = new List<Property>();
-            if (ids != "all")
-            {
-                var pids = ids.Split(';');
-                foreach (var id in pids)
-                {
-                    var property = _propertyService.GetPropertyById(Convert.ToInt32(id));
-                    properties.Add(property);
-                }
-            }
-            else
-            {
-                var currentUser = _workContext.CurrentAccountUser;
 
-                var showHidden = currentUser.IsRegistered() && currentUser.AccountUserRoles.Count == 1;  //只是注册单位可以获取未发布的
+            properties = _propertyService.GetAllProperties();
+            //if (ids != "all")
+            //{
+            //    var pids = ids.Split(';');
+            //    foreach (var id in pids)
+            //    {
+            //        var property = _propertyService.GetPropertyById(Convert.ToInt32(id));
+            //        properties.Add(property);
+            //    }
+            //}
+          //  else
+          //  {
+                //var currentUser = _workContext.CurrentAccountUser;
 
-                //初始化排序条件
-                var sortConditions = PropertySortCondition.Instance(advance.Sort);
+                //var showHidden = currentUser.IsRegistered() && currentUser.AccountUserRoles.Count == 1;  //只是注册单位可以获取未发布的
 
-                //特殊字段排序调整
-                if (advance.Sort.ToLower().StartsWith("governmentname")) sortConditions[0].PropertyName = "Government";
+                ////初始化排序条件
+                //var sortConditions = PropertySortCondition.Instance(advance.Sort);
 
-                //高级搜索参数设置
-                PropertyAdvanceConditionRequest request = PrepareAdvanceCondition(advance);
-                var governmentIds = _governmentService.GetGovernmentIdsByCurrentUser();  //获取当前账户的可查询的资产
-                properties = _propertyService.GetAllProperties(governmentIds, advance.Query, 0, int.MaxValue, showHidden, request, sortConditions);
+                ////特殊字段排序调整
+                //if (advance.Sort.ToLower().StartsWith("governmentname")) sortConditions[0].PropertyName = "Government";
 
-            }
+                ////高级搜索参数设置
+                //PropertyAdvanceConditionRequest request = PrepareAdvanceCondition(advance);
+                //var governmentIds = _governmentService.GetGovernmentIdsByCurrentUser();  //获取当前账户的可查询的资产
+                //properties = _propertyService.GetAllProperties(governmentIds, advance.Query, 0, int.MaxValue, showHidden, request, sortConditions);
+
+            //}
             #endregion
 
             using (FileStream stream = System.IO.File.Create(filePath))
@@ -4705,7 +4708,7 @@ namespace CSCZJ.API.Controllers
                         if (Convert.ToBoolean(item.GetValue(exportModel)) == true) headers.Add(data);
                     }
                 }
-                _exportManager.ExportPropertyToXlsx(stream, properties, headers);
+               _exportManager.ExportPropertyToXlsx(stream, properties, headers);
 
                 //activity log
                 _accountUserActivityService.InsertActivity("ExportProperties", "批量导出资产");

@@ -21,9 +21,31 @@
                     <i class="anticon anticon-pay-circle"></i> 资产出租</a>
                 <a class="m-l-md" [routerLink]="['./off']">
                     <i class="anticon anticon-poweroff"></i> 资产核销</a>
-                <a class="m-l-md" [routerLink]="['./export']">
+                <a class="m-l-md" (click)="showModal()">
                     <i class="anticon anticon-export"></i> 资产导出</a>
                    
+
+                    <nz-modal [(nzVisible)]="isVisible" nzTitle="资产导出" (nzOnCancel)="handleCancel()" (nzOnOk)="handleOk()">
+                        <div style="border-bottom: 1px solid rgb(233, 233, 233);">
+                            <label nz-checkbox [(ngModel)]="allChecked" (ngModelChange)="updateAllUnitChecked()" [nzIndeterminate]="Unitindeterminate">
+                              单位选择
+                            </label>
+                          </div>
+                          <br>
+                          <nz-checkbox-group [(ngModel)]="unit" (ngModelChange)="updateUnitChecked()"></nz-checkbox-group>
+            
+                        <br>
+            
+            
+                          <div style="border-bottom: 1px solid rgb(233, 233, 233);margin-top: 2em">
+                          <label nz-checkbox [(ngModel)]="allAttributesChecked" (ngModelChange)="updateAllAttributesChecked()" [nzIndeterminate]="Attributesindeterminate">
+                            字段选择
+                          </label>
+                        </div>
+                        <br>
+                        <nz-checkbox-group [(ngModel)]="Attributes" (ngModelChange)="updateAttributesChecked()"></nz-checkbox-group>
+            
+                      </nz-modal>
 
             </ng-template>
         </div>

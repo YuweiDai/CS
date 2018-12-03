@@ -20,6 +20,7 @@ export class PropertyCenterComponent implements OnInit {
 
     this.menuItems= [
       { icon: "icon-liebiao", title: "资产管理",url:"./",active:true },
+      { icon: "icon-shenpi", title: "出租管理",url:"./rentlist",active:false },
       // { icon: "icon-xinzeng", title: "新增资产",url:"./create",active:false },
       { icon: "icon-shenpi", title: "审批管理",url:"./",active:false }
     ];

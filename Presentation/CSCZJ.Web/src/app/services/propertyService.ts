@@ -1,9 +1,9 @@
 import { Injectable } from '@angular/core';
 
-import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpParams, } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { catchError, map, tap } from 'rxjs/operators';
-
+import { ResponseContentType,RequestOptions,RequestOptionsArgs,Headers,Http } from '@angular/http';
 // import { HttpInterceptorService } from "../extensions/HttpInterceptor";
 
 import { ConfigService } from "./configService";
@@ -13,7 +13,7 @@ import { TableParams } from "../viewModels/common/TableOption";
 
 import { ListResponse } from '../viewModels/Response/ListResponse'
 import { MapListResponse } from '../viewModels/Response/MapListResponse';
-import { Property, PropertyCreateModel, SimplePropertyModel,SameIdPropertyModel, PropertyRentModel, PropertyOffModel } from '../viewModels/Properties/property';
+import { Property, PropertyCreateModel, SimplePropertyModel,SameIdPropertyModel, PropertyRentModel, PropertyOffModel,ExportModel } from '../viewModels/Properties/property';
 import { property_map } from '../viewModels/Properties/property_map';
 import { PropertyNameList } from '../viewModels/Properties/propertyName';
 import { HighSearchProperty } from '../viewModels/Properties/highSearchModel';
@@ -22,6 +22,7 @@ import { HighSearchProperty } from '../viewModels/Properties/highSearchModel';
 const httpOptions = {
   headers: new HttpHeaders({ 'Content-Type': 'application/json' })
 };
+
 
 @Injectable()
 export class PropertyService {
@@ -49,6 +50,16 @@ export class PropertyService {
       tap((property: Property) => this.log(`added property w/ id=${property.id}`)),
       catchError(this.handleError<Property>(`addProperty `))
     );
+  }
+
+  exportProperty(exportModel: ExportModel){
+
+    const url = `${this.apiUrl}/Export`;
+  
+
+    return this.http.post(url, exportModel,{responseType:"arraybuffer"});
+  
+
   }
 
   createPropertyRentRecord(propertyRentModel: PropertyRentModel): Observable<PropertyRentModel> {

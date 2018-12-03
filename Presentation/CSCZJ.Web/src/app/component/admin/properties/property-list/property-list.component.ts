@@ -7,6 +7,9 @@ import { LayoutService } from "./../../../../services/layoutService";
 import { TablePageSize,TableColumn,TableOption } from "../../../../viewModels/common/TableOption";
 import { PropertyService } from '../../../../services/propertyService';
 
+import { ExportModel } from '../../../../viewModels/Properties/property';
+
+
 @Component({
   selector: 'app-property-list',
   templateUrl: './property-list.component.html',
@@ -24,6 +27,181 @@ export class PropertyListComponent implements OnInit {
   data:any[];
   tableOption:TableOption;
   private loading:boolean;
+  httpResponse={
+    responseType: "arraybuffer"
+  }
+
+
+
+  private exportModel = new ExportModel();
+  isVisible = false;
+
+  showModal(): void {
+    this.isVisible = true;
+  }
+
+  handleOk(): void {
+
+    for(let u of this.Attributes){
+
+     switch(u.value){
+
+      case'isName':
+      this.exportModel.isName=u.checked;
+      break;
+      case'isAddress':
+      this.exportModel.isAddress=u.checked;
+      break;
+      case'isGovermentId':
+      this.exportModel.isGoverment=u.checked;
+      break;
+      case'isPropertyType':
+      this.exportModel.isPropertyType=u.checked;
+      break;
+      case'isRegion':
+      this.exportModel.isRegion=u.checked;
+      break;
+      case'isGetMode':
+      this.exportModel.isGetMode=u.checked;
+      break;
+      case'isPropertyID':
+      this.exportModel.isPropertyID=u.checked;
+      break;
+      case'isUsedPeople':
+      this.exportModel.isUsedPeople=u.checked;
+      break;
+      case'isFourToStation':
+      this.exportModel.isFourToStation=u.checked;
+      break;
+      case'isEstatedId':
+      this.exportModel.isEstateId=u.checked;
+      break;
+      case'isConstructArea':
+      this.exportModel.isConstructArea=u.checked;
+      break;
+      case'isConstructId':
+      this.exportModel.isConstructId=u.checked;
+      break;
+      case'isLandArea':
+      this.exportModel.isLandArea=u.checked;
+      break;
+      case'isCurrentType':
+      this.exportModel.isCurrentType=u.checked;
+      break;
+      case'isUsedType':
+      this.exportModel.isUsedType=u.checked;
+      break;
+     }    
+    }
+
+    for(let v of this.unit){
+        if(v.value!=null||v.value!=undefined){
+          this.exportModel.govermentids += v.value+";";
+        } 
+      
+    }
+    this.exportModel.propertyids="";
+
+    this.propertyService.exportProperty(this.exportModel).subscribe((response:any) => {
+
+      var blob = new Blob([response], {type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"});  
+      var objectUrl = URL.createObjectURL(blob);  
+      var a = document.createElement("a");
+      document.body.appendChild(a);
+      a.setAttribute("style", "display:none");
+      a.setAttribute("href", objectUrl);
+      a.setAttribute("download", "资产下载");
+      a.click();
+      URL.revokeObjectURL(objectUrl); 
+
+    })
+
+    console.log('Button ok clicked!');
+    this.isVisible = false;
+  }
+
+  handleCancel(): void {
+    console.log('Button cancel clicked!');
+    this.isVisible = false;
+  }
+
+  allChecked = true;
+  Unitindeterminate = true;
+  allAttributesChecked=true;
+  Attributesindeterminate=true;
+
+  unit = [
+    { label: '常山县财政局', value: '1', checked: true },
+    { label: '常山县公路管理局', value: '2', checked: true },
+    { label: '常山县教育局', value: '3', checked: true }
+  ];
+  Attributes= [
+    { label: '资产名称', value: 'isName', checked: true },
+    { label: '资产地址', value: 'isAddress', checked: true },
+    { label: '所属单位', value: 'isGovermentId', checked: true },
+    { label: '资产类别', value: 'isPropertyType', checked: true },
+    { label: '所属乡镇', value: 'isRegion', checked: true },
+    { label: '获取方式', value: 'isGetMode', checked: true },
+    { label: '产权证号', value: 'isPropertyID', checked: true },
+    { label: '资产使用', value: 'isUsedPeople', checked: true },
+    { label: '四至情况', value: 'isFourToStation', checked: true },
+    { label: '不动产证', value: 'isEstatedId', checked: true },
+    { label: '建筑面积', value: 'isConstructArea', checked: true },
+    { label: '房产证号', value: 'isConstructId', checked: true },
+    { label: '土地面积', value: 'isLandArea', checked: true },
+    { label: '使用现状', value: 'isCurrentType', checked: true },
+    { label: '资产用途', value: 'isUsedType', checked: true }
+  ];
+
+
+
+  updateAllUnitChecked(): void {
+    this.Unitindeterminate = false;
+    if (this.allChecked) {
+      this.unit.forEach(item => item.checked = true);
+    } else {
+      this.unit.forEach(item => item.checked = false);
+    }
+  }
+
+  updateUnitChecked(): void {
+    if (this.unit.every(item => item.checked === false)) {
+      this.allChecked = false;
+      this.Unitindeterminate = false;
+    } else if (this.unit.every(item => item.checked === true)) {
+      this.allChecked = true;
+      this.Unitindeterminate = false;
+    } else {
+      this.Unitindeterminate = true;
+    }
+  }
+
+
+
+  updateAllAttributesChecked(): void {
+    this.Attributesindeterminate = false;
+    if (this.allAttributesChecked) {
+      this.Attributes.forEach(item => item.checked = true);
+    } else {
+      this.Attributes.forEach(item => item.checked = false);
+    }
+  }
+
+  updateAttributesChecked(): void {
+    if (this.Attributes.every(item => item.checked === false)) {
+      this.allAttributesChecked = false;
+      this.Attributesindeterminate = false;
+    } else if (this.Attributes.every(item => item.checked === true)) {
+      this.allAttributesChecked = true;
+      this.Attributesindeterminate = false;
+    } else {
+      this.Attributesindeterminate = true;
+    }
+  }
+
+
+
+
 
 
   constructor(
@@ -97,5 +275,9 @@ export class PropertyListComponent implements OnInit {
 
     });
   }
+
+
+
+
 
 }
