@@ -187,7 +187,7 @@ export class PropertyService {
 
   
 
-  getUsers(pageIndex: number = 1, pageSize: number = 10, sortField: string, sortOrder: string, tabKey: string): Observable<{}> {
+  getUsers(pageIndex: number = 1, pageSize: number = 10, sortField: string, sortOrder: string, tabKey: string): Observable<ListResponse> {
   let  randomUserUrl = this.apiUrl+"/rentlist";
 
     let params = new HttpParams()
@@ -198,7 +198,7 @@ export class PropertyService {
     .append('tabKey',tabKey)
     ;
    
-    return this.http.get(`${randomUserUrl}`, {
+    return this.http.get<ListResponse>(`${randomUserUrl}`, {
       params
     });
   }

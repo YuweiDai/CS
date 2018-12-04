@@ -104,14 +104,10 @@ namespace CSCZJ.Services.Property
             return propertiesRentRecords;
         }
 
-        public IPagedList<PropertyRent> GetRentListRecords(int page = 0, int results = int.MaxValue, string sortField = "", string sortOrder = "", string tabKey = "即将过期")
+        public IPagedList<PropertyRent> GetRentListRecords(int page = 0, int results = int.MaxValue, string sortField = "", string sortOrder = "", string tabKey = "即将过期", params PropertySortCondition[] sortConditions)
         {
             var query = _propertyRentRepository.Table.AsNoTracking();
-            //var query = from p in _propertyRentRepository.TableNoTracking
-            //            orderby p.BackTime ascending
-            //            select p;
 
-            //var rents = query.ToList();
             Expression<Func<CSCZJ.Core.Domain.Properties.PropertyRent, bool>> expression = p => !p.Deleted;
             var now = DateTime.Now;
             //switch (tabKey)
@@ -124,13 +120,20 @@ namespace CSCZJ.Services.Property
             //        break;
             //}
             query = query.Where(expression);
-            //var query1 = from p in query
-            //             orderby p.BackTime ascending
-            //             select p;
-            //var rents = query1.ToList();
+
+            var defaultSort = new PropertySortCondition("Id", System.ComponentModel.ListSortDirection.Ascending);
+            if (sortConditions != null && sortConditions.Length != 0)
+            {
+                query = query.Sort(sortConditions[0]);
+            }
+            else
+            {
+                query = query.Sort(new PropertySortCondition("DisplayOrder", System.ComponentModel.ListSortDirection.Ascending));
+            }
+
 
             var propertiesRentRecords = new PagedList<CSCZJ.Core.Domain.Properties.PropertyRent>(query, page, results);
-            return propertiesRentRecords;
+              return propertiesRentRecords;
         }
 
 

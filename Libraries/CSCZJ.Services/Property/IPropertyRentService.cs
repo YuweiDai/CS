@@ -13,7 +13,7 @@ namespace CSCZJ.Services.Property
         IPagedList<CSCZJ.Core.Domain.Properties.PropertyRent> GetAllRentRecords(IList<int> governmentIds, string checkState = "unchecked", string search = "", int pageIndex = 0,
             int pageSize = int.MaxValue, params PropertySortCondition[] sortConditions);
 
-        IPagedList<CSCZJ.Core.Domain.Properties.PropertyRent> GetRentListRecords(int page = 0, int results = int.MaxValue, string sortField = "", string sortOrder = "", string tabKey = "即将过期");
+        IPagedList<CSCZJ.Core.Domain.Properties.PropertyRent> GetRentListRecords(int page = 0, int results = int.MaxValue, string sortField = "", string sortOrder = "", string tabKey = "即将过期", params PropertySortCondition[] sortConditions);
              
         void DeletePropertyRent(PropertyRent p);
 

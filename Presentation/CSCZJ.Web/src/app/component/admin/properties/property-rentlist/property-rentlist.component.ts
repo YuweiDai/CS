@@ -39,8 +39,8 @@ export class PropertyRentlistComponent implements OnInit {
     this.loading = true;
     this.propertyService.getUsers(this.pageIndex, this.pageSize, this.sortKey, this.sortValue, this.tabKey).subscribe((data: any) => {
       this.loading = false;
-      this.total = 200;
-      this.dataSet = data.results;
+      this.total = data.paging;
+      this.dataSet = data.data;
     });
   }
 
