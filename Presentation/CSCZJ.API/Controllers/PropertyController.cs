@@ -2030,6 +2030,17 @@ namespace CSCZJ.API.Controllers
 
         #region 资产处置
 
+        //获取资产出租列表
+        [HttpGet]
+        [Route("rentlist")]
+        public IHttpActionResult GetRentList(int page = 0, int results = int.MaxValue, string sortField = "", string sortOrder = "",string tabKey="即将过期") {
+
+            var response = _propertyRentService.GetRentListRecords(page,results,sortField,sortOrder,tabKey);
+
+            return Ok(response);
+        }
+
+
         //[AllowAnonymous]
         [HttpGet]
         [Route("PropertyProcess/{name}")]

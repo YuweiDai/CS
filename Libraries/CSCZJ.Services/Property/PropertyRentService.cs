@@ -104,6 +104,37 @@ namespace CSCZJ.Services.Property
             return propertiesRentRecords;
         }
 
+        public IPagedList<PropertyRent> GetRentListRecords(int page = 0, int results = int.MaxValue, string sortField = "", string sortOrder = "", string tabKey = "即将过期")
+        {
+            var query = _propertyRentRepository.Table.AsNoTracking();
+            //var query = from p in _propertyRentRepository.TableNoTracking
+            //            orderby p.BackTime ascending
+            //            select p;
+
+            //var rents = query.ToList();
+            Expression<Func<CSCZJ.Core.Domain.Properties.PropertyRent, bool>> expression = p => !p.Deleted;
+            var now = DateTime.Now;
+            //switch (tabKey)
+            //{
+            //    case "即将过期":
+            //        expression = expression.And(p => ((TimeSpan)(p.BackTime - now)).TotalDays > 0 && ((TimeSpan)(p.BackTime - now)).TotalDays < 30);
+            //        break;
+            //    case "已经过期":
+            //        expression = expression.And(p => ((TimeSpan)(p.BackTime - now)).TotalDays < 0);
+            //        break;
+            //}
+            query = query.Where(expression);
+            //var query1 = from p in query
+            //             orderby p.BackTime ascending
+            //             select p;
+            //var rents = query1.ToList();
+
+            var propertiesRentRecords = new PagedList<CSCZJ.Core.Domain.Properties.PropertyRent>(query, page, results);
+            return propertiesRentRecords;
+        }
+
+
+
         public void DeletePropertyRent(PropertyRent p)
         {
             if (p == null)
@@ -256,6 +287,8 @@ namespace CSCZJ.Services.Property
             //event notification
             _eventPublisher.EntityUpdated(propertyRentFile);
         }
+
+      
         #endregion
 
 
