@@ -128,7 +128,7 @@ namespace CSCZJ.Services.Property
             }
             else
             {
-                query = query.Sort(new PropertySortCondition("DisplayOrder", System.ComponentModel.ListSortDirection.Ascending));
+                query = query.Sort(new PropertySortCondition(defaultSort.PropertyName));
             }
 
 
