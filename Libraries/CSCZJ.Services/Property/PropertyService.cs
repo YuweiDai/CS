@@ -112,6 +112,9 @@ namespace CSCZJ.Services.Properties
 
             if (!showHidden) expression = expression.And(p => p.Published && !p.Off);
 
+            //不查询子资产
+            expression = expression.And(p => p.ParentPropertyId == 0);
+
             //字符串查询
             if (!string.IsNullOrEmpty(search))
             {
@@ -705,7 +708,7 @@ namespace CSCZJ.Services.Properties
         {
             var query = _propertyRepository.TableNoTracking;
 
-            query = query.Where(p => !p.Deleted && p.Published);
+            query = query.Where(p => !p.Deleted);
 
 
             if(typeId=="0")

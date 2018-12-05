@@ -110,6 +110,10 @@ namespace CSCZJ.API.Models.Properties
 
         public string UsedPeople { get; set; }
 
+        public bool IsMain { get; set; }
+
+        public int ParentPropertyId { get; set; }
+
         #region 暂时未用到
         public double CurrentUse_Self { get; set; }
 
@@ -239,6 +243,10 @@ namespace CSCZJ.API.Models.Properties
         public string Extent { get; set; }
 
         public string UsedPeople { get; set; }
+
+        public bool IsMain { get; set; }
+
+        public int ParentPropertyId { get; set; }
 
         #region 暂时未用到
         public double CurrentUse_Self { get; set; }

@@ -455,7 +455,8 @@ console.log("next");
           //获取同号资产
            
           var typeId = this.property.registerEstate == "true" ? "0" : "1";
-          var number = this.property.registerEstate == "true" ? this.property.estateId : this.property.estateId;
+          var number = this.property.registerEstate == "true" ? this.property.estateId : 
+          (this.property.propertyTypeId=="0"?this.property.constructId:this.property.landId);
 
 
           this.propertyService.getPropertiesBySameNumberId(number, typeId,0)
@@ -463,6 +464,14 @@ console.log("next");
               var that = this;
               that.sameCardIdChecked=true;
               that.sameCardProperties=response;
+
+              that.sameCardProperties.forEach(element => {
+                if(element.isMain)
+                {
+                  that.property.parentPropertyId=element.id;
+                  return false;
+                }
+              });
             });
         }
         break;

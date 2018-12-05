@@ -232,6 +232,7 @@ namespace CSCZJ.API.Controllers
 
             if (propertyCreateModel.PropertyTypeId == 2) propertyCreateModel.Floor = 0;
 
+
          //   property.HasConstructID = !string.IsNullOrEmpty(property.EstateId) || !string.IsNullOrEmpty(property.ConstructId);  //是否拥有房产证
         //    property.HasLandID = !string.IsNullOrEmpty(property.EstateId) || !string.IsNullOrEmpty(property.LandId);  //是否土地证
         }
@@ -1664,7 +1665,11 @@ namespace CSCZJ.API.Controllers
 
             var response = _propertyService.GetPropertiesBySameNumberId(numberId, typeId).Select(p =>
              {
-                 return p.ToSameIdModel();
+                 var pp = p.ToSameIdModel();
+
+                 if (!p.Published)
+                     pp.Name += "(未发布)";
+                 return pp;
              });
 
             if(id!=0)
@@ -1678,6 +1683,7 @@ namespace CSCZJ.API.Controllers
                 }                    
             }
 
+ 
         
 
             return Ok(response);
@@ -1700,10 +1706,16 @@ namespace CSCZJ.API.Controllers
             var property = propertyCreateModel.ToEntity();       
 
             PrepareProperty(property, propertyCreateModel);
-          
+
+            //一证多资产处理
+            var orginParentPropertyId = propertyCreateModel.IsMain ? propertyCreateModel.ParentPropertyId : 0;
+
+ 
+
             _propertyService.InsertProperty(property);
 
-            
+ 
+
             //activity log
             _accountUserActivityService.InsertActivity("AddNewproperty", "增加 名为 {0} 的资产", property.Name);
 
