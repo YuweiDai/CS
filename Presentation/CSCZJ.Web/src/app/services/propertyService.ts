@@ -183,7 +183,25 @@ export class PropertyService {
       );
   }
 
+  //获取出租列表
 
+  
+
+  getUsers(pageIndex: number = 1, pageSize: number = 10, sortField: string, sortOrder: string, tabKey: string): Observable<ListResponse> {
+  let  randomUserUrl = this.apiUrl+"/rentlist";
+
+    let params = new HttpParams()
+    .append('page', `${pageIndex}`)
+    .append('results', `${pageSize}`)
+    .append('sortField', sortField)
+    .append('sortOrder', sortOrder)
+    .append('tabKey',tabKey)
+    ;
+   
+    return this.http.get<ListResponse>(`${randomUserUrl}`, {
+      params
+    });
+  }
 
 
 

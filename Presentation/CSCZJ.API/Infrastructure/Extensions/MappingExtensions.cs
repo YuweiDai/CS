@@ -197,6 +197,7 @@ namespace CSCZJ.Web.Api.Extensions
         {
             return entity.MapTo<PropertyRent, PropertyRentApproveListModel>();
         }
+
         public static PropertyRent ToEntity(this PropertyRentModel createmodel)
         {
             return createmodel.MapTo<PropertyRentModel, PropertyRent>();

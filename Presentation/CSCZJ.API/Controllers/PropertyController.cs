@@ -2042,6 +2042,57 @@ namespace CSCZJ.API.Controllers
 
         #region 资产处置
 
+        //获取资产出租列表
+        [HttpGet]
+        [Route("rentlist")]
+        public IHttpActionResult GetRentList(int page = 0, int results = int.MaxValue, string sortField = "", string sortOrder = "",string tabKey="即将过期") {
+         
+            //初始化排序条件
+            var sortConditions = PropertySortCondition.Instance(sortField);
+
+            var allRecords = _propertyRentService.GetRentListRecords(page,results,sortField,sortOrder,tabKey);
+            var response = new ListResponse<PropertyRentApproveListModel>
+            {
+
+                Paging = new Paging
+                {
+                    PageIndex = page,
+                    PageSize = results,
+                    Total = allRecords.TotalCount,
+                    FilterCount = allRecords.Count,
+                },
+                Data = allRecords.Select(pcr =>
+                {
+                    var pcrl = pcr.ToListModel();
+
+                    pcrl.RentTime = pcr.RentTime.ToString("yyyy/MM/dd") + " - " + pcr.BackTime.ToString("yyyy/MM/dd");
+                    pcrl.PriceString = "";
+                    var priceList = pcr.PriceString.Split(';');
+                    var index = 1;
+                    foreach (var price in priceList)
+                    {
+                        if (index > 2)
+                        {
+                            pcrl.PriceString += "...";
+                            break;
+                        }
+                        pcrl.PriceString += string.Format("第{0}年租金{1}元;", index, price);
+                        index++;
+                    }
+
+                    pcrl.Property_Id = pcr.Property.Id;
+                  //  pcrl.CanApprove = PropertyCanApprove(pcr.State, pcr.SuggestGovernmentId);
+
+                //    pcrl.CanEditAndDelete = PropertyApproveCanEditDeleteAndSubmit(pcr.State, pcr.SuggestGovernmentId);
+
+                    return pcrl;
+                })
+            };
+
+            return Ok(response);
+        }
+
+
         //[AllowAnonymous]
         [HttpGet]
         [Route("PropertyProcess/{name}")]

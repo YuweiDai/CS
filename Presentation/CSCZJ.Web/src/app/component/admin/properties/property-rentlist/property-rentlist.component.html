@@ -14,12 +14,34 @@
           <nz-tabset [nzTabPosition]="'top'" [nzType]="'card'" >
             <nz-tab *ngFor="let tab of tabs" [nzTitle]="tab"  (nzClick)="getRents(tab)" >
 
-              <nz-card nzTitle="出租列表" [nzExtra]="extraTemplate">
-                <div class="component-content">
-                    <!-- [ngStyle]="{'height.px':contentHeight-135.875}" -->
-                    <app-ui-table [dataset]="data" [tableOption]="tableOption" [loading]="loading" (paramsChange)="getAllProperties($event)"></app-ui-table>
-                </div>
-            </nz-card>
+                <nz-table
+                #ajaxTable
+                nzShowSizeChanger
+                [nzFrontPagination]="false"
+                [nzData]="dataSet"
+                [nzLoading]="loading"
+                [nzTotal]="total"
+                [(nzPageIndex)]="pageIndex"
+                [(nzPageSize)]="pageSize"
+                (nzPageIndexChange)="searchData()"
+                (nzPageSizeChange)="searchData(true)">
+                <thead (nzSortChange)="sort($event)" nzSingleSort>
+                  <tr>
+                    <th nzShowSort nzSortKey="name">Name</th>
+                    <th nzShowFilter [nzFilters]="filterGender" (nzFilterChange)="updateFilter($event)">Gender</th>
+                    <th nzShowSort nzSortKey="email"><span>Email</span></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let data of ajaxTable.data">
+                    <td>{{data.name.first}} {{data.name.last}}</td>
+                    <td>{{data.gender}}</td>
+                    <td>{{data.email}}</td>
+                  </tr>
+                </tbody>
+              </nz-table>
+
+              
 
             </nz-tab>
           </nz-tabset>
