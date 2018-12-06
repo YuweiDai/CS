@@ -29,7 +29,7 @@
               <div nz-row>
                 <div nz-col nzSpan="24" class="item">
                   <div>产权单位：
-                    <a href="">{{property.governmentName}}</a>
+                    <a href="javascript:void(0)">{{property.governmentName}}</a>
                   </div>
                 </div>
                 <div nz-col nzSpan="24" class="item">
@@ -122,7 +122,16 @@
                         <td>办证时间</td>
                         <td>{{property.landTime}} </td>
                       </tr>
-
+                      <tr *ngIf="subProperties.length>0">
+                        <td>子资产</td>
+                        <td>
+                          <ul>
+                            <li *ngFor="let subProperty of subProperties">
+                              <a [routerLink]="['/admin/properties/'+subProperty.id]" target="_blank">{{subProperty.name}}</a>
+                            </li>                         
+                          </ul>
+                        </td>
+                      </tr>
                     </tbody>
                   </table>
                 </div>

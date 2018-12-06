@@ -32,21 +32,21 @@ const propertyCenterRoutes: Routes = [
         component: PropertyOffComponent
       },      
       {
+        path: 'export',
+        component: PropertyExportComponent
+      },
+      {
+        path: 'rentlist',
+        component: PropertyRentlistComponent
+      },      
+      {
         path: ':id',
         component: PropertyDetailComponent
       },
       {
         path: 'edit/:id',
         component: PropertyCreateComponent
-      },
-      {
-        path: 'export',
-        component: PropertyExportComponent
-    },
-    {
-      path: 'rentlist',
-      component: PropertyRentlistComponent
-  },
+      }
     ]
   }
 ];

@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Location } from '@angular/common';
 
-import { Property, PropertyRentModel } from "../../../../viewModels/Properties/property";
+import { Property, PropertyRentModel,SameIdPropertyModel } from "../../../../viewModels/Properties/property";
 
 import { MapService } from '../../../../services/map/mapService';
 import { PropertyService } from '../../../../services/propertyService';
@@ -19,11 +19,14 @@ export class PropertyDetailComponent implements OnInit {
   private property: Property;
   private wkt: any;
   private map: any;
+  private subProperties:SameIdPropertyModel[];
 
   constructor(
     private propertyService: PropertyService, private mapService: MapService,
     private route: ActivatedRoute, private router: Router) {
     this.property = new Property();
+
+    this.subProperties=[];
   }
 
   ngOnInit() {
@@ -41,8 +44,28 @@ export class PropertyDetailComponent implements OnInit {
 
         this.property.rents.forEach(rent=>{
           rent.priceList=rent.priceString.split(';');
-
         });
+        
+        if(this.property.parentPropertyId==0)
+        {
+        var typeId = this.property.estateId  ? "0" : "1";
+        var number = this.property.estateId ? this.property.estateId : 
+        (this.property.constructId?this.property.constructId:this.property.landId);
+
+        this.propertyService.getPropertiesBySameNumberId(number, typeId,this.property.id)
+        .subscribe(response => {
+          var that = this; 
+          that.subProperties=response;
+
+          that.subProperties.forEach(element => {
+            if(element.isMain)
+            {
+              that.property.parentPropertyId=element.id;
+              return false;
+            }
+          });
+        });        
+      }
 
         console.log(this.property);
         this.loading = false;

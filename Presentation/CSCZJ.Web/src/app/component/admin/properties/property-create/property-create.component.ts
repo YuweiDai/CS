@@ -544,10 +544,10 @@ console.log("next");
               nzOkText: '查看资产',
               nzCancelText: '返回列表',
               nzOnOk: function () {
-                that.router.navigate(['../properties/' + id]);
+                that.router.navigate(['/admin/properties/' + id]);
               },
               nzOnCancel: function () {
-                that.router.navigate(['/properties']);
+                that.router.navigate(['/admin/properties']);
               }
             });
           }

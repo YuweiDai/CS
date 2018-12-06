@@ -33,6 +33,7 @@ export class Property extends PropertyListItem {
     lon?:number;
     lat?:number;
     rents:PropertyRentModel[];
+    parentPropertyId:number;
 }
 
 //资产导出Model

@@ -1670,17 +1670,15 @@ namespace CSCZJ.API.Controllers
                  if (!p.Published)
                      pp.Name += "(未发布)";
                  return pp;
-             });
+             }).ToList();
 
-            if(id!=0)
+
+
+            if (id != 0)
             {
-                var currentProperty = _propertyService.GetPropertyById(id);
-
+                var currentProperty = response.Where(p => p.Id == id).SingleOrDefault();
                 if (currentProperty != null)
-                {
-                    var removedProperties = new List<SameIdPropertyModel> { currentProperty.ToSameIdModel() };
-                    response = response.Except(removedProperties);
-                }                    
+                    response.Remove(currentProperty);               
             }
 
  

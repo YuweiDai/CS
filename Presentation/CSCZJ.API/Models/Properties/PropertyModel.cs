@@ -230,6 +230,7 @@ namespace CSCZJ.API.Models.Properties
 
         public bool Off { get; set; }
 
+        public int ParentPropertyId { get; set; }
 
     }
 }
