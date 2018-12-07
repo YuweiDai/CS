@@ -187,7 +187,9 @@ export class PropertyListComponent implements OnInit {
     }
   }
 
-  updateAttributesChecked(): void {
+
+  updateAttributesChecked(d): void {
+    d.checked=!d.checked;
     if (this.Attributes.every(item => item.checked === false)) {
       this.allAttributesChecked = false;
       this.Attributesindeterminate = false;

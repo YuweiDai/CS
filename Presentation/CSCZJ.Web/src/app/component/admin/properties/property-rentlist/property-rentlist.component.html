@@ -27,21 +27,25 @@
                 (nzPageSizeChange)="searchData(true)">
                 <thead (nzSortChange)="sort($event)" nzSingleSort>
                   <tr>
-                    <th nzShowSort nzSortKey="name">Name</th>
-                    <th nzShowFilter [nzFilters]="filterGender" (nzFilterChange)="updateFilter($event)">Gender</th>
-                    <th nzShowSort nzSortKey="email"><span>Email</span></th>
+                    <th nzShowSort >出租方</th>
+                    <th nzShowSort >资产名称</th>
+                    <th nzShowSort nzSortKey="rentTime">起始时间</th>
+                    <th nzShowSort nzSortKey="backTime">结束时间</th>
+                    <th nzShowSort ><span>出租金额</span></th>
                   </tr>
                 </thead>
                 <tbody>
-                  <tr *ngFor="let data of ajaxTable.data">
-                    <td>{{data.name.first}} {{data.name.last}}</td>
-                    <td>{{data.gender}}</td>
-                    <td>{{data.email}}</td>
+                  <tr *ngFor="let data of dataSet">
+                    <td>{{data.name}}</td>
+                    <td>{{data.title}}</td>
+                    <td>{{data.rentTime}}</td>
+                    <td>{{data.backTime}}</td>
+                    <td>{{data.priceString}}</td>
                   </tr>
                 </tbody>
               </nz-table>
 
-              
+
 
             </nz-tab>
           </nz-tabset>

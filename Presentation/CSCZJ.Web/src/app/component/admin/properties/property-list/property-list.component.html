@@ -32,18 +32,24 @@
                             </label>
                           </div>
                           <br>
-                          <nz-checkbox-group [(ngModel)]="unit" (ngModelChange)="updateUnitChecked()"></nz-checkbox-group>
+                          <nz-checkbox-group [(ngModel)]="unit" (ngModelChange)="updateUnitChecked()"></nz-checkbox-group><br>
             
-                        <br>
-            
+                          <nz-divider></nz-divider>
+               
             
                           <div style="border-bottom: 1px solid rgb(233, 233, 233);margin-top: 2em">
                           <label nz-checkbox [(ngModel)]="allAttributesChecked" (ngModelChange)="updateAllAttributesChecked()" [nzIndeterminate]="Attributesindeterminate">
                             字段选择
                           </label>
-                        </div>
+                        </div>                       
                         <br>
-                        <nz-checkbox-group [(ngModel)]="Attributes" (ngModelChange)="updateAttributesChecked()"></nz-checkbox-group>
+                        <nz-checkbox-wrapper style="width: 100%;" (nzOnChange)="updateAttributesChecked(data)" *ngFor="let data of Attributes">
+                                <div nz-row >
+                                  <div nz-col nzSpan="24"><label nz-checkbox nzValue="data.value" [ngModel]="data.checked" >{{data.label}}</label></div>
+                                </div>
+                              </nz-checkbox-wrapper>
+
+                        <!-- <nz-checkbox-group [(ngModel)]="Attributes" (ngModelChange)="updateAttributesChecked()"></nz-checkbox-group> -->
             
                       </nz-modal>
 

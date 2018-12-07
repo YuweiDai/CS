@@ -39,7 +39,7 @@ export class PropertyRentlistComponent implements OnInit {
     this.loading = true;
     this.propertyService.getUsers(this.pageIndex, this.pageSize, this.sortKey, this.sortValue, this.tabKey).subscribe((data: any) => {
       this.loading = false;
-      this.total = data.paging;
+      this.total = data.paging.total;
       this.dataSet = data.data;
     });
   }
@@ -55,12 +55,18 @@ export class PropertyRentlistComponent implements OnInit {
     switch(index){
 
       case "即将过期":
+      this.tabKey="即将过期";
+      this.searchData();
       break;
 
       case "已经过期":
+      this.tabKey="已经过期";
+      this.searchData();
       break;
 
       case "全部信息":
+      this.tabKey="全部信息";
+      this.searchData();
       break;
 
     }
