@@ -201,7 +201,7 @@ export class PropertyRentComponent implements OnInit {
             that.isSubmit = false;
           }
           else {
-            var url='../properties';
+            var url='/admin/properties';
             if (this.selectedProperties.length==1) {
               url+="/"+this.selectedProperties[0];
             }
