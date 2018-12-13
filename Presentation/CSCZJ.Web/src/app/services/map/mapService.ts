@@ -22,46 +22,46 @@ export class MapService{
         if(layerType=="img")
         {
             // 国家
-            var country= L.tileLayer("http://t{s}.tianditu.cn/img_c/wmts?service=wmts&request=GetTile&version=1.0.0&LAYER=img&tileMatrixSet=c&TileMatrix={z}&TileRow={y}&TileCol={x}&style=default&format=tiles", {
+            var country = L.tileLayer("http://t{s}.tianditu.cn/img_c/wmts?service=wmts&request=GetTile&version=1.0.0&LAYER=img&tileMatrixSet=c&TileMatrix={z}&TileRow={y}&TileCol={x}&style=default&format=tiles", {
                 subdomains: ["0", "1", "2", "3", "4", "5", "6", "7"],
-                minZoom:1,
-                maxZoom:14,
-                zoomOffset :1                
+                minZoom: 1,
+                maxZoom: 14,
+                zoomOffset: 1
             });
-            var countryAnno= L.tileLayer("http://t{s}.tianditu.com/cva_c/wmts?service=wmts&request=GetTile&version=1.0.0&LAYER=cva&tileMatrixSet=c&TileMatrix={z}&TileRow={y}&TileCol={x}&style=default&format=tiles", {
+            var countryAnno = L.tileLayer("http://t{s}.tianditu.com/cva_c/wmts?service=wmts&request=GetTile&version=1.0.0&LAYER=cva&tileMatrixSet=c&TileMatrix={z}&TileRow={y}&TileCol={x}&style=default&format=tiles", {
                 subdomains: ["0", "1", "2", "3", "4", "5", "6", "7"],
-                minZoom:1,
-                maxZoom:14,
-                zoomOffset :1  
-            });            
+                minZoom: 1,
+                maxZoom: 14,
+                zoomOffset: 1
+            });
             // 省级
-            var province=L.tileLayer("http://srv{s}.zjditu.cn/ZJDOM_2D/wmts?service=wmts&request=GetTile&version=1.0.0&LAYER=imgmap&tileMatrixSet=default028mm&TileMatrix={z}&TileRow={y}&TileCol={x}&style=default&format=image/jpgpng", {
+            var province = L.tileLayer("http://srv{s}.zjditu.cn/ZJDOM_2D/wmts?service=wmts&request=GetTile&version=1.0.0&LAYER=imgmap&tileMatrixSet=default028mm&TileMatrix={z}&TileRow={y}&TileCol={x}&style=default&format=image/jpgpng", {
                 subdomains: ["0", "1", "2", "3", "4", "5", "6", "7"],
-                minZoom:7,
-                maxZoom:17,
-                zoomOffset :1                 
+                minZoom: 7,
+                maxZoom: 17,
+                zoomOffset: 1
             });
-            var provinceAnno=L.tileLayer("http://srv{s}.zjditu.cn/ZJDOMANNO_2D/wmts?service=wmts&request=GetTile&version=1.0.0&LAYER=TDT_ZJIMGANNO&tileMatrixSet=default028mm&TileMatrix={z}&TileRow={y}&TileCol={x}&style=default&format=image/jpgpng", {
+            var provinceAnno = L.tileLayer("http://srv{s}.zjditu.cn/ZJDOMANNO_2D/wmts?service=wmts&request=GetTile&version=1.0.0&LAYER=TDT_ZJIMGANNO&tileMatrixSet=default028mm&TileMatrix={z}&TileRow={y}&TileCol={x}&style=default&format=image/jpgpng", {
                 subdomains: ["0", "1", "2", "3", "4", "5", "6", "7"],
-                minZoom:7,
-                maxZoom:17,
-                zoomOffset :1               
-            });         
+                minZoom: 7,
+                maxZoom: 17,
+                zoomOffset: 1
+            });
             // 市县级
-            var city=L.tileLayer("http://www.qz-map.com/geoservices/CSIMG/service/wmts?service=wmts&request=GetTile&version=1.0.0&LAYER=CSIMG&tileMatrixSet=TileMatrixSet0&TileMatrix={z}&TileRow={y}&TileCol={x}&style=default&format=image/png", {
+            var city = L.tileLayer("http://www.qz-map.com/geoservices/CSIMG/service/wmts?service=wmts&request=GetTile&version=1.0.0&LAYER=CSIMG&tileMatrixSet=TileMatrixSet0&TileMatrix={z}&TileRow={y}&TileCol={x}&style=default&format=image/png", {
                 subdomains: ["0", "1", "2", "3", "4", "5", "6", "7"],
-                minZoom:18,
-                maxZoom:20,
-                zoomOffset :1                  
+                minZoom: 18,
+                maxZoom: 20,
+                zoomOffset: 1
             });
-            var cityAnno=L.tileLayer("http://www.qz-map.com/geoservices/CSIMGANNO/service/wmts?service=wmts&request=GetTile&version=1.0.0&LAYER=CSIMGANNO&tileMatrixSet=TileMatrixSet0&TileMatrix={z}&TileRow={y}&TileCol={x}&style=default&format=image/png", {
+            var cityAnno = L.tileLayer("http://www.qz-map.com/geoservices/CSIMGANNO/service/wmts?service=wmts&request=GetTile&version=1.0.0&LAYER=CSIMGANNO&tileMatrixSet=TileMatrixSet0&TileMatrix={z}&TileRow={y}&TileCol={x}&style=default&format=image/png", {
                 subdomains: ["0", "1", "2", "3", "4", "5", "6", "7"],
-                minZoom:18,
-                maxZoom:20,
-                zoomOffset :1                 
-            });          
-            
-            layerGroup=L.layerGroup([country,countryAnno,province,provinceAnno,city,cityAnno]);
+                minZoom: 18,
+                maxZoom: 20,
+                zoomOffset: 1
+            });
+
+            layerGroup = L.layerGroup([country, countryAnno, province, provinceAnno, city, cityAnno]);
         }
         else
         {
