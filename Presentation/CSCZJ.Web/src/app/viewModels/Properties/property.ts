@@ -33,7 +33,31 @@ export class Property extends PropertyListItem {
     lon?:number;
     lat?:number;
     rents:PropertyRentModel[];
+    parentPropertyId:number;
 }
+
+//资产导出Model
+ export class ExportModel{
+    propertyids:string;
+    govermentids:string;
+    isName:boolean;
+    isAddress:boolean;
+    isGoverment:boolean;
+    isPropertyType:boolean;
+    isRegion:boolean;
+    isGetMode:boolean;
+    isPropertyID:boolean;
+    isUsedPeople:boolean;
+    isFourToStation:boolean;
+    isEstateId:boolean;
+    isConstructArea:boolean;
+    isConstructId:boolean;
+    isLandArea:boolean;
+    isCurrentType:boolean;
+    isUsedType:boolean;
+ }
+
+
 
 //新建资产对象
 export class PropertyCreateModel
@@ -82,7 +106,8 @@ export class PropertyCreateModel
     propertyNature:string
     landNature:string
     lifeTime:number 
-
+    isMain:boolean
+    parentPropertyId:number
     constructor(){
         this.name="";
         this.address="";
@@ -125,6 +150,8 @@ export class PropertyCreateModel
         this.landNature="";
         this.lifeTime=0;        
         this.governmentName="";
+        this.isMain=false;
+        this.parentPropertyId=0;
     }
 }
 
@@ -223,4 +250,11 @@ export class SimplePropertyModel
     id:number;
     name:string;
     address:string;
+}
+
+export class SameIdPropertyModel
+{
+    id:number;
+    name:string;
+    isMain:boolean;
 }

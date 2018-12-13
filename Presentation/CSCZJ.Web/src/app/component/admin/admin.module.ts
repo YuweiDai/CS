@@ -30,6 +30,8 @@ import { PerfectScrollbarModule, PERFECT_SCROLLBAR_CONFIG, PerfectScrollbarConfi
 import { PropertyService } from "../../services/propertyService";
 import { GovernmentService } from "../../services/governmentService";
 import { MapService } from "../../services/map/mapService";
+import { PropertyExportComponent } from './properties/property-export/property-export.component';
+import { PropertyRentlistComponent } from './properties/property-rentlist/property-rentlist.component';
 
 const DEFAULT_PERFECT_SCROLLBAR_CONFIG: PerfectScrollbarConfigInterface = {
   suppressScrollX: true
@@ -57,11 +59,15 @@ const DEFAULT_PERFECT_SCROLLBAR_CONFIG: PerfectScrollbarConfigInterface = {
     PropertyListComponent,
     PropertyCreateComponent,
     PropertyDetailComponent,
+    PropertyExportComponent,
+    PropertyRentlistComponent,
     UiTableComponent,
     LeftmenuComponent,
     PropertyRentComponent,
     PropertyOffComponent,
-    AdminCenterComponent
+    AdminCenterComponent,
+    PropertyExportComponent,
+    PropertyRentlistComponent
   ],
   providers: [
     {

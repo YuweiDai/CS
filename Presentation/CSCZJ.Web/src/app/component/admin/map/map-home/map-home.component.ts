@@ -91,7 +91,13 @@ export class MapHomeComponent implements OnInit {
         }
       ];
    
-    
+
+
+    propertyGoverment=[
+        { label: '常山县财政局', value: '1', checked: true },
+        { label: '常山县公路管理局', value: '2', checked: true },
+        { label: '常山县教育局', value: '3', checked: true }
+    ];
     propertyType = [
         { label: '房产', value: 'House', checked: false },
         { label: '土地', value: 'Land', checked: false }

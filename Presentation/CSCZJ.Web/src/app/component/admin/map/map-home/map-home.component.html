@@ -47,7 +47,10 @@
   <nz-popover [nzTitle]="'高级搜索'" [nzPlacement]="'bottomLeft'"  [nzTrigger]="'click'" [(nzVisible)]="visible">
     <button nz-button nz-popover [nzType]="'primary'">高级搜索</button>
     <ng-template #nzTemplate>
-     
+
+      <p>资产单位</p>
+      <nz-checkbox-group [(ngModel)]="propertyGoverment" ></nz-checkbox-group><br>
+      <nz-divider></nz-divider>
       <p>资产类别</p>
       <nz-checkbox-group [(ngModel)]="propertyType" ></nz-checkbox-group><br>
       <nz-divider></nz-divider>

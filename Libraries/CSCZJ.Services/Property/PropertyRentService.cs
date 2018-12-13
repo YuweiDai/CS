@@ -104,6 +104,65 @@ namespace CSCZJ.Services.Property
             return propertiesRentRecords;
         }
 
+        public IPagedList<PropertyRent> GetRentListRecords(int page = 0, int results = int.MaxValue, string sortField = "", string sortOrder = "", string tabKey = "即将过期", params PropertySortCondition[] sortConditions)
+        {
+            var query = _propertyRentRepository.Table.AsNoTracking();
+
+            Expression<Func<CSCZJ.Core.Domain.Properties.PropertyRent, bool>> expression = p => !p.Deleted;
+            var now = DateTime.Now;
+            var rents = new List<PropertyRent>();
+            query = query.Where(expression);
+            switch (tabKey)
+            {
+                case "即将过期":
+                    query = query.Where(p => System.Data.Entity.DbFunctions.DiffDays(now,p.BackTime) >=0 && System.Data.Entity.DbFunctions.DiffDays(now, p.BackTime) < 30);
+                    break;
+                case "已经过期":
+                    query = query.Where(p=> System.Data.Entity.DbFunctions.DiffDays(now, p.BackTime) < 0);
+                    break;
+                case "全部信息":
+                    break;
+            }
+
+
+            var defaultSort = new PropertySortCondition("Id", System.ComponentModel.ListSortDirection.Ascending);
+            if (sortField == "" || sortField == null ||sortField=="null")
+            {
+
+                sortField = "BackTime";
+               defaultSort = new PropertySortCondition(sortField, System.ComponentModel.ListSortDirection.Ascending);
+            }
+            else {
+                sortField = sortField.Substring(0, 1).ToUpper() + sortField.Substring(1);
+                if (sortOrder == "ascend") defaultSort = new PropertySortCondition(sortField, System.ComponentModel.ListSortDirection.Ascending);
+                else
+                {
+                    defaultSort = new PropertySortCondition(sortField, System.ComponentModel.ListSortDirection.Descending);
+                }
+            }
+
+            if (sortConditions != null && sortConditions.Length != 0)
+            {
+                query = query.Sort(sortConditions[0]);
+            }
+            else
+            {
+                query = query.Sort(defaultSort);
+            }
+
+            var reds = new PagedList<CSCZJ.Core.Domain.Properties.PropertyRent>();
+            reds.TotalCount = query.Count();
+            reds.TotalPages = query.Count() / results;
+            if (query.Count() % results > 0) reds.TotalPages++;
+            reds.PageSize = results;
+            reds.PageIndex = page;
+            reds.AddRange(query.ToList());
+
+                return reds;
+        }
+
+
+
         public void DeletePropertyRent(PropertyRent p)
         {
             if (p == null)
@@ -256,6 +315,8 @@ namespace CSCZJ.Services.Property
             //event notification
             _eventPublisher.EntityUpdated(propertyRentFile);
         }
+
+      
         #endregion
 
 

@@ -389,6 +389,10 @@ namespace CSCZJ.Web.Api.Infrastructure
 
             Mapper.CreateMap<Property,SimplePropertyModel>();
 
+
+            Mapper.CreateMap<Property, SameIdPropertyModel>()
+              .ForMember(dest => dest.IsMain, mo => mo.MapFrom(src => src.ParentPropertyId == 0));
+
         }
     }
 }

@@ -11,13 +11,15 @@ import { PropertyDetailComponent } from './properties/property-detail/property-d
 import { PropertyCreateComponent } from './properties/property-create/property-create.component';
 import { PropertyRentComponent } from './properties/property-rent/property-rent.component';
 import { PropertyOffComponent } from './properties/property-off/property-off.component';
+import { PropertyExportComponent } from './properties/property-export/property-export.component';
+import { PropertyRentlistComponent } from './properties/property-rentlist/property-rentlist.component';
 
-import { AuthGuard } from "../../services/passportService";
+import { AuthGuard } from "../../services/auth-guard.service";
 
 const adminRoutes: Routes = [
     {
         path: 'admin',
-        // canActivate: [AuthGuard],
+        canActivate: [AuthGuard],
         component: AdminCenterComponent,
         children: [
             { path: 'dashboard', component: OverviewComponent },
@@ -32,6 +34,14 @@ const adminRoutes: Routes = [
                     {
                         path: 'create',
                         component: PropertyCreateComponent
+                    },
+                    {
+                        path: 'export',
+                        component: PropertyExportComponent
+                    },
+                    {
+                        path: 'rentlist',
+                        component: PropertyRentlistComponent
                     },
                     {
                         path: 'rent',
@@ -49,6 +59,7 @@ const adminRoutes: Routes = [
                         path: 'edit/:id',
                         component: PropertyCreateComponent
                     },
+                  
                 ]
             },
             { path: 'map', component: MapHomeComponent },

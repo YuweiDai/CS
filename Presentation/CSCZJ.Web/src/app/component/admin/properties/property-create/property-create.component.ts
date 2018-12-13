@@ -8,7 +8,7 @@ import { NzMessageService, UploadFile, NzNotificationService, NzModalService } f
 
 import { format, compareAsc } from 'date-fns'
 
-import { PropertyCreateModel, PropertyPictureModel, PropertyFileModel } from '../../../../viewModels/Properties/property';
+import { PropertyCreateModel, PropertyPictureModel, PropertyFileModel,SameIdPropertyModel } from '../../../../viewModels/Properties/property';
 
 import { MapService } from '../../../../services/map/mapService';
 import { PropertyService } from '../../../../services/propertyService';
@@ -28,11 +28,14 @@ declare var Wkt: any;
 export class PropertyCreateComponent implements OnInit {
   private id: number;
   private title: string;
-  private current: number;
+  private current: number;  
   private stepStatus: string;
   private property = new PropertyCreateModel();
   private orginalPropertyName: string;
-
+  private isSameCardIdLoading:boolean;
+  private sameCardIdChecked:boolean;
+  private sameCardProperties:SameIdPropertyModel[];
+ 
   private wkt: any;
   private map: any;
   private marker = null;
@@ -49,7 +52,6 @@ export class PropertyCreateComponent implements OnInit {
   };
 
   private basicFormValidateConfig = {
-    floorRequired: false,
     constructAreaRequired: false,
     estateIdRequired: true,
     estateTimeRequired: true,
@@ -84,6 +86,9 @@ export class PropertyCreateComponent implements OnInit {
     private mapService: MapService, private configService: ConfigService, private propertyService: PropertyService, private governmentService: GovernmentService) {
 
 
+     this.sameCardProperties=[];
+     this.sameCardIdChecked=false;
+
     this.basicInfoForm = this.fb.group({
       pName: ['', [Validators.required], [this.propertyNameAsyncValidator]],
       pType: ['', [Validators.required]],
@@ -106,6 +111,7 @@ export class PropertyCreateComponent implements OnInit {
       pLandTime: [''],
 
       pGovernmentId: ['', [Validators.required]],
+      pUsedPeolple: ['', [Validators.required]],
       pUseTypeId: ['', [Validators.required]],
       pCurrentTypeId: ['', [Validators.required]],
       pIsMortgage: ['', [Validators.required]],
@@ -148,10 +154,7 @@ export class PropertyCreateComponent implements OnInit {
 
   //资产类别变化引起的表单验证切换
   propertyTypeValidateSwicher(): void {
-    if (this.property.propertyTypeId == "0") {
-      this.basicInfoForm.get('pFloor').setValidators(Validators.required);
-      this.basicInfoForm.get('pFloor').markAsDirty();
-      this.basicFormValidateConfig.floorRequired = true;
+    if (this.property.propertyTypeId == "0"||this.property.propertyTypeId == "2") {
 
       this.basicInfoForm.get('pConstructArea').setValidators(Validators.required);
       this.basicInfoForm.get('pConstructArea').markAsDirty();
@@ -168,13 +171,10 @@ export class PropertyCreateComponent implements OnInit {
       }
 
     } else {
-      this.basicInfoForm.get('pFloor').clearValidators();
-      this.basicInfoForm.get('pFloor').markAsPristine();
-      this.basicFormValidateConfig.floorRequired = false;
 
       this.basicInfoForm.get('pConstructArea').clearValidators();
       this.basicInfoForm.get('pConstructArea').markAsPristine();
-      this.basicFormValidateConfig.floorRequired = false;
+      this.basicFormValidateConfig.constructAreaRequired = false;
 
       if (this.property.registerEstate == 'false') {
         this.basicInfoForm.get('pConstructId').clearValidators();
@@ -284,7 +284,6 @@ export class PropertyCreateComponent implements OnInit {
     that.pictureUploadUrl = that.configService.getApiUrl() + "Media/Pictures/Upload";
     that.fileUploadUrl = that.configService.getApiUrl() + "Media/Files/Upload";
 
-
     let routeConfig = that.route.routeConfig;
     if (routeConfig.path.indexOf("create") > -1) {
       //说明是新增
@@ -362,9 +361,14 @@ export class PropertyCreateComponent implements OnInit {
   pre(): void { 
     this.current -= 1;
     this.changeContent();
+
+    console.log("pre");
+     
   }
 
   next(): void {
+console.log("next");
+
     var validation = false;
     var title = "数据错误", content = "";
     switch (this.current) {
@@ -446,9 +450,35 @@ export class PropertyCreateComponent implements OnInit {
             else pfm.fileId = element.response[0].id;
             this.property.files.push(pfm);
           });
+
+          console.log(this.property);
+          //获取同号资产
+           
+          var typeId = this.property.registerEstate == "true" ? "0" : "1";
+          var number = this.property.registerEstate == "true" ? this.property.estateId : 
+          (this.property.propertyTypeId=="0"?this.property.constructId:this.property.landId);
+
+
+          this.propertyService.getPropertiesBySameNumberId(number, typeId,0)
+            .subscribe(response => {
+              var that = this;
+              that.sameCardIdChecked=true;
+              that.sameCardProperties=response;
+
+              that.sameCardProperties.forEach(element => {
+                if(element.isMain)
+                {
+                  that.property.parentPropertyId=element.id;
+                  return false;
+                }
+              });
+            });
         }
         break;
       case 3:
+
+
+
         break;
     }
 
@@ -468,6 +498,9 @@ export class PropertyCreateComponent implements OnInit {
     var that = this;
     that.isSubmit = true;
     that.property.submit = submit;
+
+    console.log(that.property);
+
 
     if (that.id > 0) {
       this.propertyService.updatedProperty(this.property).subscribe((response: any) => {
@@ -511,10 +544,10 @@ export class PropertyCreateComponent implements OnInit {
               nzOkText: '查看资产',
               nzCancelText: '返回列表',
               nzOnOk: function () {
-                that.router.navigate(['../properties/' + id]);
+                that.router.navigate(['/admin/properties/' + id]);
               },
               nzOnCancel: function () {
-                that.router.navigate(['/properties']);
+                that.router.navigate(['/admin/properties']);
               }
             });
           }

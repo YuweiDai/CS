@@ -133,6 +133,11 @@ export class AuthService {
         return this.userHasRole(this.authentication.roles, "管理员");
     }
 
+    isLoggedIn():boolean
+    {
+        return this.authentication.isAuth;
+    }
+
     fillAuthData(): void {
         var authData = this.localStorageService.retrieve("authroziationData");
         if (authData) {
@@ -258,13 +263,5 @@ export class TokensManagerService {
     /** Log a PropertyService message with the MessageService */
     private log(message: string) {
         this.logService.add('PropertyService: ' + message);
-    }
-}
-
-@Injectable()
-export class AuthGuard implements CanActivate {
-    canActivate() {
-        console.log("auth called");
-        return true;
     }
 }

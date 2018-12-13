@@ -232,6 +232,7 @@ namespace CSCZJ.API.Controllers
 
             if (propertyCreateModel.PropertyTypeId == 2) propertyCreateModel.Floor = 0;
 
+
          //   property.HasConstructID = !string.IsNullOrEmpty(property.EstateId) || !string.IsNullOrEmpty(property.ConstructId);  //是否拥有房产证
         //    property.HasLandID = !string.IsNullOrEmpty(property.EstateId) || !string.IsNullOrEmpty(property.LandId);  //是否土地证
         }
@@ -1651,6 +1652,43 @@ namespace CSCZJ.API.Controllers
         }
 
         /// <summary>
+        /// 获取相同不动产证号 或者 房产证的 资产
+        /// </summary>
+        /// <param name="numberId">证据号码</param>
+        /// <param name="typeId">证件类型，0为不动产证 1为房产证</param>
+        /// <returns></returns>
+        [HttpGet]
+        [Route("samenumber")]
+        public IHttpActionResult GetPropertiesBySameNumberId(string numberId, string typeId, int id = 0)
+        {
+            if (typeId != "0" && typeId != "1") return BadRequest();
+
+            var response = _propertyService.GetPropertiesBySameNumberId(numberId, typeId).Select(p =>
+             {
+                 var pp = p.ToSameIdModel();
+
+                 if (!p.Published)
+                     pp.Name += "(未发布)";
+                 return pp;
+             }).ToList();
+
+
+
+            if (id != 0)
+            {
+                var currentProperty = response.Where(p => p.Id == id).SingleOrDefault();
+                if (currentProperty != null)
+                    response.Remove(currentProperty);               
+            }
+
+ 
+        
+
+            return Ok(response);
+        }
+
+
+        /// <summary>
         /// 新增资产
         /// </summary>
         /// <param name="propertyModel"></param>
@@ -1666,10 +1704,16 @@ namespace CSCZJ.API.Controllers
             var property = propertyCreateModel.ToEntity();       
 
             PrepareProperty(property, propertyCreateModel);
-          
+
+            //一证多资产处理
+            var orginParentPropertyId = propertyCreateModel.IsMain ? propertyCreateModel.ParentPropertyId : 0;
+
+ 
+
             _propertyService.InsertProperty(property);
 
-            
+ 
+
             //activity log
             _accountUserActivityService.InsertActivity("AddNewproperty", "增加 名为 {0} 的资产", property.Name);
 
@@ -1995,6 +2039,57 @@ namespace CSCZJ.API.Controllers
         #endregion
 
         #region 资产处置
+
+        //获取资产出租列表
+        [HttpGet]
+        [Route("rentlist")]
+        public IHttpActionResult GetRentList(int page = 0, int results = int.MaxValue, string sortField = "", string sortOrder = "",string tabKey="即将过期") {
+         
+            //初始化排序条件
+            var sortConditions = PropertySortCondition.Instance(sortField);
+
+            var allRecords = _propertyRentService.GetRentListRecords(page,results,sortField,sortOrder,tabKey);
+            var response = new ListResponse<PropertyRentApproveListModel>
+            {
+
+                Paging = new Paging
+                {
+                    PageIndex = page,
+                    PageSize = results,
+                    Total = allRecords.TotalCount,
+                    FilterCount = allRecords.Count,
+                },
+                Data = allRecords.Select(pcr =>
+                {
+                    var pcrl = pcr.ToListModel();
+
+                    pcrl.RentTime = pcr.RentTime.ToString("yyyy/MM/dd") + " - " + pcr.BackTime.ToString("yyyy/MM/dd");
+                    pcrl.PriceString = "";
+                    var priceList = pcr.PriceString.Split(';');
+                    var index = 1;
+                    foreach (var price in priceList)
+                    {
+                        if (index > 2)
+                        {
+                            pcrl.PriceString += "...";
+                            break;
+                        }
+                        pcrl.PriceString += string.Format("第{0}年租金{1}元;", index, price);
+                        index++;
+                    }
+
+                    pcrl.Property_Id = pcr.Property.Id;
+                  //  pcrl.CanApprove = PropertyCanApprove(pcr.State, pcr.SuggestGovernmentId);
+
+                //    pcrl.CanEditAndDelete = PropertyApproveCanEditDeleteAndSubmit(pcr.State, pcr.SuggestGovernmentId);
+
+                    return pcrl;
+                })
+            };
+
+            return Ok(response);
+        }
+
 
         //[AllowAnonymous]
         [HttpGet]
@@ -2399,6 +2494,7 @@ namespace CSCZJ.API.Controllers
                     _propertyRentService.UpdatePropertyRent(rent);
                     #endregion
 
+                    //
                     SwitchPropertyLockState(true, property);
 
                 }
@@ -4611,10 +4707,11 @@ namespace CSCZJ.API.Controllers
         #region 资产导入导出   
 
         [HttpPost]
-        [Route("Export/{ids}")]
-        public HttpResponseMessage ExportProperties(string ids, PropertyAdvanceConditionModel advance)
+        [Route("Export")]
+        public HttpResponseMessage ExportProperties(ExportModel exportModel)
         {
-            var exportModel = advance.Fields;
+            string ids = "";
+            //var exportModel = advance.Fields;
             var browser = String.Empty;
             //    string path = @"~/Content/资产导出" + DateTime.Now.ToString("yyyyMMddhhmmss");
             string path = System.Web.Hosting.HostingEnvironment.MapPath(@"~/Content/资产导出/" + DateTime.Now.ToString("yyyyMMddhhmmss"));
@@ -4627,33 +4724,35 @@ namespace CSCZJ.API.Controllers
 
             #region 获取导出的资产集合
             IList<Property> properties = new List<Property>();
-            if (ids != "all")
-            {
-                var pids = ids.Split(';');
-                foreach (var id in pids)
-                {
-                    var property = _propertyService.GetPropertyById(Convert.ToInt32(id));
-                    properties.Add(property);
-                }
-            }
-            else
-            {
-                var currentUser = _workContext.CurrentAccountUser;
 
-                var showHidden = currentUser.IsRegistered() && currentUser.AccountUserRoles.Count == 1;  //只是注册单位可以获取未发布的
+            properties = _propertyService.GetAllProperties();
+            //if (ids != "all")
+            //{
+            //    var pids = ids.Split(';');
+            //    foreach (var id in pids)
+            //    {
+            //        var property = _propertyService.GetPropertyById(Convert.ToInt32(id));
+            //        properties.Add(property);
+            //    }
+            //}
+          //  else
+          //  {
+                //var currentUser = _workContext.CurrentAccountUser;
 
-                //初始化排序条件
-                var sortConditions = PropertySortCondition.Instance(advance.Sort);
+                //var showHidden = currentUser.IsRegistered() && currentUser.AccountUserRoles.Count == 1;  //只是注册单位可以获取未发布的
 
-                //特殊字段排序调整
-                if (advance.Sort.ToLower().StartsWith("governmentname")) sortConditions[0].PropertyName = "Government";
+                ////初始化排序条件
+                //var sortConditions = PropertySortCondition.Instance(advance.Sort);
 
-                //高级搜索参数设置
-                PropertyAdvanceConditionRequest request = PrepareAdvanceCondition(advance);
-                var governmentIds = _governmentService.GetGovernmentIdsByCurrentUser();  //获取当前账户的可查询的资产
-                properties = _propertyService.GetAllProperties(governmentIds, advance.Query, 0, int.MaxValue, showHidden, request, sortConditions);
+                ////特殊字段排序调整
+                //if (advance.Sort.ToLower().StartsWith("governmentname")) sortConditions[0].PropertyName = "Government";
 
-            }
+                ////高级搜索参数设置
+                //PropertyAdvanceConditionRequest request = PrepareAdvanceCondition(advance);
+                //var governmentIds = _governmentService.GetGovernmentIdsByCurrentUser();  //获取当前账户的可查询的资产
+                //properties = _propertyService.GetAllProperties(governmentIds, advance.Query, 0, int.MaxValue, showHidden, request, sortConditions);
+
+            //}
             #endregion
 
             using (FileStream stream = System.IO.File.Create(filePath))
@@ -4670,7 +4769,7 @@ namespace CSCZJ.API.Controllers
                         if (Convert.ToBoolean(item.GetValue(exportModel)) == true) headers.Add(data);
                     }
                 }
-                _exportManager.ExportPropertyToXlsx(stream, properties, headers);
+               _exportManager.ExportPropertyToXlsx(stream, properties, headers);
 
                 //activity log
                 _accountUserActivityService.InsertActivity("ExportProperties", "批量导出资产");

@@ -48,6 +48,11 @@ namespace CSCZJ.Web.Api.Extensions
             return entity.MapTo<Property, SimplePropertyModel>();
         }
 
+        public static SameIdPropertyModel ToSameIdModel(this Property entity)
+        {
+            return entity.MapTo<Property, SameIdPropertyModel>();
+        }
+
         public static PropertyListModel ToListModel(this Property entity)
         {
             return entity.MapTo<Property, PropertyListModel>();
@@ -192,6 +197,7 @@ namespace CSCZJ.Web.Api.Extensions
         {
             return entity.MapTo<PropertyRent, PropertyRentApproveListModel>();
         }
+
         public static PropertyRent ToEntity(this PropertyRentModel createmodel)
         {
             return createmodel.MapTo<PropertyRentModel, PropertyRent>();

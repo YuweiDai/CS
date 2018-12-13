@@ -112,6 +112,9 @@ namespace CSCZJ.Services.Properties
 
             if (!showHidden) expression = expression.And(p => p.Published && !p.Off);
 
+            //不查询子资产
+            expression = expression.And(p => p.ParentPropertyId == 0);
+
             //字符串查询
             if (!string.IsNullOrEmpty(search))
             {
@@ -694,6 +697,35 @@ namespace CSCZJ.Services.Properties
             var properties = query.ToList();
             return properties;
         }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="numberId"></param>
+        /// <param name="typeId">证件类型，0为不动产证 1为房产证</param>
+        /// <returns></returns>
+        public IList<Core.Domain.Properties.Property> GetPropertiesBySameNumberId(string numberId, string typeId)
+        {
+            var query = _propertyRepository.TableNoTracking;
+
+            query = query.Where(p => !p.Deleted);
+
+
+            if(typeId=="0")
+            {
+                query = query.Where(p => p.EstateId == numberId);
+            }
+            else if (typeId == "1")
+            {
+                query = query.Where(p => p.PropertyID == numberId);
+            }
+
+            query = query.OrderBy(p => p.ParentPropertyId).ThenBy(p => p.Id);
+
+
+            return query.ToList();
+        }
+
 
         public void DeletePropertyPicture(PropertyPicture propertyPicture)
         {
